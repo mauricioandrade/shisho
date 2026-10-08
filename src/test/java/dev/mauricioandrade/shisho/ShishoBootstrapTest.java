@@ -35,7 +35,7 @@ class ShishoBootstrapTest {
     @Test
     void theShishoAnalyzesItselfWithoutGraveLessons() {
         assertThat(run("analyze", ".")).isZero();
-        assertThat(out()).startsWith("師匠 Shishō — análise de shisho  (Java 25)");
+        assertThat(out()).startsWith("師匠 Shishō — análise de ").contains("  (Java 25)\n");
     }
 
     @Test

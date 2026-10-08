@@ -9,6 +9,7 @@ import dev.mauricioandrade.shisho.domain.model.Rank;
 import dev.mauricioandrade.shisho.domain.model.Severity;
 import dev.mauricioandrade.shisho.domain.model.SourceFile;
 import dev.mauricioandrade.shisho.infrastructure.build.MavenBuildFileReader;
+import dev.mauricioandrade.shisho.infrastructure.i18n.Messages;
 import dev.mauricioandrade.shisho.infrastructure.kata.Katas;
 import dev.mauricioandrade.shisho.infrastructure.parser.JavaParserSourceParser;
 import org.junit.jupiter.api.Test;
@@ -19,14 +20,13 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Locale;
-import java.util.ResourceBundle;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 class TerminalReportWriterTest {
 
-    private static final ResourceBundle PORTUGUESE = ResourceBundle.getBundle("messages", Locale.of("pt", "BR"));
-    private static final ResourceBundle ENGLISH = ResourceBundle.getBundle("messages", Locale.ROOT);
+    private static final Messages PORTUGUESE = new Messages(Messages.DEFAULT_LOCALE);
+    private static final Messages ENGLISH = new Messages(Locale.ENGLISH);
 
     @Test
     void writesLessonsAndGraduation() {
@@ -98,7 +98,7 @@ class TerminalReportWriterTest {
                 .endsWith("\nGraduação: 4º kyū  (9 lições: 1 grave, 6 médias, 2 leves)\n");
     }
 
-    private static String render(Analysis analysis, ResourceBundle messages) {
+    private static String render(Analysis analysis, Messages messages) {
         ByteArrayOutputStream buffer = new ByteArrayOutputStream();
         PrintStream out = new PrintStream(buffer, true, StandardCharsets.UTF_8);
         new TerminalReportWriter(out, messages).write(analysis);

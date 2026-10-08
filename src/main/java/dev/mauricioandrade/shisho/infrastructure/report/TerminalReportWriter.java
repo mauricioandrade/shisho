@@ -5,13 +5,12 @@ import dev.mauricioandrade.shisho.domain.model.Lesson;
 import dev.mauricioandrade.shisho.domain.model.Severity;
 import dev.mauricioandrade.shisho.domain.model.SourceFile;
 import dev.mauricioandrade.shisho.domain.port.out.ReportWriter;
+import dev.mauricioandrade.shisho.infrastructure.i18n.Messages;
 
 import java.io.PrintStream;
-import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.ResourceBundle;
 
 /** The only place in the Shishō that writes to the console. */
 public final class TerminalReportWriter implements ReportWriter {
@@ -19,9 +18,9 @@ public final class TerminalReportWriter implements ReportWriter {
     private static final int WIDTH = 100;
 
     private final PrintStream out;
-    private final ResourceBundle messages;
+    private final Messages messages;
 
-    public TerminalReportWriter(PrintStream out, ResourceBundle messages) {
+    public TerminalReportWriter(PrintStream out, Messages messages) {
         this.out = out;
         this.messages = messages;
     }
@@ -77,7 +76,7 @@ public final class TerminalReportWriter implements ReportWriter {
     }
 
     private String text(String key, Object... arguments) {
-        return new MessageFormat(messages.getString(key), messages.getLocale()).format(arguments);
+        return messages.text(key, arguments);
     }
 
     private static String pad(String text, int width) {

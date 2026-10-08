@@ -1,5 +1,7 @@
 package dev.mauricioandrade.shisho.i18n;
 
+import dev.mauricioandrade.shisho.domain.model.Kata;
+import dev.mauricioandrade.shisho.infrastructure.kata.Katas;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -16,6 +18,14 @@ class MessageBundlesTest {
     void portugueseAndEnglishBundlesHaveTheSameKeys() throws IOException {
         assertThat(load("messages_pt_BR.properties").stringPropertyNames())
                 .containsExactlyInAnyOrderElementsOf(load("messages.properties").stringPropertyNames());
+    }
+
+    @Test
+    void everyKataHasALessonMessage() throws IOException {
+        Properties messages = load("messages_pt_BR.properties");
+
+        assertThat(Katas.all()).extracting(Kata::id).allSatisfy(id ->
+                assertThat(messages).containsKey("kata." + id + ".lesson"));
     }
 
     private static Properties load(String resource) throws IOException {

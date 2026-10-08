@@ -140,6 +140,29 @@ você pedir.
 - [ ] **Fase 5** — exemplos antes/depois, catálogo de recursos do Java, autofix com OpenRewrite
 - [ ] **Fase 6** — LLM local opcional
 - [ ] **Depois** — outras stacks, reaproveitando o catálogo de arquiteturas
+- [ ] **Ideias** — modo `--shoshin` (初心, "mente de principiante"), que explica cada conceito
+  que aparece no código (o que é um record, uma sealed interface…); gerador de CRUD que segue a
+  arquitetura detectada no projeto e já passa em todas as katas
+
+## Rodando a partir do código
+
+Você precisa de **JDK 25** e **Maven 3.9**. Se já tem os dois, pule direto para o `mvn verify`.
+
+Se não tem (ou tem outra versão do Java instalada para outros projetos), o repositório traz um
+[`mise.toml`](mise.toml) com as versões exatas. O [mise](https://mise.jdx.dev) é um gerenciador
+de versões de ferramentas — parecido com SDKMAN, asdf ou nvm, mas para várias linguagens ao
+mesmo tempo. Ele lê o `mise.toml` e, **só dentro desta pasta**, coloca no `PATH` o Java e o
+Maven certos, sem mexer no que você já usa no resto da máquina.
+
+```bash
+# instale o mise: https://mise.jdx.dev/getting-started.html
+mise trust      # autoriza o mise.toml deste repositório (só na primeira vez)
+mise install    # baixa o Temurin 25 e o Maven pinados
+mvn verify
+```
+
+O mise é usado só para conveniência de desenvolvimento. Ele não é dependência do Shishō, e
+nada no build exige que você o use.
 
 ## Contribuindo
 
@@ -157,3 +180,10 @@ Issues marcadas com `good first issue` são um bom ponto de partida.
 
 Código sob [Apache 2.0](LICENSE). Os GIFs de anime pertencem aos seus criadores e estúdios
 e são usados apenas como ilustração.
+
+## Créditos
+
+- [mise](https://github.com/jdx/mise), de Jeff Dickey e contribuidores (MIT) — gerenciamento
+  das versões de Java e Maven no desenvolvimento.
+- [JavaParser](https://github.com/javaparser/javaparser) (Apache 2.0 / LGPL) — parser de
+  código Java usado pelas katas. A escolha está em [`docs/adr/0001-parser.md`](docs/adr/0001-parser.md).

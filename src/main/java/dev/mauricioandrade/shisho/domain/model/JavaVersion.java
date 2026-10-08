@@ -7,6 +7,9 @@ import java.util.regex.Pattern;
 /** A Java feature release, such as 21 or 25. Legacy {@code 1.x} notation maps to {@code x}. */
 public record JavaVersion(int feature) implements Comparable<JavaVersion> {
 
+    /** The oldest version the Shishō analyzes. */
+    public static final JavaVersion BASELINE = new JavaVersion(21);
+
     private static final Pattern NOTATION = Pattern.compile("(?:1\\.)?([1-9]\\d*)");
 
     public JavaVersion {

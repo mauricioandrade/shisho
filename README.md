@@ -133,7 +133,7 @@ você pedir.
 
 ## Roadmap
 
-- [ ] **Fase 1** — CLI, catálogo, 7 katas de AST, relatório no terminal
+- [x] **Fase 1** — CLI, catálogo, 7 katas de AST, relatório no terminal
 - [ ] **Fase 2** — katas com resolução de tipos e de projeto, `shisho.yaml`
 - [ ] **Fase 3** — classificação de arquitetura e veredito de overengineering
 - [ ] **Fase 4** — relatório HTML, SARIF e GitHub Action
@@ -158,8 +158,23 @@ Maven certos, sem mexer no que você já usa no resto da máquina.
 # instale o mise: https://mise.jdx.dev/getting-started.html
 mise trust      # autoriza o mise.toml deste repositório (só na primeira vez)
 mise install    # baixa o Temurin 25 e o Maven pinados
-mvn verify
+mvn verify      # testes + target/shisho.jar
 ```
+
+Depois é só apontar o Shishō para a raiz de um projeto Maven:
+
+```bash
+java -jar target/shisho.jar analyze ~/projetos/minha-api
+```
+
+O código de saída foi pensado para CI:
+
+| Código | Significado |
+|---|---|
+| 0 | nenhuma lição grave |
+| 1 | há pelo menos uma lição **GRAVE** |
+| 2 | entrada inválida (caminho inexistente, argumento faltando) |
+| 3 | o projeto não pôde ser analisado (ex.: Java abaixo do 21) |
 
 O mise é usado só para conveniência de desenvolvimento. Ele não é dependência do Shishō, e
 nada no build exige que você o use.
@@ -187,3 +202,6 @@ e são usados apenas como ilustração.
   das versões de Java e Maven no desenvolvimento.
 - [JavaParser](https://github.com/javaparser/javaparser) (Apache 2.0 / LGPL) — parser de
   código Java usado pelas katas. A escolha está em [`docs/adr/0001-parser.md`](docs/adr/0001-parser.md).
+- [picocli](https://picocli.info) (Apache 2.0) — linha de comando.
+- [SnakeYAML](https://bitbucket.org/snakeyaml/snakeyaml) (Apache 2.0) — leitura do frontmatter
+  do catálogo.

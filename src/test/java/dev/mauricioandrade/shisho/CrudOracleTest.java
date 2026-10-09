@@ -34,7 +34,7 @@ class CrudOracleTest {
     void theGeneratedCrudPassesEveryKata(String architectureId, @TempDir Path project) throws IOException {
         copyInitializr(project);
 
-        assertThat(run("crud", "--arquitetura", architectureId, project.toString(), "Produto",
+        assertThat(run("crud", "--arquitetura", architectureId, "--mesmo-assim", project.toString(), "Produto",
                 "nome:String", "estoque:Integer", "codigoBarras:Long", "peso:Double", "ativo:Boolean", "preco:BigDecimal",
                 "lancamento:LocalDate", "atualizadoEm:LocalDateTime", "criadoEm:Instant", "codigo:UUID")).isZero();
         assertThat(run("crud", "--arquitetura", architectureId, project.toString(), "ItemPedido", "quantidade:Integer")).isZero();
@@ -49,7 +49,7 @@ class CrudOracleTest {
     @MethodSource("scaffolds")
     void theNextCrudFollowsTheArchitectureWithoutBeingTold(String architectureId, @TempDir Path project) throws IOException {
         copyInitializr(project);
-        run("crud", "--arquitetura", architectureId, project.toString(), "Produto", "nome:String");
+        run("crud", "--arquitetura", architectureId, "--mesmo-assim", project.toString(), "Produto", "nome:String");
         run("crud", "--arquitetura", architectureId, project.toString(), "Cliente", "nome:String");
 
         assertThat(run("crud", project.toString(), "Fornecedor", "nome:String")).isZero();

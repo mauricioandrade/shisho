@@ -101,6 +101,43 @@ class CrudCommandTest {
     }
 
     @Test
+    void writesNothingWhenNothingPaysForTheArchitecture() {
+        assertThat(run(hexagonal(List.of()), "--arquitetura", "hexagonal", project.toString(), "Usuario", "nome:String")).isEqualTo(2);
+
+        assertThat(project.resolve(ENTITY.file())).doesNotExist();
+        assertThat(text(err)).isEqualTo("""
+                ⚠ Este CRUD em Hexagonal (Ports & Adapters) cria 1 arquivo, e nada no contexto do shisho.yaml paga
+                esse custo. A arquitetura vale a pena quando o projeto tem: multiplas_integracoes_externas,
+                dominio_com_regras_complexas, troca_provavel_de_infra, vida_util_longa. Para um CRUD sem regras de
+                negócio, package-by-feature faz o mesmo com menos arquivos.
+
+                Nada foi gravado. Se o projeto tem um desses motivos, declare-o em contexto.caracteristicas no
+                shisho.yaml: a decisão fica registrada, e o shisho analyze passa a usá-la. Para gerar mesmo assim,
+                use --mesmo-assim.
+                """);
+    }
+
+    @Test
+    void generatesAnywayWhenToldAndRepeatsTheWarning() {
+        assertThat(run(hexagonal(List.of()), "--arquitetura", "hexagonal", "--mesmo-assim", project.toString(), "Usuario", "nome:String"))
+                .isZero();
+
+        assertThat(project.resolve(ENTITY.file())).exists();
+        assertThat(text(out)).contains("⚠ Este CRUD em Hexagonal (Ports & Adapters) cria 1 arquivo");
+    }
+
+    @Test
+    void namesWhatPaysForTheArchitecture() {
+        assertThat(run(hexagonal(List.of("dominio_com_regras_complexas")), project.toString(), "Usuario", "nome:String")).isZero();
+
+        assertThat(project.resolve(ENTITY.file())).exists();
+        assertThat(text(out)).contains("""
+                ✓ Hexagonal (Ports & Adapters) se paga neste projeto, segundo o contexto do shisho.yaml:
+                dominio_com_regras_complexas.
+                """);
+    }
+
+    @Test
     void explainsTheFieldSyntax() {
         assertThat(run(plan(Optional.empty(), List.of()), project.toString(), "Usuario", "nome")).isEqualTo(2);
 
@@ -135,6 +172,11 @@ class CrudCommandTest {
 
     private CrudPlan plan(Optional<ArchitectureProfile> other, List<List<String>> missing) {
         return new CrudPlan(architecture("package-by-feature"), List.of(ENTITY), List.of(HANDLER), other, missing, Optional.empty());
+    }
+
+    private static CrudPlan hexagonal(List<String> paidBy) {
+        return new CrudPlan(architecture("hexagonal"), List.of(ENTITY), List.of(), Optional.empty(), List.of(),
+                Optional.of(new CrudPlan.Cost(paidBy)));
     }
 
     private static ArchitectureProfile architecture(String id) {

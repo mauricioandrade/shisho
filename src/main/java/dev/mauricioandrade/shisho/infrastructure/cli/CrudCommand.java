@@ -2,6 +2,7 @@ package dev.mauricioandrade.shisho.infrastructure.cli;
 
 import dev.mauricioandrade.shisho.domain.exception.ScaffoldException;
 import dev.mauricioandrade.shisho.domain.exception.ShishoException;
+import dev.mauricioandrade.shisho.domain.model.ArchitectureProfile;
 import dev.mauricioandrade.shisho.domain.model.CrudPlan;
 import dev.mauricioandrade.shisho.domain.model.CrudRequest;
 import dev.mauricioandrade.shisho.domain.model.GeneratedFile;
@@ -25,9 +26,11 @@ import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 /**
- * {@code shisho crud [--arquitetura <id>] [--pacote <p>] [--rota <r>] <dir> <Entidade> <campo:Tipo>...}:
+ * {@code shisho crud [--arquitetura <id>] [--pacote <p>] [--rota <r>] [--mesmo-assim] <dir> <Entidade> <campo:Tipo>...}:
  * creates a CRUD in the project's architecture and explains every file. It never overwrites:
- * if a file already exists, nothing is written. See docs/adr/0005-crud-scaffolding.md.
+ * if a file already exists, nothing is written. Nor does it write an architecture whose cost
+ * nothing in the declared context pays for, unless told to. See docs/adr/0005-crud-scaffolding.md
+ * and docs/adr/0006-crud-cost-warning.md.
  */
 @Command(name = "crud", mixinStandardHelpOptions = true, exitCodeOnExecutionException = AnalyzeCommand.EXIT_NOT_ANALYZED)
 public final class CrudCommand implements Callable<Integer> {
@@ -57,6 +60,9 @@ public final class CrudCommand implements Callable<Integer> {
     @Option(names = "--rota", paramLabel = "<rota>", descriptionKey = "crud.route")
     private String route;
 
+    @Option(names = "--mesmo-assim", descriptionKey = "crud.anyway")
+    private boolean anyway;
+
     public CrudCommand(GenerateCrud generateCrud, Messages messages, PrintStream out, PrintStream err) {
         this.generateCrud = generateCrud;
         this.messages = messages;
@@ -80,6 +86,12 @@ public final class CrudCommand implements Callable<Integer> {
         } catch (ShishoException e) {
             err.println(messages.text(e.messageKey(), e.arguments().toArray()));
             return AnalyzeCommand.EXIT_NOT_ANALYZED;
+        }
+        if (plan.cost().filter(cost -> !cost.paid()).isPresent() && !anyway) {
+            TerminalReportWriter.wrap(costWarning(plan), TerminalReportWriter.WIDTH).forEach(err::println);
+            err.println();
+            TerminalReportWriter.wrap(messages.text("crud.error.cost"), TerminalReportWriter.WIDTH).forEach(err::println);
+            return AnalyzeCommand.EXIT_INVALID_INPUT;
         }
         List<GeneratedFile> existing = plan.files().stream().filter(file -> Files.exists(project.resolve(file.file()))).toList();
         if (!existing.isEmpty()) {
@@ -126,6 +138,9 @@ public final class CrudCommand implements Callable<Integer> {
         out.println();
         plan.files().forEach(file -> describe("+ ", file.file(), file.explanation()));
         plan.skipped().forEach(file -> describe("= ", file.file(), messages.text("crud.skipped")));
+        plan.cost().ifPresent(cost -> warn(cost.paid()
+                ? messages.text("crud.cost.paid", plan.architecture().name(), String.join(", ", cost.paidBy()))
+                : costWarning(plan)));
         plan.otherArchitecture().ifPresent(other -> warn(messages.text("crud.warning.mixed", other.name(), plan.architecture().name())));
         if (!plan.missingDependencies().isEmpty()) {
             warn(messages.text("crud.warning.dependencies", plan.missingDependencies().stream()
@@ -133,6 +148,15 @@ public final class CrudCommand implements Callable<Integer> {
                     .collect(Collectors.joining(", "))));
         }
         out.println(messages.text("crud.summary", plan.files().size(), messages.text("fix.count.files", plan.files().size())));
+    }
+
+    private String costWarning(CrudPlan plan) {
+        ArchitectureProfile architecture = plan.architecture();
+        String warning = messages.text("crud.warning.cost", architecture.name(), messages.text("fix.count.files", plan.files().size()),
+                String.join(", ", architecture.makesSenseWhen()));
+        return architecture.simplerAlternative()
+                .map(simpler -> warning + " " + messages.text("crud.warning.cost.simpler", simpler))
+                .orElse(warning);
     }
 
     private void describe(String symbol, Path file, String explanation) {

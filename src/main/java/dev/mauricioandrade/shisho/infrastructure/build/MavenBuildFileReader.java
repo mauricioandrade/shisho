@@ -47,7 +47,7 @@ public final class MavenBuildFileReader implements BuildFileReader {
             return Optional.empty();
         }
         Element project = parse(pom);
-        return Optional.of(new BuildInfo(javaVersion(pom, project), dependencies(project)));
+        return Optional.of(new BuildInfo(Path.of(POM), javaVersion(pom, project), dependencies(project)));
     }
 
     /**

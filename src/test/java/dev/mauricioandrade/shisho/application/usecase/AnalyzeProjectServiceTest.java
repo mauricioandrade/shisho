@@ -144,7 +144,7 @@ class AnalyzeProjectServiceTest {
     }
 
     private static BuildFileReader version(int feature) {
-        return root -> Optional.of(new BuildInfo(Optional.of(new JavaVersion(feature)), List.of()));
+        return root -> Optional.of(new BuildInfo(Path.of("pom.xml"), Optional.of(new JavaVersion(feature)), List.of()));
     }
 
     private static ClassUnit unit(String file, int line) {

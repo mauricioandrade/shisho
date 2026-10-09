@@ -26,8 +26,11 @@ class MavenBuildFileReaderTest {
     void readsShishoItself() {
         BuildInfo build = reader.read(Path.of("")).orElseThrow();
 
+        assertThat(build.file()).isEqualTo(Path.of("pom.xml"));
         assertThat(build.javaVersion()).contains(new JavaVersion(25));
         assertThat(build.dependencies()).contains(new Dependency("org.yaml", "snakeyaml"));
+        assertThat(build.dependsOn("info.picocli", "picocli")).isTrue();
+        assertThat(build.dependsOn("info.picocli", "picocli-codegen")).isFalse();
     }
 
     @Test

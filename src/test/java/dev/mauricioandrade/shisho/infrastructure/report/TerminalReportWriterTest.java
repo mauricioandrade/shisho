@@ -94,8 +94,8 @@ class TerminalReportWriterTest {
         String report = render(service.analyze(Path.of("src/test/resources/fixtures/aluno-baguncado")), PORTUGUESE);
 
         assertThat(report)
-                .startsWith("師匠 Shishō — análise de aluno-baguncado  (Java 21)\n\n✗ GRAVE  [field-injection]")
-                .endsWith("\nGraduação: 4º kyū  (11 lições: 1 grave, 7 médias, 3 leves)\n");
+                .startsWith("師匠 Shishō — análise de aluno-baguncado  (Java 21)\n\n! MEDIA  [missing-controller-advice]")
+                .endsWith("\nGraduação: 4º kyū  (12 lições: 1 grave, 8 médias, 3 leves)\n");
     }
 
     private static String render(Analysis analysis, Messages messages) {

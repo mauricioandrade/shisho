@@ -20,6 +20,7 @@ public final class Katas {
                 new RequestBodyWithoutValidKata(),
                 new DtoNotRecordKata(),
                 new EntityInControllerKata(),
-                new TransactionalReadOnlyKata());
+                new TransactionalReadOnlyKata(),
+                new MissingControllerAdviceKata());
     }
 }

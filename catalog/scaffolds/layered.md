@@ -277,16 +277,40 @@ public class {{Entidade}}Controller {
 
 Um lugar só para os erros da API, criado uma vez por projeto. Herdar de
 `ResponseEntityExceptionHandler` faz o Spring responder no formato ProblemDetail (RFC 9457) a
-erros de validação, JSON malformado e exceções como {{Entidade}}InexistenteException. Um erro novo
+erros de validação, JSON malformado e exceções como {{Entidade}}InexistenteException. Nos erros de
+validação, a resposta ganha um campo `campos` dizendo o que falhou em cada campo. Um erro novo
 do domínio ganha um `@ExceptionHandler` aqui, e não um try/catch em cada endpoint.
 
 ```java
 package {{pacote}}.controller;
 
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatusCode;
+import org.springframework.http.ProblemDetail;
+import org.springframework.http.ResponseEntity;
+import org.springframework.validation.FieldError;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
+
+import java.util.Map;
+import java.util.TreeMap;
 
 @RestControllerAdvice
 public class TratadorDeErros extends ResponseEntityExceptionHandler {
+
+    /** Diz ao cliente quais campos falharam, e não só que a requisição é inválida. */
+    @Override
+    protected ResponseEntity<Object> handleMethodArgumentNotValid(
+            MethodArgumentNotValidException e, HttpHeaders headers, HttpStatusCode status, WebRequest request) {
+        Map<String, String> campos = new TreeMap<>();
+        for (FieldError erro : e.getBindingResult().getFieldErrors()) {
+            campos.putIfAbsent(erro.getField(), erro.getDefaultMessage());
+        }
+        ProblemDetail problema = e.getBody();
+        problema.setProperty("campos", campos);
+        return handleExceptionInternal(e, problema, headers, status, request);
+    }
 }
 ```

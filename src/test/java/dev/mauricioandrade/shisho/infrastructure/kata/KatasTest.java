@@ -3,6 +3,7 @@ package dev.mauricioandrade.shisho.infrastructure.kata;
 import dev.mauricioandrade.shisho.application.usecase.AnalyzeProjectService;
 import dev.mauricioandrade.shisho.application.usecase.ClassifyArchitectureService;
 import dev.mauricioandrade.shisho.application.usecase.RankCalculator;
+import dev.mauricioandrade.shisho.domain.model.JavaFeature;
 import dev.mauricioandrade.shisho.domain.model.Kata;
 import dev.mauricioandrade.shisho.domain.model.Lesson;
 import dev.mauricioandrade.shisho.domain.model.Severity;
@@ -15,6 +16,9 @@ import org.junit.jupiter.api.Test;
 
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
@@ -26,7 +30,20 @@ class KatasTest {
 
     @Test
     void katasHaveUniqueIds() {
-        assertThat(Katas.all()).extracting(Kata::id).doesNotHaveDuplicates().hasSize(14);
+        assertThat(Katas.all()).extracting(Kata::id).doesNotHaveDuplicates().hasSize(16);
+    }
+
+    @Test
+    void katasSuggestOnlyFinalJavaFeaturesSinceTheVersionTheCatalogStates() {
+        Map<String, JavaFeature> features = MarkdownCatalogRepository.bundled().javaFeatures().stream()
+                .collect(Collectors.toMap(JavaFeature::id, Function.identity()));
+
+        assertThat(Katas.all()).filteredOn(kata -> kata.javaFeature().isPresent()).isNotEmpty().allSatisfy(kata -> {
+            JavaFeature feature = features.get(kata.javaFeature().orElseThrow());
+            assertThat(feature).as(kata.id()).isNotNull();
+            assertThat(feature.status()).as(kata.id()).isEqualTo(JavaFeature.Status.FINAL);
+            assertThat(kata.minJavaVersion()).as(kata.id()).isEqualTo(feature.since());
+        });
     }
 
     @Test
@@ -35,6 +52,7 @@ class KatasTest {
         String request = "src/main/java/com/exemplo/loja/dto/UsuarioRequest.java";
         String properties = "src/main/java/com/exemplo/loja/config/LojaProperties.java";
         String email = "src/main/java/com/exemplo/loja/service/EmailService.java";
+        String notificacao = "src/main/java/com/exemplo/loja/service/NotificacaoService.java";
         String pedido = "src/main/java/com/exemplo/loja/service/PedidoService.java";
         String usuario = "src/main/java/com/exemplo/loja/service/UsuarioService.java";
 
@@ -51,6 +69,8 @@ class KatasTest {
                         tuple(controller, 24, "entity-in-controller", Severity.MEDIA),
                         tuple(request, 3, "dto-not-record", Severity.LEVE),
                         tuple(email, 14, "prefer-configuration-properties", Severity.LEVE),
+                        tuple(notificacao, 11, "prefer-scoped-values", Severity.INFO),
+                        tuple(notificacao, 13, "prefer-virtual-threads", Severity.INFO),
                         tuple(pedido, 3, "dependency-rule", Severity.MEDIA),
                         tuple(pedido, 13, "non-final-dependency", Severity.MEDIA),
                         tuple(pedido, 19, "transactional-read-only", Severity.LEVE),

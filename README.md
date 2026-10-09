@@ -101,6 +101,8 @@ Cada lição desconta pontos. A nota final vira uma faixa:
 | `prefer-configuration-properties` | LEVE | 3 ou mais `@Value` com o mesmo prefixo na mesma classe |
 | `missing-actuator` | LEVE | aplicação web sem `spring-boot-starter-actuator` |
 | `missing-springdoc` | INFO | aplicação web sem springdoc-openapi (só sugestão, não tira nota) |
+| `prefer-virtual-threads` | INFO | `Executors.newFixedThreadPool`/`newCachedThreadPool`: virtual threads para I/O (Java 21) |
+| `prefer-scoped-values` | INFO | campo `ThreadLocal`: `ScopedValue` para contexto (Java 25) |
 
 Cada projeto tem suas razões. Um `shisho.yaml` na raiz do projeto analisado desliga katas ou
 muda a severidade delas:
@@ -183,8 +185,16 @@ $ shisho ask "por que não Clean Architecture aqui?"
 ## Versões do Java
 
 O Shishō roda em **Java 25** e analisa projetos a partir do **Java 21**. Ele lê a versão do seu
-projeto e **só sugere o que ela permite**. Recursos em preview nunca são recomendados sem
-você pedir.
+projeto e **só cobra o que ela permite**. O que só existe numa versão mais nova vira sugestão,
+sem tirar nota:
+
+```
+i INFO   [prefer-scoped-values]  NotificacaoService.java:11
+         Ao migrar para o Java 25: O campo USUARIO_ATUAL é um ThreadLocal. ...
+```
+
+Recursos em preview nunca são recomendados. O que o Shishō sabe sobre cada versão fica em
+[`catalog/java-features`](catalog/java-features).
 
 ![Goku Super Saiyajin, de Dragon Ball Z, virando para a câmera com um sorriso e fazendo joinha](docs/anime/java-versions.gif)
 

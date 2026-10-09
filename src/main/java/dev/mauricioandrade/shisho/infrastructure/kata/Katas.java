@@ -25,6 +25,8 @@ public final class Katas {
                 new MissingActuatorKata(),
                 new MissingSpringdocKata(),
                 new ConfigurationPropertiesNotRecordKata(),
-                new PreferConfigurationPropertiesKata());
+                new PreferConfigurationPropertiesKata(),
+                new PreferVirtualThreadsKata(),
+                new PreferScopedValuesKata());
     }
 }

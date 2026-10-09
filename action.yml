@@ -1,0 +1,82 @@
+name: Shishō
+description: Analisa um projeto Java 21+/Spring Boot como um mestre, aponta as lições, julga a arquitetura e envia o resultado ao code scanning do GitHub.
+author: Mauricio Andrade
+branding:
+  icon: award
+  color: red
+
+inputs:
+  path:
+    description: Diretório do projeto a analisar, relativo à raiz do repositório.
+    default: "."
+  fail-on-grave:
+    description: Falha o job quando houver alguma lição GRAVE ("true" ou "false").
+    default: "true"
+  upload-sarif:
+    description: 'Envia o SARIF ao code scanning do GitHub ("true" ou "false"). Exige a permissão "security-events: write".'
+    default: "true"
+  html:
+    description: Caminho para gravar também o relatório HTML (vazio para não gravar).
+    default: ""
+
+outputs:
+  exit-code:
+    description: "Código de saída do Shishō: 0 sem lição grave, 1 com lição GRAVE."
+    value: ${{ steps.analyze.outputs.exit-code }}
+  sarif:
+    description: Caminho do relatório SARIF.
+    value: ${{ steps.analyze.outputs.sarif }}
+
+runs:
+  using: composite
+  steps:
+    - name: Instalar o Java 25
+      uses: actions/setup-java@v4
+      with:
+        distribution: temurin
+        java-version: "25"
+
+    - name: Compilar o Shishō
+      shell: bash
+      run: mvn -B -q -f "$GITHUB_ACTION_PATH/pom.xml" package -DskipTests
+
+    - name: Analisar
+      id: analyze
+      shell: bash
+      env:
+        PROJECT: ${{ inputs.path }}
+        HTML: ${{ inputs.html }}
+        SARIF: ${{ runner.temp }}/shisho.sarif
+      run: |
+        shisho() { java -jar "$GITHUB_ACTION_PATH/target/shisho.jar" analyze "$@" "$PROJECT"; }
+        set +e
+        shisho --format sarif --output "$SARIF"
+        code=$?
+        set -e
+        if [ "$code" -ge 2 ]; then
+          exit "$code"
+        fi
+        report=$(shisho --format terminal || true)
+        printf '%s\n' "$report"
+        {
+          printf '## 師匠 Shishō\n\n```\n%s\n```\n' "$report"
+        } >> "$GITHUB_STEP_SUMMARY"
+        if [ -n "$HTML" ]; then
+          shisho --format html --output "$HTML" || true
+        fi
+        echo "exit-code=$code" >> "$GITHUB_OUTPUT"
+        echo "sarif=$SARIF" >> "$GITHUB_OUTPUT"
+
+    - name: Enviar ao code scanning
+      if: inputs.upload-sarif == 'true'
+      uses: github/codeql-action/upload-sarif@v3
+      with:
+        sarif_file: ${{ steps.analyze.outputs.sarif }}
+        category: shisho
+
+    - name: Falhar com lição GRAVE
+      if: inputs.fail-on-grave == 'true' && steps.analyze.outputs.exit-code == '1'
+      shell: bash
+      run: |
+        echo "::error title=Shishō::Há lições GRAVE. Veja o relatório acima ou o code scanning."
+        exit 1

@@ -13,6 +13,8 @@ import dev.mauricioandrade.shisho.domain.model.ArchitectureProfile.Family;
 import dev.mauricioandrade.shisho.domain.model.ArchitectureProfile.Signature;
 import dev.mauricioandrade.shisho.domain.model.Evidence;
 import dev.mauricioandrade.shisho.domain.model.JavaVersion;
+import dev.mauricioandrade.shisho.domain.model.KataExample;
+import dev.mauricioandrade.shisho.domain.model.KataExample.Snippet;
 import dev.mauricioandrade.shisho.domain.model.Lesson;
 import dev.mauricioandrade.shisho.domain.model.Rank;
 import dev.mauricioandrade.shisho.domain.model.Severity;
@@ -118,6 +120,32 @@ class TerminalReportWriterTest {
     }
 
     @Test
+    void theSenseiShowsHowToFixEachKataOnce() {
+        Analysis analysis = analysis(true, List.of(
+                lesson("field-injection", Severity.GRAVE, 14, "a"),
+                lesson("field-injection", Severity.GRAVE, 20, "b")), List.of());
+        KataExample example = new KataExample("field-injection",
+                new Snippet("java", "@Autowired\nprivate Service service;", ""),
+                new Snippet("java", "private final Service service;\n\nApp(Service service) {}", "O construtor declara a `dependência`."));
+
+        assertThat(render(analysis, PORTUGUESE, List.of(example))).contains("""
+
+                Como corrigir (modo sensei)
+
+                [field-injection] Injeção de dependência em campo
+                  Antes:
+                      @Autowired
+                      private Service service;
+                  Depois:
+                    O construtor declara a `dependência`.
+                      private final Service service;
+
+                      App(Service service) {}
+
+                Graduação:""");
+    }
+
+    @Test
     void celebratesAProjectWithoutLessons() {
         assertThat(render(analysis(true, List.of(), List.of()), PORTUGUESE)).isEqualTo("""
                 師匠 Shishō — análise de loja  (Java 21)
@@ -176,9 +204,13 @@ class TerminalReportWriterTest {
     }
 
     private static String render(Analysis analysis, Messages messages) {
+        return render(analysis, messages, List.of());
+    }
+
+    private static String render(Analysis analysis, Messages messages, List<KataExample> examples) {
         ByteArrayOutputStream buffer = new ByteArrayOutputStream();
         PrintStream out = new PrintStream(buffer, true, StandardCharsets.UTF_8);
-        new TerminalReportWriter(out, messages).write(analysis);
+        new TerminalReportWriter(out, messages, examples).write(analysis);
         return buffer.toString(StandardCharsets.UTF_8).replace(System.lineSeparator(), "\n");
     }
 

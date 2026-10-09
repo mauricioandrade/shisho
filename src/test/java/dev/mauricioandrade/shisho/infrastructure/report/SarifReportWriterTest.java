@@ -10,6 +10,8 @@ import dev.mauricioandrade.shisho.domain.model.ArchitectureProfile.Family;
 import dev.mauricioandrade.shisho.domain.model.ArchitectureProfile.Signature;
 import dev.mauricioandrade.shisho.domain.model.Evidence;
 import dev.mauricioandrade.shisho.domain.model.JavaVersion;
+import dev.mauricioandrade.shisho.domain.model.KataExample;
+import dev.mauricioandrade.shisho.domain.model.KataExample.Snippet;
 import dev.mauricioandrade.shisho.domain.model.Lesson;
 import dev.mauricioandrade.shisho.domain.model.Rank;
 import dev.mauricioandrade.shisho.domain.model.Severity;
@@ -203,6 +205,24 @@ class SarifReportWriterTest {
     }
 
     @Test
+    void givesEachRuleTheExampleAsHelp() {
+        KataExample example = new KataExample("system-out",
+                new Snippet("java", "System.out.println(x);", ""), new Snippet("java", "log.info(\"{}\", x);", "Use um logger."));
+        ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+        new SarifReportWriter(new PrintStream(buffer, true, StandardCharsets.UTF_8), new Messages(Messages.DEFAULT_LOCALE),
+                List.of(example), "1.2.3", WORKSPACE).write(analysis(WORKSPACE, List.of(
+                new Lesson("system-out", Severity.MEDIA, Path.of("A.java"), 2, "kata.system-out.lesson", List.of("System.out.println")))));
+
+        assertThat(buffer.toString(StandardCharsets.UTF_8)).contains("""
+                              "helpUri": "https://github.com/mauricioandrade/shiso#katas",
+                              "help": {
+                                "text": "Antes:\\nSystem.out.println(x);\\n\\nDepois:\\nlog.info(\\"{}\\", x);",
+                                "markdown": "**Antes**\\n\\n```java\\nSystem.out.println(x);\\n```\\n\\n**Depois**\\n\\nUse um logger.\\n\\n```java\\nlog.info(\\"{}\\", x);\\n```"
+                              },
+                """);
+    }
+
+    @Test
     void usesPathsRelativeToTheProjectWhenItIsOutsideTheWorkingDirectory() {
         Analysis analysis = analysis(Path.of("/elsewhere/api").toAbsolutePath(), List.of(
                 new Lesson("system-out", Severity.MEDIA, Path.of("src/main/java/A.java"), 2, "kata.system-out.lesson", List.of("System.out.println"))));
@@ -221,7 +241,7 @@ class SarifReportWriterTest {
 
     private static String render(Analysis analysis) {
         ByteArrayOutputStream buffer = new ByteArrayOutputStream();
-        new SarifReportWriter(new PrintStream(buffer, true, StandardCharsets.UTF_8), new Messages(Messages.DEFAULT_LOCALE), "1.2.3", WORKSPACE)
+        new SarifReportWriter(new PrintStream(buffer, true, StandardCharsets.UTF_8), new Messages(Messages.DEFAULT_LOCALE), List.of(), "1.2.3", WORKSPACE)
                 .write(analysis);
         return buffer.toString(StandardCharsets.UTF_8);
     }

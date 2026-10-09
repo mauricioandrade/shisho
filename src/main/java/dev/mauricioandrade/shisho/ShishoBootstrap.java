@@ -26,6 +26,7 @@ import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
+import java.util.List;
 
 /** Composition root: builds the object graph by hand and runs the command line. */
 public final class ShishoBootstrap {
@@ -43,18 +44,19 @@ public final class ShishoBootstrap {
         PrintStream err = new PrintStream(stderr, true, StandardCharsets.UTF_8);
         Messages messages = new Messages(Messages.DEFAULT_LOCALE);
 
+        MarkdownCatalogRepository catalog = MarkdownCatalogRepository.bundled();
         AnalyzeProject analyzeProject = new AnalyzeProjectService(
                 new MavenBuildFileReader(),
                 new YamlProjectConfigReader(),
                 new JavaParserSourceParser(),
                 Katas.all(),
-                new ClassifyArchitectureService(MarkdownCatalogRepository.bundled(), Detectors.all()),
+                new ClassifyArchitectureService(catalog, Detectors.all()),
                 new RankCalculator());
 
-        ReportWriterFactory reportWriters = (format, destination) -> switch (format) {
-            case TERMINAL -> new TerminalReportWriter(destination, messages);
-            case SARIF -> new SarifReportWriter(destination, messages, ShishoCommand.version(), Path.of(""));
-            case HTML -> new HtmlReportWriter(destination, messages, ShishoCommand.version());
+        ReportWriterFactory reportWriters = (format, destination, sensei) -> switch (format) {
+            case TERMINAL -> new TerminalReportWriter(destination, messages, sensei ? catalog.kataExamples() : List.of());
+            case SARIF -> new SarifReportWriter(destination, messages, catalog.kataExamples(), ShishoCommand.version(), Path.of(""));
+            case HTML -> new HtmlReportWriter(destination, messages, catalog.kataExamples(), ShishoCommand.version());
         };
 
         CommandLine commandLine = new CommandLine(new ShishoCommand())

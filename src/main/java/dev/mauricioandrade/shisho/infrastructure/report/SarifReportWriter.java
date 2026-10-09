@@ -2,6 +2,8 @@ package dev.mauricioandrade.shisho.infrastructure.report;
 
 import dev.mauricioandrade.shisho.domain.model.Analysis;
 import dev.mauricioandrade.shisho.domain.model.ArchitectureMatch;
+import dev.mauricioandrade.shisho.domain.model.KataExample;
+import dev.mauricioandrade.shisho.domain.model.KataExample.Snippet;
 import dev.mauricioandrade.shisho.domain.model.Lesson;
 import dev.mauricioandrade.shisho.domain.model.Severity;
 import dev.mauricioandrade.shisho.domain.model.SourceFile;
@@ -36,9 +38,9 @@ public final class SarifReportWriter implements ReportWriter {
     private final String version;
     private final Path workingDirectory;
 
-    public SarifReportWriter(PrintStream out, Messages messages, String version, Path workingDirectory) {
+    public SarifReportWriter(PrintStream out, Messages messages, List<KataExample> examples, String version, Path workingDirectory) {
         this.out = out;
-        this.texts = new ReportTexts(messages);
+        this.texts = new ReportTexts(messages, examples);
         this.version = version;
         this.workingDirectory = workingDirectory.toAbsolutePath().normalize();
     }
@@ -75,8 +77,24 @@ public final class SarifReportWriter implements ReportWriter {
         rule.put("id", lesson.kataId());
         rule.put("shortDescription", Map.of("text", texts.text("kata." + lesson.kataId() + ".title")));
         rule.put("helpUri", INFORMATION_URI + "#katas");
+        texts.example(lesson.kataId()).ifPresent(example -> rule.put("help", help(example)));
         rule.put("defaultConfiguration", Map.of("level", level(lesson.severity())));
         return rule;
+    }
+
+    /** Shown by GitHub code scanning next to each alert. */
+    private Map<String, Object> help(KataExample example) {
+        String before = texts.text("html.before");
+        String after = texts.text("html.after");
+        Map<String, Object> help = new LinkedHashMap<>();
+        help.put("text", before + ":\n" + example.before().code() + "\n\n" + after + ":\n" + example.after().code());
+        help.put("markdown", markdown(before, example.before()) + "\n\n" + markdown(after, example.after()));
+        return help;
+    }
+
+    private static String markdown(String label, Snippet snippet) {
+        String explanation = snippet.explanation().isEmpty() ? "" : snippet.explanation() + "\n\n";
+        return "**" + label + "**\n\n" + explanation + "```" + snippet.language() + "\n" + snippet.code() + "\n```";
     }
 
     private Map<String, Object> invocation(Analysis analysis) {

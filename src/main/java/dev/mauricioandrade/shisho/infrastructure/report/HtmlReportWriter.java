@@ -2,6 +2,8 @@ package dev.mauricioandrade.shisho.infrastructure.report;
 
 import dev.mauricioandrade.shisho.domain.model.Analysis;
 import dev.mauricioandrade.shisho.domain.model.ArchitectureMatch;
+import dev.mauricioandrade.shisho.domain.model.KataExample;
+import dev.mauricioandrade.shisho.domain.model.KataExample.Snippet;
 import dev.mauricioandrade.shisho.domain.model.Lesson;
 import dev.mauricioandrade.shisho.domain.model.SourceFile;
 import dev.mauricioandrade.shisho.domain.model.Verdict;
@@ -15,6 +17,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
@@ -23,14 +26,17 @@ import java.util.stream.Collectors;
  */
 public final class HtmlReportWriter implements ReportWriter {
 
+    /** {@code `code`} in the catalog's prose, as in Markdown. */
+    private static final Pattern INLINE_CODE = Pattern.compile("`([^`]+)`");
+
     private final PrintStream out;
     private final ReportTexts texts;
     private final String language;
     private final String version;
 
-    public HtmlReportWriter(PrintStream out, Messages messages, String version) {
+    public HtmlReportWriter(PrintStream out, Messages messages, List<KataExample> examples, String version) {
         this.out = out;
-        this.texts = new ReportTexts(messages);
+        this.texts = new ReportTexts(messages, examples);
         Locale locale = messages.bundle().getLocale();
         this.language = locale.toLanguageTag().equals("und") ? "en" : locale.toLanguageTag();
         this.version = version;
@@ -54,6 +60,7 @@ public final class HtmlReportWriter implements ReportWriter {
         header(analysis, html);
         architecture(analysis, html);
         lessons(analysis, html);
+        examples(analysis, html);
         html.append("<footer>").append(escape(texts.text("html.generated", version))).append("</footer>\n");
         html.append("</main>\n</body>\n</html>\n");
         out.print(html);
@@ -131,8 +138,37 @@ public final class HtmlReportWriter implements ReportWriter {
                 .append("<strong>").append(escape(texts.text("kata." + lesson.kataId() + ".title"))).append("</strong> ")
                 .append("<code class=\"muted\">").append(escape(lesson.kataId())).append("</code> ")
                 .append("<span class=\"muted\">").append(escape(where)).append("</span></p>\n")
-                .append("<p>").append(escape(texts.explanation(lesson))).append("</p>\n")
-                .append("</li>\n");
+                .append("<p>").append(escape(texts.explanation(lesson))).append("</p>\n");
+        texts.example(lesson.kataId()).ifPresent(_ -> html.append("<p><a href=\"#kata-").append(escape(lesson.kataId()))
+                .append("\">").append(escape(texts.text("html.how-to-fix"))).append("</a></p>\n"));
+        html.append("</li>\n");
+    }
+
+    private void examples(Analysis analysis, StringBuilder html) {
+        List<KataExample> examples = texts.examples(analysis);
+        if (examples.isEmpty()) {
+            return;
+        }
+        html.append("<section>\n<h2>").append(escape(texts.text("html.how-to-fix"))).append("</h2>\n");
+        for (KataExample example : examples) {
+            html.append("<article id=\"kata-").append(escape(example.kataId())).append("\" class=\"example\">\n")
+                    .append("<h3>").append(escape(texts.title(example.kataId()))).append(" <code class=\"muted\">")
+                    .append(escape(example.kataId())).append("</code></h3>\n")
+                    .append("<div class=\"before-after\">\n");
+            snippet(texts.text("html.before"), "before", example.before(), html);
+            snippet(texts.text("html.after"), "after", example.after(), html);
+            html.append("</div>\n</article>\n");
+        }
+        html.append("</section>\n");
+    }
+
+    private static void snippet(String label, String kind, Snippet snippet, StringBuilder html) {
+        html.append("<div class=\"snippet snippet-").append(kind).append("\">\n<h4>").append(escape(label)).append("</h4>\n");
+        if (!snippet.explanation().isEmpty()) {
+            html.append("<p>").append(INLINE_CODE.matcher(escape(snippet.explanation())).replaceAll("<code>$1</code>")).append("</p>\n");
+        }
+        html.append("<pre><code class=\"language-").append(escape(snippet.language())).append("\">")
+                .append(escape(snippet.code())).append("</code></pre>\n</div>\n");
     }
 
     private static String kind(Verdict verdict) {
@@ -211,6 +247,14 @@ public final class HtmlReportWriter implements ReportWriter {
             .badge-info { background: var(--info); }
             code { font: .875em ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
             .empty { font-size: 1.125rem; }
+            .before-after { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px; }
+            .snippet { min-width: 0; }
+            .snippet h4 { margin: 0 0 6px; font-size: .75rem; text-transform: uppercase; letter-spacing: .08em; }
+            .snippet-before h4 { color: var(--grave); }
+            .snippet-after h4 { color: var(--leve); }
+            .snippet p { margin: 0 0 8px; }
+            pre { margin: 0; padding: 12px; overflow-x: auto; background: var(--paper); border: 1px solid var(--line); }
+            a { color: var(--accent); }
             footer { margin-top: 48px; font-size: .875rem; }
             """;
 }

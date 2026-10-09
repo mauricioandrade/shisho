@@ -1,6 +1,8 @@
 package dev.mauricioandrade.shisho.infrastructure.report;
 
 import dev.mauricioandrade.shisho.domain.model.Analysis;
+import dev.mauricioandrade.shisho.domain.model.KataExample;
+import dev.mauricioandrade.shisho.domain.model.KataExample.Snippet;
 import dev.mauricioandrade.shisho.domain.model.Lesson;
 import dev.mauricioandrade.shisho.domain.model.Severity;
 import dev.mauricioandrade.shisho.domain.model.SourceFile;
@@ -13,19 +15,26 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-/** The report for people at a terminal: aligned columns, wrapped at {@value #WIDTH} characters. */
+/**
+ * The report for people at a terminal: aligned columns, wrapped at {@value #WIDTH} characters.
+ * Given the catalog's examples (the sensei mode), it also shows how to fix each kata found.
+ */
 public final class TerminalReportWriter implements ReportWriter {
 
     private static final int WIDTH = 100;
     private static final String EVIDENCE_BULLET = "  · ";
     private static final String EVIDENCE_INDENT = "    ";
+    private static final String EXAMPLE_LABEL_INDENT = "  ";
+    private static final String EXAMPLE_TEXT_INDENT = "    ";
+    private static final String EXAMPLE_CODE_INDENT = "      ";
 
     private final PrintStream out;
     private final ReportTexts texts;
 
-    public TerminalReportWriter(PrintStream out, Messages messages) {
+    /** @param examples the catalog's examples for the sensei mode; empty for the plain report */
+    public TerminalReportWriter(PrintStream out, Messages messages, List<KataExample> examples) {
         this.out = out;
-        this.texts = new ReportTexts(messages);
+        this.texts = new ReportTexts(messages, examples);
     }
 
     @Override
@@ -50,6 +59,15 @@ public final class TerminalReportWriter implements ReportWriter {
         if (!analysis.lessons().isEmpty() || !analysis.unparseableFiles().isEmpty()) {
             out.println();
         }
+        List<KataExample> examples = texts.examples(analysis);
+        if (!examples.isEmpty()) {
+            out.println(texts.text("report.sensei.title"));
+            out.println();
+            examples.forEach(example -> {
+                example(example).forEach(out::println);
+                out.println();
+            });
+        }
         analysis.architecture().ifPresent(match -> {
             verdict(texts.verdict(match)).forEach(out::println);
             out.println();
@@ -66,6 +84,23 @@ public final class TerminalReportWriter implements ReportWriter {
         }
         verdict.next().ifPresent(lines::add);
         return lines;
+    }
+
+    private List<String> example(KataExample example) {
+        List<String> lines = new ArrayList<>();
+        lines.add("[" + example.kataId() + "] " + texts.title(example.kataId()));
+        snippet(texts.text("report.sensei.before"), example.before(), lines);
+        snippet(texts.text("report.sensei.after"), example.after(), lines);
+        return lines;
+    }
+
+    private static void snippet(String label, Snippet snippet, List<String> lines) {
+        lines.add(EXAMPLE_LABEL_INDENT + label);
+        if (!snippet.explanation().isEmpty()) {
+            wrap(snippet.explanation(), WIDTH - EXAMPLE_TEXT_INDENT.length())
+                    .forEach(line -> lines.add(EXAMPLE_TEXT_INDENT + line));
+        }
+        snippet.code().lines().forEach(line -> lines.add(line.isEmpty() ? "" : EXAMPLE_CODE_INDENT + line));
     }
 
     private static String location(Lesson lesson) {

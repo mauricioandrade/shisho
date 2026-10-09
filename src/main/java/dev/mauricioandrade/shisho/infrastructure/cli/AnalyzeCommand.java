@@ -18,7 +18,7 @@ import java.nio.file.Path;
 import java.util.concurrent.Callable;
 
 /**
- * {@code shisho analyze [--format terminal|sarif|html] [--output <file>] <dir>}: the exit code tells CI
+ * {@code shisho analyze [--format terminal|sarif|html] [--output <file>] [--sensei] <dir>}: the exit code tells CI
  * whether there is a GRAVE lesson, whatever the format.
  */
 @Command(name = "analyze", mixinStandardHelpOptions = true, exitCodeOnExecutionException = AnalyzeCommand.EXIT_NOT_ANALYZED)
@@ -42,6 +42,9 @@ public final class AnalyzeCommand implements Callable<Integer> {
 
     @Option(names = {"-o", "--output"}, paramLabel = "<arquivo>", descriptionKey = "analyze.output")
     private Path output;
+
+    @Option(names = "--sensei", descriptionKey = "analyze.sensei")
+    private boolean sensei;
 
     public AnalyzeCommand(
             AnalyzeProject analyzeProject, ReportWriterFactory reportWriters, Messages messages, PrintStream out, PrintStream err) {
@@ -73,11 +76,11 @@ public final class AnalyzeCommand implements Callable<Integer> {
 
     private boolean write(Analysis analysis) {
         if (output == null) {
-            reportWriters.create(format, out).write(analysis);
+            reportWriters.create(format, out, sensei).write(analysis);
             return true;
         }
         try (PrintStream file = new PrintStream(Files.newOutputStream(output), false, StandardCharsets.UTF_8)) {
-            reportWriters.create(format, file).write(analysis);
+            reportWriters.create(format, file, sensei).write(analysis);
             if (!file.checkError()) {
                 return true;
             }

@@ -106,6 +106,16 @@ class ShishoBootstrapTest {
     }
 
     @Test
+    void theSenseiModeShowsTheCatalogExamples() {
+        assertThat(run("analyze", "--sensei", FIXTURES + "aluno-baguncado")).isEqualTo(1);
+        assertThat(out()).contains("\nComo corrigir (modo sensei)\n\n[missing-actuator] Aplicação web sem actuator\n  Antes:\n");
+
+        out.reset();
+        run("analyze", FIXTURES + "aluno-baguncado");
+        assertThat(out()).doesNotContain("modo sensei");
+    }
+
+    @Test
     void writesHtmlToTheScreen() {
         assertThat(run("analyze", "--format", "html", FIXTURES + "aluno-astronauta")).isZero();
         assertThat(out()).startsWith("<!doctype html>").contains("verdict-over").endsWith("</html>\n");

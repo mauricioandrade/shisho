@@ -4,6 +4,7 @@ import dev.mauricioandrade.shisho.domain.model.Analysis;
 import dev.mauricioandrade.shisho.domain.model.ArchitectureMatch;
 import dev.mauricioandrade.shisho.domain.model.ArchitectureProfile;
 import dev.mauricioandrade.shisho.domain.model.Evidence;
+import dev.mauricioandrade.shisho.domain.model.KataExample;
 import dev.mauricioandrade.shisho.domain.model.Lesson;
 import dev.mauricioandrade.shisho.domain.model.Severity;
 import dev.mauricioandrade.shisho.domain.model.SourceFile;
@@ -11,15 +12,37 @@ import dev.mauricioandrade.shisho.domain.model.Verdict;
 import dev.mauricioandrade.shisho.infrastructure.i18n.Messages;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /** The sentences every report format shares, in the user's language. */
 final class ReportTexts {
 
     private final Messages messages;
+    private final Map<String, KataExample> examples;
 
-    ReportTexts(Messages messages) {
+    ReportTexts(Messages messages, List<KataExample> examples) {
         this.messages = messages;
+        this.examples = examples.stream().collect(Collectors.toMap(KataExample::kataId, Function.identity()));
+    }
+
+    /** The examples of the katas that taught a lesson, in the order of their first lesson. */
+    List<KataExample> examples(Analysis analysis) {
+        return analysis.lessons().stream()
+                .map(Lesson::kataId)
+                .distinct()
+                .flatMap(kataId -> Optional.ofNullable(examples.get(kataId)).stream())
+                .toList();
+    }
+
+    Optional<KataExample> example(String kataId) {
+        return Optional.ofNullable(examples.get(kataId));
+    }
+
+    String title(String kataId) {
+        return text("kata." + kataId + ".title");
     }
 
     /** The verdict as a headline, the evidence behind it and where to go next. */

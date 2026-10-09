@@ -87,6 +87,10 @@ public final class FixCommand implements Callable<Integer> {
     }
 
     private void summary(FixPlan plan) {
+        if (plan.analysis().lessons().isEmpty()) {
+            out.println(messages.text("fix.summary.clean"));
+            return;
+        }
         int lessons = plan.fixes().stream().mapToInt(fix -> fix.lessons().size()).sum();
         if (lessons == 0) {
             out.println(messages.text("fix.summary.nothing"));

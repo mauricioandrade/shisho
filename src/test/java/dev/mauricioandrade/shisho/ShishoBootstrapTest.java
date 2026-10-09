@@ -133,6 +133,12 @@ class ShishoBootstrapTest {
     }
 
     @Test
+    void hasNothingToFixInTheShisho() {
+        assertThat(run("fix", ".")).isZero();
+        assertThat(out()).isEqualTo("Nenhuma lição: nada a corrigir.\n");
+    }
+
+    @Test
     void fixesTheMessyStudentOnlyWithApply(@TempDir Path copy) throws IOException {
         Path service = Path.of("src/main/java/com/exemplo/loja/service/PedidoService.java");
         Files.createDirectories(copy.resolve(service).getParent());

@@ -29,6 +29,10 @@ public final class TerminalReportWriter implements ReportWriter {
     public void write(Analysis analysis) {
         String header = analysis.javaVersionDeclared() ? "report.header" : "report.header.assumed";
         out.println(text(header, analysis.projectName(), analysis.javaVersion().toString()));
+        out.println(analysis.architecture()
+                .map(match -> text("report.architecture",
+                        match.architecture().name(), match.confidence(), String.join(", ", match.signals())))
+                .orElseGet(() -> text("report.architecture.none")));
         out.println();
 
         int severityWidth = Arrays.stream(Severity.values()).mapToInt(severity -> severityLabel(severity).length()).max().orElse(0);

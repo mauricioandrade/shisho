@@ -174,7 +174,8 @@ class AnalyzeProjectServiceTest {
     }
 
     private AnalyzeProjectService service(BuildFileReader buildFileReader, ProjectConfig config, Kata... katas) {
-        return new AnalyzeProjectService(buildFileReader, root -> config, parser, List.of(katas), new RankCalculator());
+        return new AnalyzeProjectService(
+                buildFileReader, root -> config, parser, List.of(katas), project -> Optional.empty(), new RankCalculator());
     }
 
     private static BuildFileReader version(int feature) {

@@ -1,6 +1,7 @@
 package dev.mauricioandrade.shisho.infrastructure.report;
 
 import dev.mauricioandrade.shisho.application.usecase.AnalyzeProjectService;
+import dev.mauricioandrade.shisho.application.usecase.ClassifyArchitectureService;
 import dev.mauricioandrade.shisho.application.usecase.RankCalculator;
 import dev.mauricioandrade.shisho.domain.model.Analysis;
 import dev.mauricioandrade.shisho.domain.model.JavaVersion;
@@ -9,6 +10,7 @@ import dev.mauricioandrade.shisho.domain.model.Rank;
 import dev.mauricioandrade.shisho.domain.model.Severity;
 import dev.mauricioandrade.shisho.domain.model.SourceFile;
 import dev.mauricioandrade.shisho.infrastructure.build.MavenBuildFileReader;
+import dev.mauricioandrade.shisho.infrastructure.catalog.MarkdownCatalogRepository;
 import dev.mauricioandrade.shisho.infrastructure.config.YamlProjectConfigReader;
 import dev.mauricioandrade.shisho.infrastructure.i18n.Messages;
 import dev.mauricioandrade.shisho.infrastructure.kata.Katas;
@@ -21,6 +23,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -37,6 +40,7 @@ class TerminalReportWriterTest {
 
         assertThat(render(analysis, PORTUGUESE)).isEqualTo("""
                 師匠 Shishō — análise de loja  (Java 21)
+                Arquitetura: nenhuma do catálogo reconhecida
 
                 ✗ GRAVE  [field-injection]             UsuarioController.java:14
                          Injeção em campo em usuarioService. Use construtor explícito com private final: a
@@ -65,6 +69,7 @@ class TerminalReportWriterTest {
     void celebratesAProjectWithoutLessons() {
         assertThat(render(analysis(true, List.of(), List.of()), PORTUGUESE)).isEqualTo("""
                 師匠 Shishō — análise de loja  (Java 21)
+                Arquitetura: nenhuma do catálogo reconhecida
 
                 Graduação: 1º dan  (nenhuma lição)
                 """);
@@ -77,6 +82,7 @@ class TerminalReportWriterTest {
 
         assertThat(render(analysis, PORTUGUESE)).isEqualTo("""
                 師匠 Shishō — análise de loja  (Java 21, presumido: o build não declara a versão)
+                Arquitetura: nenhuma do catálogo reconhecida
 
                 ⚠ src/main/java/Quebrado.java:4 não pôde ser analisado: Parse error
 
@@ -90,6 +96,7 @@ class TerminalReportWriterTest {
 
         assertThat(render(analysis, ENGLISH)).isEqualTo("""
                 師匠 Shishō — analysis of loja  (Java 21)
+                Architecture: none from the catalog recognized
 
                 · MINOR   [dto-not-record]  UsuarioController.java:3
                           UsuarioRequest looks like a DTO but is not a record. A record is immutable and removes
@@ -102,12 +109,17 @@ class TerminalReportWriterTest {
     @Test
     void reportsTheMessyStudentFixture() {
         AnalyzeProjectService service = new AnalyzeProjectService(
-                new MavenBuildFileReader(), new YamlProjectConfigReader(), new JavaParserSourceParser(), Katas.all(), new RankCalculator());
+                new MavenBuildFileReader(), new YamlProjectConfigReader(), new JavaParserSourceParser(), Katas.all(),
+                new ClassifyArchitectureService(MarkdownCatalogRepository.bundled()), new RankCalculator());
 
         String report = render(service.analyze(Path.of("src/test/resources/fixtures/aluno-baguncado")), PORTUGUESE);
 
         assertThat(report)
-                .startsWith("師匠 Shishō — análise de aluno-baguncado  (Java 21)\n\n· LEVE   [missing-actuator]")
+                .startsWith("""
+                        師匠 Shishō — análise de aluno-baguncado  (Java 21)
+                        Arquitetura: Camadas técnicas (Layered)  (83% da assinatura: controller, service, repository, model, dto)
+
+                        · LEVE   [missing-actuator]""")
                 .endsWith("\nGraduação: 5º kyū  (16 lições: 1 grave, 8 médias, 6 leves, 1 sugestão)\n");
     }
 
@@ -120,7 +132,7 @@ class TerminalReportWriterTest {
 
     private static Analysis analysis(boolean versionDeclared, List<Lesson> lessons, List<SourceFile.Unparseable> unparseable) {
         int score = new RankCalculator().score(lessons);
-        return new Analysis("loja", new JavaVersion(21), versionDeclared, lessons, unparseable, score, Rank.forScore(score));
+        return new Analysis("loja", new JavaVersion(21), versionDeclared, Optional.empty(), lessons, unparseable, score, Rank.forScore(score));
     }
 
     private static Lesson lesson(String kata, Severity severity, int line, String argument) {

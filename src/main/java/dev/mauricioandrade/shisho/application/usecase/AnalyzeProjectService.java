@@ -3,6 +3,7 @@ package dev.mauricioandrade.shisho.application.usecase;
 import dev.mauricioandrade.shisho.domain.exception.AnalysisException;
 import dev.mauricioandrade.shisho.domain.exception.ConfigException;
 import dev.mauricioandrade.shisho.domain.model.Analysis;
+import dev.mauricioandrade.shisho.domain.model.ArchitectureMatch;
 import dev.mauricioandrade.shisho.domain.model.BuildInfo;
 import dev.mauricioandrade.shisho.domain.model.ClassKata;
 import dev.mauricioandrade.shisho.domain.model.ClassUnit;
@@ -16,6 +17,7 @@ import dev.mauricioandrade.shisho.domain.model.Rank;
 import dev.mauricioandrade.shisho.domain.model.Severity;
 import dev.mauricioandrade.shisho.domain.model.SourceFile;
 import dev.mauricioandrade.shisho.domain.port.in.AnalyzeProject;
+import dev.mauricioandrade.shisho.domain.port.in.ClassifyArchitecture;
 import dev.mauricioandrade.shisho.domain.port.out.BuildFileReader;
 import dev.mauricioandrade.shisho.domain.port.out.ProjectConfigReader;
 import dev.mauricioandrade.shisho.domain.port.out.SourceParser;
@@ -28,8 +30,8 @@ import java.util.Optional;
 
 /**
  * Reads the build and the project's configuration, parses the sources at the project's Java
- * version and applies every enabled kata that version allows, with the configured severity.
- * Lessons are ordered by file, then line, then kata order.
+ * version, classifies the architecture and applies every enabled kata that version allows, with
+ * the configured severity. Lessons are ordered by file, then line, then kata order.
  */
 public final class AnalyzeProjectService implements AnalyzeProject {
 
@@ -37,6 +39,7 @@ public final class AnalyzeProjectService implements AnalyzeProject {
     private final ProjectConfigReader configReader;
     private final SourceParser sourceParser;
     private final List<Kata> katas;
+    private final ClassifyArchitecture classifyArchitecture;
     private final RankCalculator rankCalculator;
 
     public AnalyzeProjectService(
@@ -44,11 +47,13 @@ public final class AnalyzeProjectService implements AnalyzeProject {
             ProjectConfigReader configReader,
             SourceParser sourceParser,
             List<Kata> katas,
+            ClassifyArchitecture classifyArchitecture,
             RankCalculator rankCalculator) {
         this.buildFileReader = buildFileReader;
         this.configReader = configReader;
         this.sourceParser = sourceParser;
         this.katas = List.copyOf(katas);
+        this.classifyArchitecture = classifyArchitecture;
         this.rankCalculator = rankCalculator;
     }
 
@@ -72,6 +77,7 @@ public final class AnalyzeProjectService implements AnalyzeProject {
             }
         }
         ProjectModel project = new ProjectModel(javaVersion, build, classes);
+        Optional<ArchitectureMatch> architecture = classifyArchitecture.classify(project);
 
         List<Lesson> lessons = new ArrayList<>();
         for (Kata kata : katas) {
@@ -90,7 +96,7 @@ public final class AnalyzeProjectService implements AnalyzeProject {
 
         int score = rankCalculator.score(lessons);
         return new Analysis(
-                projectName(projectRoot), javaVersion, declaredVersion.isPresent(), lessons, unparseable, score, Rank.forScore(score));
+                projectName(projectRoot), javaVersion, declaredVersion.isPresent(), architecture, lessons, unparseable, score, Rank.forScore(score));
     }
 
     /** A typo in a kata id would silently configure nothing, so it is an error. */

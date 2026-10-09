@@ -5,6 +5,7 @@ import dev.mauricioandrade.shisho.domain.model.Analysis;
 import dev.mauricioandrade.shisho.domain.model.Lesson;
 
 import java.util.Optional;
+import java.util.Set;
 
 /** The correction of one kata. */
 interface Fixer {
@@ -19,4 +20,9 @@ interface Fixer {
      * @return empty when this occurrence cannot be fixed safely
      */
     Optional<Runnable> prepare(CompilationUnit unit, Lesson lesson, Analysis analysis);
+
+    /** Annotations the correction may remove: their imports go away when nothing uses them anymore. */
+    default Set<String> removedAnnotations() {
+        return Set.of();
+    }
 }

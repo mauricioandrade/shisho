@@ -37,7 +37,11 @@ final class FixTestSupport {
     }
 
     static List<FileFix> fix(Path root, String source) {
-        write(root, "pom.xml", POM);
+        return fix(root, POM, source);
+    }
+
+    static List<FileFix> fix(Path root, String pom, String source) {
+        write(root, "pom.xml", pom);
         write(root, "src/main/java/app/Sample.java", source);
         return new JavaParserSourceFixer().fix(analyzer().analyze(root));
     }

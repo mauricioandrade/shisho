@@ -3,8 +3,6 @@ package dev.mauricioandrade.shisho.infrastructure.fix;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.Modifier;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
-import com.github.javaparser.ast.body.ConstructorDeclaration;
-import com.github.javaparser.ast.stmt.ExplicitConstructorInvocationStmt;
 import dev.mauricioandrade.shisho.domain.model.Analysis;
 import dev.mauricioandrade.shisho.domain.model.Lesson;
 
@@ -37,11 +35,7 @@ final class NonFinalDependencyFixer implements Fixer {
         if (type.getConstructors().isEmpty()) {
             return type.getAnnotationByName("AllArgsConstructor").isPresent();
         }
-        return type.getConstructors().stream().allMatch(constructor -> delegates(constructor) || Trees.assigns(constructor, name));
-    }
-
-    private static boolean delegates(ConstructorDeclaration constructor) {
-        return constructor.getBody().getStatements().stream()
-                .anyMatch(statement -> statement instanceof ExplicitConstructorInvocationStmt call && call.isThis());
+        return type.getConstructors().stream()
+                .allMatch(constructor -> Constructors.delegates(constructor) || Trees.assigns(constructor, name));
     }
 }

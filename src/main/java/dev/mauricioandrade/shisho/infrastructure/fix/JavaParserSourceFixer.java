@@ -4,6 +4,8 @@ import com.github.javaparser.JavaParser;
 import com.github.javaparser.ParseResult;
 import com.github.javaparser.ParserConfiguration;
 import com.github.javaparser.ast.CompilationUnit;
+import com.github.javaparser.ast.ImportDeclaration;
+import com.github.javaparser.ast.expr.AnnotationExpr;
 import com.github.javaparser.printer.lexicalpreservation.LexicalPreservingPrinter;
 import dev.mauricioandrade.shisho.domain.model.Analysis;
 import dev.mauricioandrade.shisho.domain.model.FileFix;
@@ -21,6 +23,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -36,7 +39,12 @@ public final class JavaParserSourceFixer implements SourceFixer {
     private final Map<String, Fixer> fixers;
 
     public JavaParserSourceFixer() {
-        this(List.of(new NonFinalDependencyFixer()));
+        this(List.of(
+                new NonFinalDependencyFixer(),
+                new FieldInjectionFixer(),
+                new LombokConstructorFixer(),
+                new RequestBodyWithoutValidFixer(),
+                new TransactionalReadOnlyFixer()));
     }
 
     JavaParserSourceFixer(List<Fixer> fixers) {
@@ -80,7 +88,8 @@ public final class JavaParserSourceFixer implements SourceFixer {
                 });
             }
             changes.forEach(Runnable::run);
-            fixed = tidy(original, LexicalPreservingPrinter.print(unit));
+            removeUnusedImports(unit, lessons);
+            fixed = tidy(original, Constructors.indentMarked(LexicalPreservingPrinter.print(unit)));
         } catch (RuntimeException e) {
             // the layout-preserving printer has known gaps; a file it cannot handle is simply not fixed
             LOG.log(Level.DEBUG, "Not fixing {0}: {1}", file, e);
@@ -90,6 +99,21 @@ public final class JavaParserSourceFixer implements SourceFixer {
             return Optional.empty();
         }
         return Optional.of(new FileFix(file, original, fixed, fixedLessons));
+    }
+
+    private void removeUnusedImports(CompilationUnit unit, List<Lesson> lessons) {
+        Set<String> removed = lessons.stream()
+                .flatMap(lesson -> fixers.get(lesson.kataId()).removedAnnotations().stream())
+                .collect(Collectors.toSet());
+        Set<String> stillUsed = unit.findAll(AnnotationExpr.class).stream()
+                .map(annotation -> annotation.getName().getIdentifier())
+                .collect(Collectors.toSet());
+        unit.getImports().stream()
+                .filter(declaration -> !declaration.isStatic() && !declaration.isAsterisk())
+                .filter(declaration -> removed.contains(declaration.getName().getIdentifier()))
+                .filter(declaration -> !stillUsed.contains(declaration.getName().getIdentifier()))
+                .toList()
+                .forEach(ImportDeclaration::remove);
     }
 
     private static Optional<CompilationUnit> parse(JavaParser parser, String source) {

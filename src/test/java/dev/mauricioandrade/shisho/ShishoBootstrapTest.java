@@ -33,6 +33,19 @@ class ShishoBootstrapTest {
     }
 
     @Test
+    void judgesAnOverengineeredProject() {
+        assertThat(run("analyze", FIXTURES + "aluno-astronauta")).isZero();
+        assertThat(out())
+                .contains("Arquitetura: Clean Architecture  (100% da assinatura: ")
+                .contains("\nVeredito: overengineering. A arquitetura Clean Architecture custa de 7 a 12 classes")
+                .contains("  · Um mapper converte UsuarioJpaEntity em Usuario")
+                .contains("  · Usuario e a entidade JPA UsuarioJpaEntity")
+                .contains("  · 4 use cases só para operações CRUD de Usuario")
+                .contains("\nConsidere package-by-feature.\n")
+                .endsWith("Graduação: 1º dan  (nenhuma lição)\n");
+    }
+
+    @Test
     void theShishoAnalyzesItselfWithoutGraveLessons() {
         assertThat(run("analyze", ".")).isZero();
         assertThat(out()).startsWith("師匠 Shishō — análise de ").contains("  (Java 25)\n");

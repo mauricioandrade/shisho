@@ -66,6 +66,11 @@ class KatasTest {
     }
 
     @Test
+    void theArchitectureAstronautWritesCleanCode() {
+        assertThat(analyze(FIXTURES.resolve("aluno-astronauta"))).isEmpty();
+    }
+
+    @Test
     void shishoPassesItsOwnKatas() {
         assertThat(analyze(Path.of(""))).isEmpty();
     }

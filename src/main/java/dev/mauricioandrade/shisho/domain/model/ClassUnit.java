@@ -32,6 +32,18 @@ public record ClassUnit(
         invocations = List.copyOf(invocations);
     }
 
+    public boolean isAnnotatedWith(String simpleName) {
+        return annotations.stream().anyMatch(annotation -> annotation.simpleName().equals(simpleName));
+    }
+
+    /** Instance fields, or the components of a record: what the type holds. */
+    public List<String> stateNames() {
+        if (kind == Kind.RECORD) {
+            return constructors.getFirst().parameters().stream().map(Parameter::name).toList();
+        }
+        return fields.stream().filter(field -> !field.isStatic()).map(Field::name).toList();
+    }
+
     public enum Kind { CLASS, INTERFACE, ENUM, RECORD, ANNOTATION }
 
     /**

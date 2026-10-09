@@ -23,6 +23,8 @@ public final class Katas {
                 new TransactionalReadOnlyKata(),
                 new MissingControllerAdviceKata(),
                 new MissingActuatorKata(),
-                new MissingSpringdocKata());
+                new MissingSpringdocKata(),
+                new ConfigurationPropertiesNotRecordKata(),
+                new PreferConfigurationPropertiesKata());
     }
 }

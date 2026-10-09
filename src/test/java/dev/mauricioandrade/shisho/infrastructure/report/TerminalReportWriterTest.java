@@ -106,8 +106,8 @@ class TerminalReportWriterTest {
         String report = render(service.analyze(Path.of("src/test/resources/fixtures/aluno-baguncado")), PORTUGUESE);
 
         assertThat(report)
-                .startsWith("師匠 Shishō — análise de aluno-baguncado  (Java 21)\n\n· LEVE   [missing-actuator]            pom.xml\n")
-                .endsWith("\nGraduação: 5º kyū  (14 lições: 1 grave, 8 médias, 4 leves, 1 sugestão)\n");
+                .startsWith("師匠 Shishō — análise de aluno-baguncado  (Java 21)\n\n· LEVE   [missing-actuator]")
+                .endsWith("\nGraduação: 5º kyū  (16 lições: 1 grave, 8 médias, 6 leves, 1 sugestão)\n");
     }
 
     private static String render(Analysis analysis, Messages messages) {

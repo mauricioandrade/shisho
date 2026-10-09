@@ -22,13 +22,15 @@ class KatasTest {
 
     @Test
     void katasHaveUniqueIds() {
-        assertThat(Katas.all()).extracting(Kata::id).doesNotHaveDuplicates().hasSize(12);
+        assertThat(Katas.all()).extracting(Kata::id).doesNotHaveDuplicates().hasSize(14);
     }
 
     @Test
     void messyStudentGetsOneLessonPerViolation() {
         String controller = "src/main/java/com/exemplo/loja/controller/UsuarioController.java";
         String request = "src/main/java/com/exemplo/loja/dto/UsuarioRequest.java";
+        String properties = "src/main/java/com/exemplo/loja/config/LojaProperties.java";
+        String email = "src/main/java/com/exemplo/loja/service/EmailService.java";
         String pedido = "src/main/java/com/exemplo/loja/service/PedidoService.java";
         String usuario = "src/main/java/com/exemplo/loja/service/UsuarioService.java";
 
@@ -37,12 +39,14 @@ class KatasTest {
                 .containsExactly(
                         tuple("pom.xml", 0, "missing-actuator", Severity.LEVE),
                         tuple("pom.xml", 0, "missing-springdoc", Severity.INFO),
+                        tuple(properties, 5, "configuration-properties-not-record", Severity.LEVE),
                         tuple(controller, 11, "missing-controller-advice", Severity.MEDIA),
                         tuple(controller, 15, "field-injection", Severity.GRAVE),
                         tuple(controller, 19, "request-body-without-valid", Severity.MEDIA),
                         tuple(controller, 20, "system-out", Severity.MEDIA),
                         tuple(controller, 24, "entity-in-controller", Severity.MEDIA),
                         tuple(request, 3, "dto-not-record", Severity.LEVE),
+                        tuple(email, 14, "prefer-configuration-properties", Severity.LEVE),
                         tuple(pedido, 10, "non-final-dependency", Severity.MEDIA),
                         tuple(pedido, 16, "transactional-read-only", Severity.LEVE),
                         tuple(usuario, 13, "lombok-constructor", Severity.MEDIA),

@@ -104,6 +104,17 @@ class JavaParserSourceParserTest {
         }
 
         @Test
+        void aBuildDirectoryNameInsideSourcesIsAPackage() throws IOException {
+            write("out/production/Compiled.java", "class Compiled {}");
+            write("src/main/java/app/port/out/Repository.java", "package app.port.out; interface Repository {}");
+            write("src/main/java/app/build/Builder.java", "package app.build; class Builder {}");
+
+            assertThat(parser.parse(project, JAVA_21)).extracting(SourceFile::file).containsExactly(
+                    Path.of("src/main/java/app/build/Builder.java"),
+                    Path.of("src/main/java/app/port/out/Repository.java"));
+        }
+
+        @Test
         void reportsUnparseableFileWithoutStoppingTheOthers() throws IOException {
             write("src/main/java/app/Broken.java", "package app;\n\nclass Broken {\n  void x( {}\n}");
             write("src/main/java/app/Fine.java", "package app; class Fine {}");

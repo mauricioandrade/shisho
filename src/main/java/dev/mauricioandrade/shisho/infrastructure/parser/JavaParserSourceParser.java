@@ -96,8 +96,8 @@ public final class JavaParserSourceParser implements SourceParser {
                     if (directory.equals(projectRoot)) {
                         return FileVisitResult.CONTINUE;
                     }
-                    String name = directory.getFileName().toString();
-                    boolean skip = name.startsWith(".") || IGNORED_DIRECTORIES.contains(name) || isTestSources(projectRoot.relativize(directory));
+                    Path relative = projectRoot.relativize(directory);
+                    boolean skip = directory.getFileName().toString().startsWith(".") || isBuildOutput(relative) || isTestSources(relative);
                     return skip ? FileVisitResult.SKIP_SUBTREE : FileVisitResult.CONTINUE;
                 }
 
@@ -114,6 +114,22 @@ public final class JavaParserSourceParser implements SourceParser {
         }
         sources.sort(Comparator.naturalOrder());
         return sources;
+    }
+
+    /**
+     * {@code target}, {@code out}…, outside {@code src}. Inside it they are packages, such as the
+     * {@code port.out} of a hexagonal project.
+     */
+    private static boolean isBuildOutput(Path relativeDirectory) {
+        if (!IGNORED_DIRECTORIES.contains(relativeDirectory.getFileName().toString())) {
+            return false;
+        }
+        for (Path name : relativeDirectory) {
+            if (name.toString().equals("src")) {
+                return false;
+            }
+        }
+        return true;
     }
 
     /** {@code src/test}, at any depth, so multi-module layouts are covered too. */

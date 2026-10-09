@@ -6,6 +6,7 @@ import dev.mauricioandrade.shisho.domain.model.ArchitectureProfile.ClassRange;
 import dev.mauricioandrade.shisho.domain.model.ArchitectureProfile.Complexity;
 import dev.mauricioandrade.shisho.domain.model.ArchitectureProfile.DependencyRule;
 import dev.mauricioandrade.shisho.domain.model.ArchitectureProfile.Family;
+import dev.mauricioandrade.shisho.domain.model.ProjectContext;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -91,6 +92,12 @@ class MarkdownCatalogRepositoryTest {
             assertThat(hexagonal.cost().classesPerFeature()).isEqualTo(new ClassRange(6, 10));
             assertThat(hexagonal.cost().complexity()).isEqualTo(Complexity.MEDIUM);
             assertThat(hexagonal.simplerAlternative()).contains("package-by-feature");
+        }
+
+        @Test
+        void everyContextKeyIsOneTheProjectCanDeclare() {
+            assertThat(architectures).flatExtracting(ArchitectureProfile::makesSenseWhen)
+                    .allSatisfy(key -> assertThat(ProjectContext.KNOWN_KEYS).contains(key));
         }
 
         @Test

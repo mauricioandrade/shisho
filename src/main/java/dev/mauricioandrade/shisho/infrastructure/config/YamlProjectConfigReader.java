@@ -3,6 +3,7 @@ package dev.mauricioandrade.shisho.infrastructure.config;
 import dev.mauricioandrade.shisho.domain.exception.ConfigException;
 import dev.mauricioandrade.shisho.domain.model.ProjectConfig;
 import dev.mauricioandrade.shisho.domain.model.ProjectConfig.KataSetting;
+import dev.mauricioandrade.shisho.domain.model.ProjectContext;
 import dev.mauricioandrade.shisho.domain.model.Severity;
 import dev.mauricioandrade.shisho.domain.port.out.ProjectConfigReader;
 import org.yaml.snakeyaml.LoaderOptions;
@@ -14,6 +15,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
@@ -28,12 +31,28 @@ import java.util.Set;
  *     ativa: false
  *   dto-not-record:
  *     severidade: info
+ * contexto:
+ *   tipo: mvp              # mvp | portfolio | produto | corporativo
+ *   time: 3                # people on the project
+ *   vida_util: longa       # curta | media | longa
+ *   caracteristicas: [dominio_com_regras_complexas]
  * </pre>
+ * The context becomes catalog keys: {@code tipo: mvp} is {@code mvp}, {@code vida_util: longa} is
+ * {@code vida_util_longa}, a team of {@value #LARGE_TEAM} or more is {@code time_grande}, and
+ * {@code caracteristicas} lists any other key directly.
  */
 public final class YamlProjectConfigReader implements ProjectConfigReader {
 
     static final String FILE = "shisho.yaml";
     private static final String KATAS = "katas";
+    private static final String CONTEXT = "contexto";
+    private static final String TYPE = "tipo";
+    private static final String TEAM = "time";
+    private static final String LIFESPAN = "vida_util";
+    private static final String TRAITS = "caracteristicas";
+    private static final Set<String> TYPES = Set.of("mvp", "portfolio", "produto", "corporativo");
+    private static final Set<String> LIFESPANS = Set.of("curta", "media", "longa");
+    static final int LARGE_TEAM = 10;
     private static final String ENABLED = "ativa";
     private static final String SEVERITY = "severidade";
     private static final Map<String, Severity> SEVERITIES = Map.of(
@@ -52,14 +71,58 @@ public final class YamlProjectConfigReader implements ProjectConfigReader {
         if (!(document instanceof Map<?, ?> root)) {
             throw new ConfigException("config.error.invalid-document", FILE);
         }
-        checkFields(root, Set.of(KATAS), "");
-        if (!root.containsKey(KATAS)) {
-            return ProjectConfig.DEFAULT;
-        }
+        checkFields(root, Set.of(KATAS, CONTEXT), "");
         Map<String, KataSetting> katas = new HashMap<>();
-        map(root.get(KATAS), KATAS).forEach((id, setting) ->
-                katas.put(String.valueOf(id), kataSetting(setting, KATAS + "." + id)));
-        return new ProjectConfig(katas);
+        if (root.containsKey(KATAS)) {
+            map(root.get(KATAS), KATAS).forEach((id, setting) ->
+                    katas.put(String.valueOf(id), kataSetting(setting, KATAS + "." + id)));
+        }
+        Optional<ProjectContext> context = root.containsKey(CONTEXT)
+                ? Optional.of(context(root.get(CONTEXT)))
+                : Optional.empty();
+        return new ProjectConfig(katas, context);
+    }
+
+    private static ProjectContext context(Object value) {
+        Map<?, ?> fields = map(value, CONTEXT);
+        checkFields(fields, Set.of(TYPE, TEAM, LIFESPAN, TRAITS), CONTEXT + ".");
+        Set<String> keys = new HashSet<>();
+        oneOf(fields, TYPE, TYPES).filter("mvp"::equals).ifPresent(_ -> keys.add("mvp"));
+        oneOf(fields, LIFESPAN, LIFESPANS).filter("longa"::equals).ifPresent(_ -> keys.add("vida_util_longa"));
+        switch (fields.get(TEAM)) {
+            case null -> {
+            }
+            case Integer people when people >= 1 -> {
+                if (people >= LARGE_TEAM) {
+                    keys.add("time_grande");
+                }
+            }
+            case Object other -> throw invalid(CONTEXT + "." + TEAM, other);
+        }
+        if (fields.containsKey(TRAITS)) {
+            if (!(fields.get(TRAITS) instanceof List<?> traits)) {
+                throw invalid(CONTEXT + "." + TRAITS, fields.get(TRAITS));
+            }
+            for (Object trait : traits) {
+                if (!ProjectContext.KNOWN_KEYS.contains(String.valueOf(trait))) {
+                    throw invalid(CONTEXT + "." + TRAITS, trait);
+                }
+                keys.add(String.valueOf(trait));
+            }
+        }
+        return new ProjectContext(keys);
+    }
+
+    private static Optional<String> oneOf(Map<?, ?> fields, String name, Set<String> allowed) {
+        Object value = fields.get(name);
+        if (value == null) {
+            return Optional.empty();
+        }
+        String text = String.valueOf(value).toLowerCase(Locale.ROOT);
+        if (!allowed.contains(text)) {
+            throw invalid(CONTEXT + "." + name, value);
+        }
+        return Optional.of(text);
     }
 
     private static Object parse(Path file) {

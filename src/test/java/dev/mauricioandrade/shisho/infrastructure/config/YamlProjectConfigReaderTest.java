@@ -3,6 +3,7 @@ package dev.mauricioandrade.shisho.infrastructure.config;
 import dev.mauricioandrade.shisho.domain.exception.ConfigException;
 import dev.mauricioandrade.shisho.domain.model.ProjectConfig;
 import dev.mauricioandrade.shisho.domain.model.ProjectConfig.KataSetting;
+import dev.mauricioandrade.shisho.domain.model.ProjectContext;
 import dev.mauricioandrade.shisho.domain.model.Severity;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -12,6 +13,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -54,6 +56,47 @@ class YamlProjectConfigReaderTest {
                 "system-out", new KataSetting(false, Optional.empty()),
                 "dto-not-record", new KataSetting(true, Optional.of(Severity.INFO)),
                 "field-injection", new KataSetting(true, Optional.of(Severity.MEDIA))));
+    }
+
+    @Test
+    void turnsTheDeclaredContextIntoCatalogKeys() throws IOException {
+        write("""
+                contexto:
+                  tipo: MVP
+                  time: 12
+                  vida_util: longa
+                  caracteristicas: [dominio_com_regras_complexas, troca_provavel_de_infra]
+                """);
+
+        ProjectConfig config = reader.read(project);
+        assertThat(config.katas()).isEmpty();
+        assertThat(config.context()).contains(new ProjectContext(Set.of(
+                "mvp", "time_grande", "vida_util_longa", "dominio_com_regras_complexas", "troca_provavel_de_infra")));
+    }
+
+    @Test
+    void aSmallShortLivedPortfolioHasNoKeysButIsStillADeclaredContext() throws IOException {
+        write("contexto:\n  tipo: portfolio\n  time: 1\n  vida_util: curta\n");
+
+        assertThat(reader.read(project).context()).contains(new ProjectContext(Set.of()));
+    }
+
+    @Test
+    void rejectsInvalidContexts() throws IOException {
+        write("contexto:\n  tipo: startup\n");
+        assertError("config.error.invalid-value", "shisho.yaml", "contexto.tipo", "startup");
+
+        write("contexto:\n  time: 0\n");
+        assertError("config.error.invalid-value", "shisho.yaml", "contexto.time", "0");
+
+        write("contexto:\n  time: muitos\n");
+        assertError("config.error.invalid-value", "shisho.yaml", "contexto.time", "muitos");
+
+        write("contexto:\n  caracteristicas: [dominio_complexo]\n");
+        assertError("config.error.invalid-value", "shisho.yaml", "contexto.caracteristicas", "dominio_complexo");
+
+        write("contexto:\n  carga: alta\n");
+        assertError("config.error.unknown-field", "shisho.yaml", "contexto.carga");
     }
 
     @Test

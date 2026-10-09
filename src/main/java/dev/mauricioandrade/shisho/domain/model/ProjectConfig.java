@@ -4,15 +4,20 @@ import java.util.Map;
 import java.util.Optional;
 
 /**
- * The analyzed project's own settings: katas turned off and severities overridden, by kata id.
- * Dependency rule violations are configured like a kata, under {@link ArchitectureMatch#DEPENDENCY_RULE}.
+ * The analyzed project's own settings: katas turned off and severities overridden, by kata id,
+ * and the declared context, empty when the author did not declare one. Dependency rule
+ * violations are configured like a kata, under {@link ArchitectureMatch#DEPENDENCY_RULE}.
  */
-public record ProjectConfig(Map<String, KataSetting> katas) {
+public record ProjectConfig(Map<String, KataSetting> katas, Optional<ProjectContext> context) {
 
     public static final ProjectConfig DEFAULT = new ProjectConfig(Map.of());
 
     public ProjectConfig {
         katas = Map.copyOf(katas);
+    }
+
+    public ProjectConfig(Map<String, KataSetting> katas) {
+        this(katas, Optional.empty());
     }
 
     public boolean isEnabled(String kataId) {

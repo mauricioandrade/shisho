@@ -1,12 +1,19 @@
 package dev.mauricioandrade.shisho.infrastructure.json;
 
+import org.yaml.snakeyaml.LoaderOptions;
+import org.yaml.snakeyaml.Yaml;
+import org.yaml.snakeyaml.constructor.SafeConstructor;
+import org.yaml.snakeyaml.error.YAMLException;
+
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
 /**
  * Writes maps, lists, strings, numbers and booleans as indented JSON: enough for SARIF and for
- * requests to the local LLM, so a library would add more than it saves.
+ * requests to the local LLM, so a library would add more than it saves. Reading goes through
+ * SnakeYAML, already in the jar: JSON is valid YAML except for the {@code \/} escape, which the
+ * Ollama server (Go) never writes. See docs/adr/0004-local-llm.md.
  */
 public final class Json {
 
@@ -19,6 +26,18 @@ public final class Json {
         StringBuilder json = new StringBuilder();
         write(value, json, "");
         return json.append('\n').toString();
+    }
+
+    /**
+     * @return maps, lists, strings, numbers, booleans or null
+     * @throws IllegalArgumentException if {@code json} is not valid JSON
+     */
+    public static Object read(String json) {
+        try {
+            return new Yaml(new SafeConstructor(new LoaderOptions())).load(json);
+        } catch (YAMLException e) {
+            throw new IllegalArgumentException("Not valid JSON: " + json, e);
+        }
     }
 
     private static void write(Object value, StringBuilder json, String indent) {

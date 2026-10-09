@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 
 class JsonTest {
 
@@ -44,5 +45,23 @@ class JsonTest {
     void escapesStrings() {
         assertThat(Json.write(Arrays.asList("aspas \" barra \\ linha\nnova\ttab\u0001")))
                 .isEqualTo("[\n  \"aspas \\\" barra \\\\ linha\\nnova\\ttab\\u0001\"\n]\n");
+    }
+
+    @Test
+    void readsWhatOllamaWrites() {
+        assertThat(Json.read("{\"message\":{\"content\":\"a\\u003cb\\u003e \\\"q\\\" \\n 🥋 ção\"},\"done\":false,\"n\":3}"))
+                .isEqualTo(Map.of("message", Map.of("content", "a<b> \"q\" \n 🥋 ção"), "done", false, "n", 3));
+    }
+
+    @Test
+    void readsBackWhatItWrites() {
+        Map<String, Object> value = Map.of("text", "aspas \" barra \\ linha\nnova\ttab", "items", List.of(1, true));
+
+        assertThat(Json.read(Json.write(value))).isEqualTo(value);
+    }
+
+    @Test
+    void rejectsInvalidJson() {
+        assertThatIllegalArgumentException().isThrownBy(() -> Json.read("{\"a\": \"sem fim"));
     }
 }

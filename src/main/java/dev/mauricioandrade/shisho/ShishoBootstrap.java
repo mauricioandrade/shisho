@@ -58,9 +58,9 @@ public final class ShishoBootstrap {
                 new RankCalculator());
 
         ReportWriterFactory reportWriters = (format, destination, sensei) -> switch (format) {
-            case TERMINAL -> new TerminalReportWriter(destination, messages, sensei ? catalog.kataExamples() : List.of());
-            case SARIF -> new SarifReportWriter(destination, messages, catalog.kataExamples(), ShishoCommand.version(), Path.of(""));
-            case HTML -> new HtmlReportWriter(destination, messages, catalog.kataExamples(), ShishoCommand.version());
+            case TERMINAL -> new TerminalReportWriter(destination, messages, sensei ? catalog.kataGuides() : List.of());
+            case SARIF -> new SarifReportWriter(destination, messages, catalog.kataGuides(), ShishoCommand.version(), Path.of(""));
+            case HTML -> new HtmlReportWriter(destination, messages, catalog.kataGuides(), ShishoCommand.version());
         };
 
         FixProject fixProject = new FixProjectService(analyzeProject, new JavaParserSourceFixer());

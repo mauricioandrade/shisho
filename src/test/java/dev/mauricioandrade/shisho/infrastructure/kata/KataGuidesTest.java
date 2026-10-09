@@ -3,7 +3,7 @@ package dev.mauricioandrade.shisho.infrastructure.kata;
 import dev.mauricioandrade.shisho.domain.model.ArchitectureMatch;
 import dev.mauricioandrade.shisho.domain.model.ClassKata;
 import dev.mauricioandrade.shisho.domain.model.Kata;
-import dev.mauricioandrade.shisho.domain.model.KataExample;
+import dev.mauricioandrade.shisho.domain.model.KataGuide;
 import dev.mauricioandrade.shisho.domain.model.Lesson;
 import dev.mauricioandrade.shisho.domain.model.ProjectKata;
 import dev.mauricioandrade.shisho.infrastructure.catalog.MarkdownCatalogRepository;
@@ -19,34 +19,34 @@ import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-/** The sensei's examples are code too: the kata must flag "Antes" and accept "Depois". */
-class KataExamplesTest {
+/** The sensei's guides are code too: the kata must flag "Antes" and accept "Depois". */
+class KataGuidesTest {
 
-    private final Map<String, KataExample> examples = MarkdownCatalogRepository.bundled().kataExamples().stream()
-            .collect(Collectors.toMap(KataExample::kataId, Function.identity()));
+    private final Map<String, KataGuide> guides = MarkdownCatalogRepository.bundled().kataGuides().stream()
+            .collect(Collectors.toMap(KataGuide::kataId, Function.identity()));
 
     @Test
     void everyKataAndTheDependencyRuleHaveAnExample() {
-        assertThat(examples.keySet()).containsExactlyInAnyOrderElementsOf(
+        assertThat(guides.keySet()).containsExactlyInAnyOrderElementsOf(
                 Stream.concat(Katas.all().stream().map(Kata::id), Stream.of(ArchitectureMatch.DEPENDENCY_RULE)).toList());
     }
 
     @TestFactory
     Stream<DynamicTest> theKataFlagsTheCodeBeforeAndAcceptsTheCodeAfter() {
         return Katas.all().stream()
-                .filter(kata -> examples.get(kata.id()).before().language().equals("java"))
+                .filter(kata -> guides.get(kata.id()).before().language().equals("java"))
                 .map(kata -> DynamicTest.dynamicTest(kata.id(), () -> {
-                    KataExample example = examples.get(kata.id());
-                    assertThat(lessons(kata, example.before().code())).as("Antes").isNotEmpty()
+                    KataGuide guide = guides.get(kata.id());
+                    assertThat(lessons(kata, guide.before().code())).as("Antes").isNotEmpty()
                             .allSatisfy(lesson -> assertThat(lesson.kataId()).isEqualTo(kata.id()));
-                    assertThat(lessons(kata, example.after().code())).as("Depois").isEmpty();
+                    assertThat(lessons(kata, guide.after().code())).as("Depois").isEmpty();
                 }));
     }
 
     @Test
     void buildExamplesAreXml() {
         assertThat(List.of("missing-actuator", "missing-springdoc")).allSatisfy(id ->
-                assertThat(examples.get(id).after().code()).startsWith("<dependencies>"));
+                assertThat(guides.get(id).after().code()).startsWith("<dependencies>"));
     }
 
     private static List<Lesson> lessons(Kata kata, String code) {

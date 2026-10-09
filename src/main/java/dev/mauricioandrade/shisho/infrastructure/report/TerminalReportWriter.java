@@ -1,8 +1,8 @@
 package dev.mauricioandrade.shisho.infrastructure.report;
 
 import dev.mauricioandrade.shisho.domain.model.Analysis;
-import dev.mauricioandrade.shisho.domain.model.KataExample;
-import dev.mauricioandrade.shisho.domain.model.KataExample.Snippet;
+import dev.mauricioandrade.shisho.domain.model.KataGuide;
+import dev.mauricioandrade.shisho.domain.model.KataGuide.Snippet;
 import dev.mauricioandrade.shisho.domain.model.Lesson;
 import dev.mauricioandrade.shisho.domain.model.Severity;
 import dev.mauricioandrade.shisho.domain.model.SourceFile;
@@ -17,7 +17,7 @@ import java.util.List;
 
 /**
  * The report for people at a terminal: aligned columns, wrapped at {@value #WIDTH} characters.
- * Given the catalog's examples (the sensei mode), it also shows how to fix each kata found.
+ * Given the catalog's guides (the sensei mode), it also shows how to fix each kata found.
  */
 public final class TerminalReportWriter implements ReportWriter {
 
@@ -31,10 +31,10 @@ public final class TerminalReportWriter implements ReportWriter {
     private final PrintStream out;
     private final ReportTexts texts;
 
-    /** @param examples the catalog's examples for the sensei mode; empty for the plain report */
-    public TerminalReportWriter(PrintStream out, Messages messages, List<KataExample> examples) {
+    /** @param guides the catalog's guides for the sensei mode; empty for the plain report */
+    public TerminalReportWriter(PrintStream out, Messages messages, List<KataGuide> guides) {
         this.out = out;
-        this.texts = new ReportTexts(messages, examples);
+        this.texts = new ReportTexts(messages, guides);
     }
 
     @Override
@@ -59,12 +59,12 @@ public final class TerminalReportWriter implements ReportWriter {
         if (!analysis.lessons().isEmpty() || !analysis.unparseableFiles().isEmpty()) {
             out.println();
         }
-        List<KataExample> examples = texts.examples(analysis);
-        if (!examples.isEmpty()) {
+        List<KataGuide> guides = texts.guides(analysis);
+        if (!guides.isEmpty()) {
             out.println(texts.text("report.sensei.title"));
             out.println();
-            examples.forEach(example -> {
-                example(example).forEach(out::println);
+            guides.forEach(guide -> {
+                guide(guide).forEach(out::println);
                 out.println();
             });
         }
@@ -86,11 +86,11 @@ public final class TerminalReportWriter implements ReportWriter {
         return lines;
     }
 
-    private List<String> example(KataExample example) {
+    private List<String> guide(KataGuide guide) {
         List<String> lines = new ArrayList<>();
-        lines.add("[" + example.kataId() + "] " + texts.title(example.kataId()));
-        snippet(texts.text("report.sensei.before"), example.before(), lines);
-        snippet(texts.text("report.sensei.after"), example.after(), lines);
+        lines.add("[" + guide.kataId() + "] " + texts.title(guide.kataId()));
+        snippet(texts.text("report.sensei.before"), guide.before(), lines);
+        snippet(texts.text("report.sensei.after"), guide.after(), lines);
         return lines;
     }
 

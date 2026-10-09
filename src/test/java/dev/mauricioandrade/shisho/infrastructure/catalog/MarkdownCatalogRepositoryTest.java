@@ -8,8 +8,8 @@ import dev.mauricioandrade.shisho.domain.model.ArchitectureProfile.DependencyRul
 import dev.mauricioandrade.shisho.domain.model.ArchitectureProfile.Family;
 import dev.mauricioandrade.shisho.domain.model.JavaFeature;
 import dev.mauricioandrade.shisho.domain.model.JavaVersion;
-import dev.mauricioandrade.shisho.domain.model.KataExample;
-import dev.mauricioandrade.shisho.domain.model.KataExample.Snippet;
+import dev.mauricioandrade.shisho.domain.model.KataGuide;
+import dev.mauricioandrade.shisho.domain.model.KataGuide.Snippet;
 import dev.mauricioandrade.shisho.domain.model.ProjectContext;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -45,7 +45,7 @@ class MarkdownCatalogRepositoryTest {
             sinais_subengenharia: [service_gigante]
             evolui_para: []
             alternativa_mais_simples: null
-            referencias: [https://example.com]
+            referencias: [https://guide.com]
             """;
 
     @Nested
@@ -119,7 +119,7 @@ class MarkdownCatalogRepositoryTest {
     }
 
     @Nested
-    class KataExamples {
+    class KataGuides {
 
         @TempDir
         Path catalog;
@@ -149,7 +149,7 @@ class MarkdownCatalogRepositoryTest {
                     ```
                     """);
 
-            assertThat(new MarkdownCatalogRepository(catalog).kataExamples()).containsExactly(new KataExample("system-out",
+            assertThat(new MarkdownCatalogRepository(catalog).kataGuides()).containsExactly(new KataGuide("system-out",
                     new Snippet("java", "System.out.println(\"x\");", ""),
                     new Snippet("java", "log.info(\"x\");\n\nlog.debug(\"y\");", "O logger tem nível e formato.")));
         }
@@ -157,12 +157,12 @@ class MarkdownCatalogRepositoryTest {
         @Test
         void rejectsAnExampleWithoutBothSectionsOrCode() throws IOException {
             write("system-out.md", "---\nid: system-out\n---\n\n## Antes\n\n```java\nx();\n```\n");
-            assertThatThrownBy(() -> new MarkdownCatalogRepository(catalog).kataExamples())
+            assertThatThrownBy(() -> new MarkdownCatalogRepository(catalog).kataGuides())
                     .isInstanceOfSatisfying(CatalogException.class, e ->
                             assertThat(e.arguments()).containsExactly("system-out.md", "## Depois"));
 
             write("system-out.md", "---\nid: system-out\n---\n\n## Antes\n\nsó texto\n\n## Depois\n\n```java\nx();\n```\n");
-            assertThatThrownBy(() -> new MarkdownCatalogRepository(catalog).kataExamples())
+            assertThatThrownBy(() -> new MarkdownCatalogRepository(catalog).kataGuides())
                     .isInstanceOfSatisfying(CatalogException.class, e -> {
                         assertThat(e.messageKey()).isEqualTo("catalog.error.missing-code");
                         assertThat(e.arguments()).containsExactly("system-out.md", "Antes");
@@ -173,7 +173,7 @@ class MarkdownCatalogRepositoryTest {
         void rejectsAnIdDifferentFromTheFileName() throws IOException {
             write("system-out.md", "---\nid: sistema\n---\n");
 
-            assertThatThrownBy(() -> new MarkdownCatalogRepository(catalog).kataExamples())
+            assertThatThrownBy(() -> new MarkdownCatalogRepository(catalog).kataGuides())
                     .isInstanceOfSatisfying(CatalogException.class, e ->
                             assertThat(e.messageKey()).isEqualTo("catalog.error.id-mismatch"));
         }

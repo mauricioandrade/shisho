@@ -13,8 +13,8 @@ import dev.mauricioandrade.shisho.domain.model.ArchitectureProfile.Family;
 import dev.mauricioandrade.shisho.domain.model.ArchitectureProfile.Signature;
 import dev.mauricioandrade.shisho.domain.model.Evidence;
 import dev.mauricioandrade.shisho.domain.model.JavaVersion;
-import dev.mauricioandrade.shisho.domain.model.KataExample;
-import dev.mauricioandrade.shisho.domain.model.KataExample.Snippet;
+import dev.mauricioandrade.shisho.domain.model.KataGuide;
+import dev.mauricioandrade.shisho.domain.model.KataGuide.Snippet;
 import dev.mauricioandrade.shisho.domain.model.Lesson;
 import dev.mauricioandrade.shisho.domain.model.Rank;
 import dev.mauricioandrade.shisho.domain.model.Severity;
@@ -124,11 +124,11 @@ class TerminalReportWriterTest {
         Analysis analysis = analysis(true, List.of(
                 lesson("field-injection", Severity.GRAVE, 14, "a"),
                 lesson("field-injection", Severity.GRAVE, 20, "b")), List.of());
-        KataExample example = new KataExample("field-injection",
+        KataGuide guide = new KataGuide("field-injection",
                 new Snippet("java", "@Autowired\nprivate Service service;", ""),
                 new Snippet("java", "private final Service service;\n\nApp(Service service) {}", "O construtor declara a `dependência`."));
 
-        assertThat(render(analysis, PORTUGUESE, List.of(example))).contains("""
+        assertThat(render(analysis, PORTUGUESE, List.of(guide))).contains("""
 
                 Como corrigir (modo sensei)
 
@@ -207,10 +207,10 @@ class TerminalReportWriterTest {
         return render(analysis, messages, List.of());
     }
 
-    private static String render(Analysis analysis, Messages messages, List<KataExample> examples) {
+    private static String render(Analysis analysis, Messages messages, List<KataGuide> guides) {
         ByteArrayOutputStream buffer = new ByteArrayOutputStream();
         PrintStream out = new PrintStream(buffer, true, StandardCharsets.UTF_8);
-        new TerminalReportWriter(out, messages, examples).write(analysis);
+        new TerminalReportWriter(out, messages, guides).write(analysis);
         return buffer.toString(StandardCharsets.UTF_8).replace(System.lineSeparator(), "\n");
     }
 

@@ -10,8 +10,8 @@ import dev.mauricioandrade.shisho.domain.model.ArchitectureProfile.Family;
 import dev.mauricioandrade.shisho.domain.model.ArchitectureProfile.Signature;
 import dev.mauricioandrade.shisho.domain.model.Evidence;
 import dev.mauricioandrade.shisho.domain.model.JavaVersion;
-import dev.mauricioandrade.shisho.domain.model.KataExample;
-import dev.mauricioandrade.shisho.domain.model.KataExample.Snippet;
+import dev.mauricioandrade.shisho.domain.model.KataGuide;
+import dev.mauricioandrade.shisho.domain.model.KataGuide.Snippet;
 import dev.mauricioandrade.shisho.domain.model.Lesson;
 import dev.mauricioandrade.shisho.domain.model.Rank;
 import dev.mauricioandrade.shisho.domain.model.Severity;
@@ -79,12 +79,12 @@ class HtmlReportWriterTest {
 
     @Test
     void linksEachLessonToItsExampleShownOnce() {
-        KataExample example = new KataExample("field-injection",
+        KataGuide guide = new KataGuide("field-injection",
                 new Snippet("java", "@Autowired\nprivate Service service;", ""),
                 new Snippet("java", "private final Service service;", "Use o `construtor` & final."));
         ByteArrayOutputStream buffer = new ByteArrayOutputStream();
         new HtmlReportWriter(new PrintStream(buffer, true, StandardCharsets.UTF_8), new Messages(Messages.DEFAULT_LOCALE),
-                List.of(example), "1.2.3").write(analysis(List.of(
+                List.of(guide), "1.2.3").write(analysis(List.of(
                 lesson("field-injection", Severity.GRAVE, "A.java", 3, "a"),
                 lesson("field-injection", Severity.GRAVE, "B.java", 5, "b"),
                 lesson("system-out", Severity.MEDIA, "B.java", 9, "System.out.println")), 76));
@@ -92,7 +92,7 @@ class HtmlReportWriterTest {
 
         assertThat(html.split("<a href=\"#kata-field-injection\">Como corrigir</a>", -1)).hasSize(3);
         assertThat(html).doesNotContain("#kata-system-out")
-                .contains("<h2>Como corrigir</h2>\n<article id=\"kata-field-injection\" class=\"example\">\n"
+                .contains("<h2>Como corrigir</h2>\n<article id=\"kata-field-injection\" class=\"guide\">\n"
                         + "<h3>Injeção de dependência em campo <code class=\"muted\">field-injection</code></h3>")
                 .contains("<div class=\"snippet snippet-before\">\n<h4>Antes</h4>\n"
                         + "<pre><code class=\"language-java\">@Autowired\nprivate Service service;</code></pre>")

@@ -11,8 +11,8 @@ import dev.mauricioandrade.shisho.domain.model.ArchitectureProfile.Signature;
 import dev.mauricioandrade.shisho.domain.model.JavaFeature;
 import dev.mauricioandrade.shisho.domain.model.JavaFeature.Status;
 import dev.mauricioandrade.shisho.domain.model.JavaVersion;
-import dev.mauricioandrade.shisho.domain.model.KataExample;
-import dev.mauricioandrade.shisho.domain.model.KataExample.Snippet;
+import dev.mauricioandrade.shisho.domain.model.KataGuide;
+import dev.mauricioandrade.shisho.domain.model.KataGuide.Snippet;
 import dev.mauricioandrade.shisho.domain.port.out.CatalogRepository;
 import org.yaml.snakeyaml.LoaderOptions;
 import org.yaml.snakeyaml.Yaml;
@@ -93,8 +93,8 @@ public final class MarkdownCatalogRepository implements CatalogRepository {
     }
 
     @Override
-    public List<KataExample> kataExamples() {
-        return documents("katas").stream().map(MarkdownCatalogRepository::toExample).toList();
+    public List<KataGuide> kataGuides() {
+        return documents("katas").stream().map(MarkdownCatalogRepository::toGuide).toList();
     }
 
     @Override
@@ -163,7 +163,7 @@ public final class MarkdownCatalogRepository implements CatalogRepository {
         return new Document(fileName, parseYaml(fileName, yaml), markdown);
     }
 
-    private static KataExample toExample(Document document) {
+    private static KataGuide toGuide(Document document) {
         String id = document.id();
         Map<String, String> sections = new LinkedHashMap<>();
         Matcher heading = SECTION.matcher(document.markdown());
@@ -172,7 +172,7 @@ public final class MarkdownCatalogRepository implements CatalogRepository {
             int end = i + 1 < headings.size() ? headings.get(i + 1).start() : document.markdown().length();
             sections.put(headings.get(i).group(1).strip(), document.markdown().substring(headings.get(i).end(), end));
         }
-        return new KataExample(id, snippet(document.fileName(), sections, BEFORE), snippet(document.fileName(), sections, AFTER));
+        return new KataGuide(id, snippet(document.fileName(), sections, BEFORE), snippet(document.fileName(), sections, AFTER));
     }
 
     private static Snippet snippet(String fileName, Map<String, String> sections, String section) {

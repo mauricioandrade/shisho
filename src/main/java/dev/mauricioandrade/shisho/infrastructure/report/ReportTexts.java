@@ -4,7 +4,7 @@ import dev.mauricioandrade.shisho.domain.model.Analysis;
 import dev.mauricioandrade.shisho.domain.model.ArchitectureMatch;
 import dev.mauricioandrade.shisho.domain.model.ArchitectureProfile;
 import dev.mauricioandrade.shisho.domain.model.Evidence;
-import dev.mauricioandrade.shisho.domain.model.KataExample;
+import dev.mauricioandrade.shisho.domain.model.KataGuide;
 import dev.mauricioandrade.shisho.domain.model.Lesson;
 import dev.mauricioandrade.shisho.domain.model.Severity;
 import dev.mauricioandrade.shisho.domain.model.SourceFile;
@@ -21,24 +21,24 @@ import java.util.stream.Collectors;
 final class ReportTexts {
 
     private final Messages messages;
-    private final Map<String, KataExample> examples;
+    private final Map<String, KataGuide> guides;
 
-    ReportTexts(Messages messages, List<KataExample> examples) {
+    ReportTexts(Messages messages, List<KataGuide> guides) {
         this.messages = messages;
-        this.examples = examples.stream().collect(Collectors.toMap(KataExample::kataId, Function.identity()));
+        this.guides = guides.stream().collect(Collectors.toMap(KataGuide::kataId, Function.identity()));
     }
 
-    /** The examples of the katas that taught a lesson, in the order of their first lesson. */
-    List<KataExample> examples(Analysis analysis) {
+    /** The guides of the katas that taught a lesson, in the order of their first lesson. */
+    List<KataGuide> guides(Analysis analysis) {
         return analysis.lessons().stream()
                 .map(Lesson::kataId)
                 .distinct()
-                .flatMap(kataId -> Optional.ofNullable(examples.get(kataId)).stream())
+                .flatMap(kataId -> Optional.ofNullable(guides.get(kataId)).stream())
                 .toList();
     }
 
-    Optional<KataExample> example(String kataId) {
-        return Optional.ofNullable(examples.get(kataId));
+    Optional<KataGuide> guide(String kataId) {
+        return Optional.ofNullable(guides.get(kataId));
     }
 
     String title(String kataId) {

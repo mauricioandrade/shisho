@@ -10,8 +10,8 @@ import dev.mauricioandrade.shisho.domain.model.ArchitectureProfile.Family;
 import dev.mauricioandrade.shisho.domain.model.ArchitectureProfile.Signature;
 import dev.mauricioandrade.shisho.domain.model.Evidence;
 import dev.mauricioandrade.shisho.domain.model.JavaVersion;
-import dev.mauricioandrade.shisho.domain.model.KataExample;
-import dev.mauricioandrade.shisho.domain.model.KataExample.Snippet;
+import dev.mauricioandrade.shisho.domain.model.KataGuide;
+import dev.mauricioandrade.shisho.domain.model.KataGuide.Snippet;
 import dev.mauricioandrade.shisho.domain.model.Lesson;
 import dev.mauricioandrade.shisho.domain.model.Rank;
 import dev.mauricioandrade.shisho.domain.model.Severity;
@@ -206,11 +206,11 @@ class SarifReportWriterTest {
 
     @Test
     void givesEachRuleTheExampleAsHelp() {
-        KataExample example = new KataExample("system-out",
+        KataGuide guide = new KataGuide("system-out",
                 new Snippet("java", "System.out.println(x);", ""), new Snippet("java", "log.info(\"{}\", x);", "Use um logger."));
         ByteArrayOutputStream buffer = new ByteArrayOutputStream();
         new SarifReportWriter(new PrintStream(buffer, true, StandardCharsets.UTF_8), new Messages(Messages.DEFAULT_LOCALE),
-                List.of(example), "1.2.3", WORKSPACE).write(analysis(WORKSPACE, List.of(
+                List.of(guide), "1.2.3", WORKSPACE).write(analysis(WORKSPACE, List.of(
                 new Lesson("system-out", Severity.MEDIA, Path.of("A.java"), 2, "kata.system-out.lesson", List.of("System.out.println")))));
 
         assertThat(buffer.toString(StandardCharsets.UTF_8)).contains("""

@@ -14,7 +14,7 @@ import dev.mauricioandrade.shisho.domain.model.ClassUnit.Import;
 import dev.mauricioandrade.shisho.domain.model.Dependency;
 import dev.mauricioandrade.shisho.domain.model.JavaFeature;
 import dev.mauricioandrade.shisho.domain.model.JavaVersion;
-import dev.mauricioandrade.shisho.domain.model.KataExample;
+import dev.mauricioandrade.shisho.domain.model.KataGuide;
 import dev.mauricioandrade.shisho.domain.model.ProjectModel;
 import dev.mauricioandrade.shisho.domain.port.out.CatalogRepository;
 import org.junit.jupiter.api.Test;
@@ -40,7 +40,7 @@ class ClassifyArchitectureServiceTest {
         }
 
         @Override
-        public List<KataExample> kataExamples() {
+        public List<KataGuide> kataGuides() {
             return List.of();
         }
 

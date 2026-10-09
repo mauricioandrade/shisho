@@ -2,8 +2,8 @@ package dev.mauricioandrade.shisho.infrastructure.report;
 
 import dev.mauricioandrade.shisho.domain.model.Analysis;
 import dev.mauricioandrade.shisho.domain.model.ArchitectureMatch;
-import dev.mauricioandrade.shisho.domain.model.KataExample;
-import dev.mauricioandrade.shisho.domain.model.KataExample.Snippet;
+import dev.mauricioandrade.shisho.domain.model.KataGuide;
+import dev.mauricioandrade.shisho.domain.model.KataGuide.Snippet;
 import dev.mauricioandrade.shisho.domain.model.Lesson;
 import dev.mauricioandrade.shisho.domain.model.SourceFile;
 import dev.mauricioandrade.shisho.domain.model.Verdict;
@@ -34,9 +34,9 @@ public final class HtmlReportWriter implements ReportWriter {
     private final String language;
     private final String version;
 
-    public HtmlReportWriter(PrintStream out, Messages messages, List<KataExample> examples, String version) {
+    public HtmlReportWriter(PrintStream out, Messages messages, List<KataGuide> guides, String version) {
         this.out = out;
-        this.texts = new ReportTexts(messages, examples);
+        this.texts = new ReportTexts(messages, guides);
         Locale locale = messages.bundle().getLocale();
         this.language = locale.toLanguageTag().equals("und") ? "en" : locale.toLanguageTag();
         this.version = version;
@@ -60,7 +60,7 @@ public final class HtmlReportWriter implements ReportWriter {
         header(analysis, html);
         architecture(analysis, html);
         lessons(analysis, html);
-        examples(analysis, html);
+        guides(analysis, html);
         html.append("<footer>").append(escape(texts.text("html.generated", version))).append("</footer>\n");
         html.append("</main>\n</body>\n</html>\n");
         out.print(html);
@@ -139,24 +139,24 @@ public final class HtmlReportWriter implements ReportWriter {
                 .append("<code class=\"muted\">").append(escape(lesson.kataId())).append("</code> ")
                 .append("<span class=\"muted\">").append(escape(where)).append("</span></p>\n")
                 .append("<p>").append(escape(texts.explanation(lesson))).append("</p>\n");
-        texts.example(lesson.kataId()).ifPresent(_ -> html.append("<p><a href=\"#kata-").append(escape(lesson.kataId()))
+        texts.guide(lesson.kataId()).ifPresent(_ -> html.append("<p><a href=\"#kata-").append(escape(lesson.kataId()))
                 .append("\">").append(escape(texts.text("html.how-to-fix"))).append("</a></p>\n"));
         html.append("</li>\n");
     }
 
-    private void examples(Analysis analysis, StringBuilder html) {
-        List<KataExample> examples = texts.examples(analysis);
-        if (examples.isEmpty()) {
+    private void guides(Analysis analysis, StringBuilder html) {
+        List<KataGuide> guides = texts.guides(analysis);
+        if (guides.isEmpty()) {
             return;
         }
         html.append("<section>\n<h2>").append(escape(texts.text("html.how-to-fix"))).append("</h2>\n");
-        for (KataExample example : examples) {
-            html.append("<article id=\"kata-").append(escape(example.kataId())).append("\" class=\"example\">\n")
-                    .append("<h3>").append(escape(texts.title(example.kataId()))).append(" <code class=\"muted\">")
-                    .append(escape(example.kataId())).append("</code></h3>\n")
+        for (KataGuide guide : guides) {
+            html.append("<article id=\"kata-").append(escape(guide.kataId())).append("\" class=\"guide\">\n")
+                    .append("<h3>").append(escape(texts.title(guide.kataId()))).append(" <code class=\"muted\">")
+                    .append(escape(guide.kataId())).append("</code></h3>\n")
                     .append("<div class=\"before-after\">\n");
-            snippet(texts.text("html.before"), "before", example.before(), html);
-            snippet(texts.text("html.after"), "after", example.after(), html);
+            snippet(texts.text("html.before"), "before", guide.before(), html);
+            snippet(texts.text("html.after"), "after", guide.after(), html);
             html.append("</div>\n</article>\n");
         }
         html.append("</section>\n");

@@ -22,7 +22,7 @@ class KatasTest {
 
     @Test
     void katasHaveUniqueIds() {
-        assertThat(Katas.all()).extracting(Kata::id).doesNotHaveDuplicates().hasSize(10);
+        assertThat(Katas.all()).extracting(Kata::id).doesNotHaveDuplicates().hasSize(12);
     }
 
     @Test
@@ -35,6 +35,8 @@ class KatasTest {
         assertThat(analyze(FIXTURES.resolve("aluno-baguncado")))
                 .extracting(lesson -> lesson.file().toString(), Lesson::line, Lesson::kataId, Lesson::severity)
                 .containsExactly(
+                        tuple("pom.xml", 0, "missing-actuator", Severity.LEVE),
+                        tuple("pom.xml", 0, "missing-springdoc", Severity.INFO),
                         tuple(controller, 11, "missing-controller-advice", Severity.MEDIA),
                         tuple(controller, 15, "field-injection", Severity.GRAVE),
                         tuple(controller, 19, "request-body-without-valid", Severity.MEDIA),

@@ -21,6 +21,8 @@ public final class Katas {
                 new DtoNotRecordKata(),
                 new EntityInControllerKata(),
                 new TransactionalReadOnlyKata(),
-                new MissingControllerAdviceKata());
+                new MissingControllerAdviceKata(),
+                new MissingActuatorKata(),
+                new MissingSpringdocKata());
     }
 }

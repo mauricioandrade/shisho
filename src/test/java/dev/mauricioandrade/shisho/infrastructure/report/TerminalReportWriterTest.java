@@ -51,12 +51,12 @@ class TerminalReportWriterTest {
     @Test
     void showsWholeFileLessonsWithoutLineAndCountsSuggestionsOnlyWhenThereAreAny() {
         Analysis analysis = analysis(true, List.of(
-                new Lesson("lombok-constructor", Severity.INFO, Path.of("pom.xml"), 0, "kata.lombok-constructor.lesson", List.of("Data")),
+                new Lesson("missing-springdoc", Severity.INFO, Path.of("pom.xml"), 0, "kata.missing-springdoc.lesson", List.of()),
                 lesson("dto-not-record", Severity.LEVE, 3, "UsuarioRequest")), List.of());
 
         assertThat(render(analysis, PORTUGUESE))
-                .contains("i INFO   [lombok-constructor]  pom.xml\n")
-                .contains("· LEVE   [dto-not-record]      UsuarioController.java:3\n")
+                .contains("i INFO   [missing-springdoc]  pom.xml\n")
+                .contains("· LEVE   [dto-not-record]     UsuarioController.java:3\n")
                 .endsWith("Graduação: 1º dan  (2 lições: 0 graves, 0 médias, 1 leve, 1 sugestão)\n");
     }
 
@@ -106,8 +106,8 @@ class TerminalReportWriterTest {
         String report = render(service.analyze(Path.of("src/test/resources/fixtures/aluno-baguncado")), PORTUGUESE);
 
         assertThat(report)
-                .startsWith("師匠 Shishō — análise de aluno-baguncado  (Java 21)\n\n! MEDIA  [missing-controller-advice]")
-                .endsWith("\nGraduação: 4º kyū  (12 lições: 1 grave, 8 médias, 3 leves)\n");
+                .startsWith("師匠 Shishō — análise de aluno-baguncado  (Java 21)\n\n· LEVE   [missing-actuator]            pom.xml\n")
+                .endsWith("\nGraduação: 5º kyū  (14 lições: 1 grave, 8 médias, 4 leves, 1 sugestão)\n");
     }
 
     private static String render(Analysis analysis, Messages messages) {

@@ -197,7 +197,7 @@ você pedir.
   configuração) e `shisho.yaml`
 - [x] **Fase 3** — classificação de arquitetura, regras de dependência e veredito de
   overengineering/subengenharia
-- [ ] **Fase 4** — relatório HTML, SARIF e GitHub Action
+- [x] **Fase 4** — relatório HTML, SARIF e GitHub Action
 - [ ] **Fase 5** — exemplos antes/depois, catálogo de recursos do Java, autofix com OpenRewrite
 - [ ] **Fase 6** — LLM local opcional
 - [ ] **Depois** — outras stacks, reaproveitando o catálogo de arquiteturas
@@ -228,17 +228,49 @@ Depois é só apontar o Shishō para a raiz de um projeto Maven:
 java -jar target/shisho.jar analyze ~/projetos/minha-api
 ```
 
-O código de saída foi pensado para CI:
+Além do terminal, o relatório sai em SARIF (para o code scanning do GitHub e outras
+ferramentas) ou em HTML (uma página só, sem dependências, com tema claro e escuro):
+
+```bash
+java -jar target/shisho.jar analyze --format sarif --output shisho.sarif ~/projetos/minha-api
+java -jar target/shisho.jar analyze --format html  --output shisho.html  ~/projetos/minha-api
+```
+
+O código de saída foi pensado para CI e não depende do formato:
 
 | Código | Significado |
 |---|---|
 | 0 | nenhuma lição grave |
 | 1 | há pelo menos uma lição **GRAVE** |
-| 2 | entrada inválida (caminho inexistente, argumento faltando) |
+| 2 | entrada inválida (caminho inexistente, argumento faltando, `--output` que não pode ser gravado) |
 | 3 | o projeto não pôde ser analisado (ex.: Java abaixo do 21, `shisho.yaml` inválido) |
 
 O mise é usado só para conveniência de desenvolvimento. Ele não é dependência do Shishō, e
 nada no build exige que você o use.
+
+## No GitHub Actions
+
+```yaml
+jobs:
+  shisho:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write   # para enviar o SARIF ao code scanning
+    steps:
+      - uses: actions/checkout@v4
+      - uses: mauricioandrade/shiso@main
+        with:
+          path: .                # projeto a analisar (padrão: raiz do repositório)
+          fail-on-grave: true    # reprova o job se houver lição GRAVE (padrão: true)
+          upload-sarif: true     # lições como alertas do code scanning (padrão: true)
+          html: shisho.html      # opcional: também grava o relatório HTML
+```
+
+As lições aparecem como alertas no code scanning e anotações no pull request; o relatório do
+terminal vai para o resumo do job. A action instala o Java 25 e compila o Shishō a partir do
+código dela mesma. Como isso troca o Java do job, **rode-a num job separado** do build do seu
+projeto.
 
 ## Contribuindo
 

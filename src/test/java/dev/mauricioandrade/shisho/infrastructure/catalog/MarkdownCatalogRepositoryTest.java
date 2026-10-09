@@ -13,6 +13,7 @@ import dev.mauricioandrade.shisho.domain.model.JavaVersion;
 import dev.mauricioandrade.shisho.domain.model.KataGuide;
 import dev.mauricioandrade.shisho.domain.model.KataGuide.Snippet;
 import dev.mauricioandrade.shisho.domain.model.ProjectContext;
+import dev.mauricioandrade.shisho.domain.model.Scaffold;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -21,6 +22,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -277,6 +279,69 @@ class MarkdownCatalogRepositoryTest {
             assertThatThrownBy(() -> new MarkdownCatalogRepository(catalog).avoidedDependencies())
                     .isInstanceOfSatisfying(CatalogException.class, e ->
                             assertThat(e.arguments()).containsExactly("x.md", "coordenadas", "log4j"));
+        }
+    }
+
+    @Nested
+    class Scaffolds {
+
+        @Test
+        void everyScaffoldFollowsACatalogArchitecture() {
+            MarkdownCatalogRepository catalog = MarkdownCatalogRepository.bundled();
+            Set<String> architectures = catalog.architectures().stream().map(ArchitectureProfile::id).collect(Collectors.toSet());
+
+            assertThat(catalog.scaffolds()).extracting(Scaffold::architectureId).containsExactly("layered", "package-by-feature")
+                    .allMatch(architectures::contains);
+            assertThat(catalog.scaffolds()).allSatisfy(scaffold -> assertThat(scaffold.files()).allSatisfy(file -> {
+                assertThat(file.path()).as(scaffold.architectureId()).endsWith(".java");
+                assertThat(file.explanation()).as(file.path()).isNotBlank();
+                assertThat(file.content()).as(file.path()).startsWith("package {{pacote}}").endsWith("}\n");
+            }));
+        }
+
+        @Test
+        void readsTheFilesSharedByEveryEntity(@TempDir Path catalog) throws IOException {
+            Files.writeString(Files.createDirectories(catalog.resolve("scaffolds")).resolve("x.md"), """
+                    ---
+                    id: x
+                    dependencias: [spring-boot-starter-web]
+                    uma_vez_por_projeto:
+                      Erros.java: RestControllerAdvice
+                    ---
+
+                    ## {{Entidade}}.java
+
+                    A entidade.
+
+                    ```java
+                    class {{Entidade}} {}
+                    ```
+
+                    ## Erros.java
+
+                    Os erros.
+
+                    ```java
+                    class Erros {}
+                    ```
+                    """);
+
+            assertThat(new MarkdownCatalogRepository(catalog).scaffolds()).singleElement().satisfies(scaffold -> {
+                assertThat(scaffold.requiredDependencies()).containsExactly("spring-boot-starter-web");
+                assertThat(scaffold.files()).containsExactly(
+                        new Scaffold.File("{{Entidade}}.java", "A entidade.", "class {{Entidade}} {}\n", Optional.empty()),
+                        new Scaffold.File("Erros.java", "Os erros.", "class Erros {}\n", Optional.of("RestControllerAdvice")));
+            });
+        }
+
+        @Test
+        void rejectsASharedFileThatIsNotInTheTemplate(@TempDir Path catalog) throws IOException {
+            Files.writeString(Files.createDirectories(catalog.resolve("scaffolds")).resolve("x.md"),
+                    "---\nid: x\ndependencias: []\numa_vez_por_projeto:\n  Outro.java: X\n---\n\n## A.java\n\nA.\n\n```java\nclass A {}\n```\n");
+
+            assertThatThrownBy(() -> new MarkdownCatalogRepository(catalog).scaffolds())
+                    .isInstanceOfSatisfying(CatalogException.class, e ->
+                            assertThat(e.arguments()).containsExactly("x.md", "uma_vez_por_projeto", "Outro.java"));
         }
     }
 

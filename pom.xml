@@ -73,6 +73,7 @@
                     <include>katas/*.md</include>
                     <include>java-features/*.md</include>
                     <include>dependencies/*.md</include>
+                    <include>scaffolds/*.md</include>
                 </includes>
             </resource>
         </resources>

@@ -17,6 +17,7 @@ import dev.mauricioandrade.shisho.domain.model.JavaFeature;
 import dev.mauricioandrade.shisho.domain.model.JavaVersion;
 import dev.mauricioandrade.shisho.domain.model.KataGuide;
 import dev.mauricioandrade.shisho.domain.model.ProjectModel;
+import dev.mauricioandrade.shisho.domain.model.Scaffold;
 import dev.mauricioandrade.shisho.domain.port.out.CatalogRepository;
 import org.junit.jupiter.api.Test;
 
@@ -53,6 +54,11 @@ class ClassifyArchitectureServiceTest {
 
         @Override
         public List<AvoidedDependency> avoidedDependencies() {
+            return List.of();
+        }
+
+        @Override
+        public List<Scaffold> scaffolds() {
             return List.of();
         }
     }, List.of());

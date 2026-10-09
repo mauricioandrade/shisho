@@ -147,6 +147,48 @@ As quatro seções e `referencias` (URLs `https://`) são obrigatórias, assim c
 código em "Antes" e em "Depois". Um teste roda cada kata sobre o próprio exemplo: o "Antes"
 precisa gerar a lição e o "Depois" não pode gerar nenhuma. Toda kata precisa de um guia.
 
+## Templates de CRUD (`scaffolds/`)
+
+Cada arquivo ensina o `shisho crud` a gerar um CRUD REST numa arquitetura: um arquivo por
+arquitetura, com o mesmo `id` dela. Cada seção `## caminho/Arquivo.java` é um arquivo gerado,
+com o caminho relativo ao pacote base do projeto. O texto antes do bloco de código explica, no
+terminal, por que o arquivo existe; o bloco é o conteúdo.
+
+```markdown
+---
+id: layered                  # uma arquitetura de architectures/
+dependencias: [spring-boot-starter-web, spring-boot-starter-data-jpa]   # artifactIds que o código exige
+uma_vez_por_projeto:         # opcional: arquivo comum a todas as entidades
+  controller/TratadorDeErros.java: RestControllerAdvice   # pulado se alguma classe já tem a anotação
+---
+
+## controller/{{Entidade}}Controller.java
+
+Por que este arquivo existe, em um parágrafo.
+
+```java
+package {{pacote}}.controller;
+...
+```
+```
+
+Placeholders, no caminho, na explicação e no código:
+
+| Placeholder | Exemplo (`Usuario`, pacote `com.loja`) |
+|---|---|
+| `{{pacote}}` | `com.loja` |
+| `{{Entidade}}` / `{{entidade}}` | `Usuario` / `usuario` |
+| `{{feature}}` | `usuario` (nome do pacote da funcionalidade) |
+| `{{rota}}` | `usuarios` |
+| `{{#campos}}…{{/campos}}` | repete o trecho para cada campo, com `{{campo}}`, `{{Campo}}`, `{{tipo}}` e `{{validacao}}` (`NotBlank` para texto, `NotNull` para o resto); `{{,}}` vira `, ` entre os campos |
+| `{{#importacoes}}…{{/importacoes}}` | um item por tipo que precisa de import, com `{{importacao}}` (`java.math.BigDecimal`) |
+| `{{#validacoes}}…{{/validacoes}}` | um item por anotação de validação usada, com `{{validacao}}` |
+
+Uma linha que só tem uma tag de seção desaparece, e linhas em branco repetidas viram uma. O
+teste gera cada template num projeto como o do Spring Initializr e exige que o `shisho analyze`
+reconheça a arquitetura e não encontre **nenhuma** lição. Detalhes em
+[`docs/adr/0005-crud-scaffolding.md`](../docs/adr/0005-crud-scaffolding.md).
+
 ## Famílias e o caminho natural de evolução
 
 ```

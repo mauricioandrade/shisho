@@ -4,6 +4,7 @@ import dev.mauricioandrade.shisho.domain.model.ArchitectureProfile;
 import dev.mauricioandrade.shisho.domain.model.AvoidedDependency;
 import dev.mauricioandrade.shisho.domain.model.JavaFeature;
 import dev.mauricioandrade.shisho.domain.model.KataGuide;
+import dev.mauricioandrade.shisho.domain.model.Scaffold;
 
 import java.util.List;
 
@@ -26,4 +27,7 @@ public interface CatalogRepository {
 
     /** @throws dev.mauricioandrade.shisho.domain.exception.CatalogException if an entry is invalid */
     List<AvoidedDependency> avoidedDependencies();
+
+    /** @throws dev.mauricioandrade.shisho.domain.exception.CatalogException if an entry is invalid */
+    List<Scaffold> scaffolds();
 }

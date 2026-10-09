@@ -3,6 +3,7 @@ package dev.mauricioandrade.shisho.infrastructure.catalog;
 import dev.mauricioandrade.shisho.domain.exception.CatalogException;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -61,6 +62,24 @@ final class FrontmatterFields {
 
     List<String> optionalTextList(String key) {
         return values.containsKey(key) ? textList(key) : List.of();
+    }
+
+    /** A map of texts to texts, such as {@code uma_vez_por_projeto}; empty when the key is absent. */
+    Map<String, String> optionalTextMap(String key) {
+        if (!values.containsKey(key)) {
+            return Map.of();
+        }
+        if (!(values.get(key) instanceof Map<?, ?> map)) {
+            throw invalid(key, values.get(key));
+        }
+        Map<String, String> texts = new LinkedHashMap<>();
+        map.forEach((name, value) -> {
+            if (!(name instanceof String text && !text.isBlank() && value instanceof String other && !other.isBlank())) {
+                throw invalid(key, name + ": " + value);
+            }
+            texts.put(text, other);
+        });
+        return texts;
     }
 
     FrontmatterFields section(String key) {

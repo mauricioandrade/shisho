@@ -15,6 +15,7 @@ import dev.mauricioandrade.shisho.domain.model.JavaFeature.Status;
 import dev.mauricioandrade.shisho.domain.model.JavaVersion;
 import dev.mauricioandrade.shisho.domain.model.KataGuide;
 import dev.mauricioandrade.shisho.domain.model.KataGuide.Snippet;
+import dev.mauricioandrade.shisho.domain.model.Scaffold;
 import dev.mauricioandrade.shisho.domain.port.out.CatalogRepository;
 import org.yaml.snakeyaml.LoaderOptions;
 import org.yaml.snakeyaml.Yaml;
@@ -33,6 +34,7 @@ import java.nio.file.Path;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.regex.MatchResult;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -40,7 +42,7 @@ import java.util.stream.Stream;
 
 /**
  * Reads the catalog's folders ({@code architectures}, {@code katas}, {@code java-features},
- * {@code dependencies}): YAML frontmatter between {@code ---} lines, followed by Markdown. The schema is documented in
+ * {@code dependencies}, {@code scaffolds}): YAML frontmatter between {@code ---} lines, followed by Markdown. The schema is documented in
  * {@code catalog/README.md}.
  */
 public final class MarkdownCatalogRepository implements CatalogRepository {
@@ -111,6 +113,29 @@ public final class MarkdownCatalogRepository implements CatalogRepository {
     @Override
     public List<AvoidedDependency> avoidedDependencies() {
         return documents("dependencies").stream().map(MarkdownCatalogRepository::toAvoidedDependency).toList();
+    }
+
+    @Override
+    public List<Scaffold> scaffolds() {
+        return documents("scaffolds").stream().map(MarkdownCatalogRepository::toScaffold).toList();
+    }
+
+    /** Every {@code ## path} section is a file: the prose before its code block explains it. */
+    private static Scaffold toScaffold(Document document) {
+        FrontmatterFields fields = document.fields();
+        Map<String, String> once = new LinkedHashMap<>(fields.optionalTextMap("uma_vez_por_projeto"));
+        Map<String, String> sections = sections(document.markdown());
+        if (sections.isEmpty()) {
+            throw new CatalogException("catalog.error.missing-field", document.fileName(), "## <arquivo>");
+        }
+        List<Scaffold.File> files = sections.keySet().stream().map(path -> {
+            Snippet snippet = snippet(document.fileName(), sections, path);
+            return new Scaffold.File(path, snippet.explanation(), snippet.code() + "\n", Optional.ofNullable(once.remove(path)));
+        }).toList();
+        if (!once.isEmpty()) {
+            throw fields.invalid("uma_vez_por_projeto", once.keySet().iterator().next());
+        }
+        return new Scaffold(document.id(), fields.textList("dependencias"), files);
     }
 
     private static AvoidedDependency toAvoidedDependency(Document document) {
@@ -201,13 +226,7 @@ public final class MarkdownCatalogRepository implements CatalogRepository {
 
     private static KataGuide toGuide(Document document) {
         String id = document.id();
-        Map<String, String> sections = new LinkedHashMap<>();
-        Matcher heading = SECTION.matcher(document.markdown());
-        List<MatchResult> headings = heading.results().toList();
-        for (int i = 0; i < headings.size(); i++) {
-            int end = i + 1 < headings.size() ? headings.get(i + 1).start() : document.markdown().length();
-            sections.put(headings.get(i).group(1).strip(), document.markdown().substring(headings.get(i).end(), end));
-        }
+        Map<String, String> sections = sections(document.markdown());
         List<String> references = document.fields().textList("referencias");
         if (references.isEmpty()) {
             throw document.fields().invalid("referencias", references);
@@ -218,6 +237,17 @@ public final class MarkdownCatalogRepository implements CatalogRepository {
                 snippet(document.fileName(), sections, BEFORE),
                 snippet(document.fileName(), sections, AFTER),
                 references);
+    }
+
+    /** The text under each {@code ## heading}, by heading, in order. */
+    private static Map<String, String> sections(String markdown) {
+        Map<String, String> sections = new LinkedHashMap<>();
+        List<MatchResult> headings = SECTION.matcher(markdown).results().toList();
+        for (int i = 0; i < headings.size(); i++) {
+            int end = i + 1 < headings.size() ? headings.get(i + 1).start() : markdown.length();
+            sections.put(headings.get(i).group(1).strip(), markdown.substring(headings.get(i).end(), end));
+        }
+        return sections;
     }
 
     /** The section's prose, one string per paragraph, with its line breaks turned into spaces. */

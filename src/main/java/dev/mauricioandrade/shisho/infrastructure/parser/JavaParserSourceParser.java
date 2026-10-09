@@ -18,8 +18,12 @@ import com.github.javaparser.ast.expr.AnnotationExpr;
 import com.github.javaparser.ast.expr.Expression;
 import com.github.javaparser.ast.expr.FieldAccessExpr;
 import com.github.javaparser.ast.expr.MethodCallExpr;
+import com.github.javaparser.ast.expr.MemberValuePair;
 import com.github.javaparser.ast.expr.MethodReferenceExpr;
 import com.github.javaparser.ast.expr.NameExpr;
+import com.github.javaparser.ast.expr.NormalAnnotationExpr;
+import com.github.javaparser.ast.expr.SingleMemberAnnotationExpr;
+import com.github.javaparser.ast.expr.StringLiteralExpr;
 import com.github.javaparser.ast.expr.ThisExpr;
 import com.github.javaparser.ast.expr.TypeExpr;
 import com.github.javaparser.ast.nodeTypes.NodeWithName;
@@ -47,8 +51,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -199,6 +205,7 @@ public final class JavaParserSourceParser implements SourceParser {
         return type.getMethods().stream()
                 .map(method -> new Method(
                         method.getNameAsString(),
+                        method.getTypeAsString(),
                         annotations(method.getAnnotations()),
                         parameters(method.getParameters()),
                         line(method)))
@@ -251,8 +258,21 @@ public final class JavaParserSourceParser implements SourceParser {
 
     private static List<Annotation> annotations(List<AnnotationExpr> annotations) {
         return annotations.stream()
-                .map(annotation -> new Annotation(annotation.getNameAsString(), line(annotation)))
+                .map(annotation -> new Annotation(annotation.getNameAsString(), line(annotation), attributes(annotation)))
                 .toList();
+    }
+
+    private static Map<String, String> attributes(AnnotationExpr annotation) {
+        return switch (annotation) {
+            case SingleMemberAnnotationExpr single -> Map.of("value", value(single.getMemberValue()));
+            case NormalAnnotationExpr normal -> normal.getPairs().stream()
+                    .collect(Collectors.toMap(MemberValuePair::getNameAsString, pair -> value(pair.getValue())));
+            default -> Map.of();
+        };
+    }
+
+    private static String value(Expression expression) {
+        return expression instanceof StringLiteralExpr literal ? literal.asString() : expression.toString();
     }
 
     private static int line(Node node) {

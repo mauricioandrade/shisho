@@ -2,6 +2,7 @@ package dev.mauricioandrade.shisho.domain.model;
 
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -33,8 +34,24 @@ public record ClassUnit(
 
     public enum Kind { CLASS, INTERFACE, ENUM, RECORD, ANNOTATION }
 
-    /** {@code name} is written as in the source: {@code Autowired} or a fully qualified name. */
-    public record Annotation(String name, int line) {
+    /**
+     * {@code name} is written as in the source: {@code Autowired} or a fully qualified name.
+     * {@code attributes} holds string literals unquoted and any other value as written;
+     * a single-member annotation such as {@code @Value("${x}")} has the attribute {@code value}.
+     */
+    public record Annotation(String name, int line, Map<String, String> attributes) {
+
+        public Annotation {
+            attributes = Map.copyOf(attributes);
+        }
+
+        public Annotation(String name, int line) {
+            this(name, line, Map.of());
+        }
+
+        public Optional<String> attribute(String key) {
+            return Optional.ofNullable(attributes.get(key));
+        }
 
         public String simpleName() {
             return name.substring(name.lastIndexOf('.') + 1);
@@ -75,7 +92,8 @@ public record ClassUnit(
         }
     }
 
-    public record Method(String name, List<Annotation> annotations, List<Parameter> parameters, int line) {
+    /** {@code returnType} is written as in the source, {@code void} included. */
+    public record Method(String name, String returnType, List<Annotation> annotations, List<Parameter> parameters, int line) {
 
         public Method {
             annotations = List.copyOf(annotations);

@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -190,15 +191,40 @@ class JavaParserSourceParserTest {
             assertThat(controller.constructors()).singleElement().satisfies(constructor -> {
                 assertThat(constructor.line()).isEqualTo(2);
                 assertThat(constructor.parameters()).containsExactly(
-                        new Parameter("limit", "int", List.of(new Annotation("Value", 2))));
+                        new Parameter("limit", "int", List.of(new Annotation("Value", 2, Map.of("value", "${limit}")))));
             });
             assertThat(controller.methods()).singleElement().satisfies(method -> {
                 assertThat(method.name()).isEqualTo("create");
+                assertThat(method.returnType()).isEqualTo("void");
                 assertThat(method.line()).isEqualTo(4);
                 assertThat(method.annotations()).extracting(Annotation::name).containsExactly("PostMapping");
                 assertThat(method.parameters()).containsExactly(
                         new Parameter("request", "CreateUser", List.of(new Annotation("Valid", 5), new Annotation("RequestBody", 5))),
                         new Parameter("other", "String", List.of()));
+            });
+        }
+
+        @Test
+        void mapsAnnotationAttributesAndReturnTypes() throws IOException {
+            ClassUnit service = parse("""
+                    @ConfigurationProperties(prefix = "mail", ignoreUnknownFields = false)
+                    class MailService {
+                        @Value("${mail.host:localhost}")
+                        private String host;
+
+                        @Transactional(readOnly = true, timeout = 5)
+                        List<Mail> findAll() { return List.of(); }
+                    }
+                    """).getFirst();
+
+            assertThat(service.annotations().getFirst().attributes())
+                    .containsExactlyInAnyOrderEntriesOf(Map.of("prefix", "mail", "ignoreUnknownFields", "false"));
+            assertThat(service.fields().getFirst().annotations().getFirst().attribute("value"))
+                    .contains("${mail.host:localhost}");
+            assertThat(service.methods()).singleElement().satisfies(method -> {
+                assertThat(method.returnType()).isEqualTo("List<Mail>");
+                assertThat(method.annotations().getFirst().attribute("readOnly")).contains("true");
+                assertThat(method.annotations().getFirst().attribute("propagation")).isEmpty();
             });
         }
 
@@ -211,7 +237,7 @@ class JavaParserSourceParserTest {
             assertThat(properties.fields()).isEmpty();
             assertThat(properties.constructors()).singleElement().satisfies(constructor ->
                     assertThat(constructor.parameters()).containsExactly(
-                            new Parameter("host", "String", List.of(new Annotation("Value", 1))),
+                            new Parameter("host", "String", List.of(new Annotation("Value", 1, Map.of("value", "${mail.host}")))),
                             new Parameter("port", "int", List.of())));
         }
 

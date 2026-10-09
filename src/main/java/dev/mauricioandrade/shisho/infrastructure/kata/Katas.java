@@ -19,6 +19,7 @@ public final class Katas {
                 new ValueOutsideConstructorKata(),
                 new RequestBodyWithoutValidKata(),
                 new DtoNotRecordKata(),
-                new EntityInControllerKata());
+                new EntityInControllerKata(),
+                new TransactionalReadOnlyKata());
     }
 }

@@ -2,8 +2,12 @@ package com.exemplo.loja.usuario;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Service
+@Transactional(readOnly = true)
 class UsuarioService {
 
     private final UsuarioRepository usuarioRepository;
@@ -14,6 +18,11 @@ class UsuarioService {
         this.limite = limite;
     }
 
+    List<Usuario> listar() {
+        return usuarioRepository.findAll();
+    }
+
+    @Transactional
     Usuario criar(String nome) {
         if (usuarioRepository.count() >= limite) {
             throw new LimiteDeUsuariosException(limite);

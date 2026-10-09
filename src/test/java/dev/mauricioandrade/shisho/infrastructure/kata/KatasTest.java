@@ -22,7 +22,7 @@ class KatasTest {
 
     @Test
     void katasHaveUniqueIds() {
-        assertThat(Katas.all()).extracting(Kata::id).doesNotHaveDuplicates().hasSize(8);
+        assertThat(Katas.all()).extracting(Kata::id).doesNotHaveDuplicates().hasSize(9);
     }
 
     @Test
@@ -40,7 +40,8 @@ class KatasTest {
                         tuple(controller, 20, "system-out", Severity.MEDIA),
                         tuple(controller, 24, "entity-in-controller", Severity.MEDIA),
                         tuple(request, 3, "dto-not-record", Severity.LEVE),
-                        tuple(pedido, 9, "non-final-dependency", Severity.MEDIA),
+                        tuple(pedido, 10, "non-final-dependency", Severity.MEDIA),
+                        tuple(pedido, 16, "transactional-read-only", Severity.LEVE),
                         tuple(usuario, 13, "lombok-constructor", Severity.MEDIA),
                         tuple(usuario, 16, "non-final-dependency", Severity.MEDIA),
                         tuple(usuario, 18, "value-outside-constructor", Severity.LEVE),

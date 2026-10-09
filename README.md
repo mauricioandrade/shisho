@@ -36,6 +36,8 @@ Linters dizem **o que** está errado. O Shishō é opinativo e didático: diz o 
 - 🎖️ **Graduação** — do 6º kyū ao 1º dan.
 - 🧠 **LLM local opcional** — um modelo rodando na sua máquina explica o veredito. Ele explica,
   nunca decide.
+- 🏗️ **Gerador de CRUD** — cria um CRUD REST na arquitetura do projeto, explicando o papel de
+  cada arquivo. O código gerado passa em todas as katas.
 
 ## Demo
 
@@ -237,10 +239,11 @@ Recursos em preview nunca são recomendados. O que o Shishō sabe sobre cada ver
 - [x] **Fase 5** — modo sensei (exemplos antes/depois), catálogo de recursos do Java,
   `shisho fix`
 - [x] **Fase 6** — LLM local opcional (`shisho ask`)
-- [ ] **Depois** — outras stacks, reaproveitando o catálogo de arquiteturas
+- [x] **Fase 7** — gerador de CRUD (`shisho crud`), começando por layered e package-by-feature
+- [ ] **Depois** — templates de CRUD para hexagonal e clean, com aviso de overengineering;
+  outras stacks, reaproveitando o catálogo de arquiteturas
 - [ ] **Ideias** — modo `--shoshin` (初心, "mente de principiante"), que explica cada conceito
-  que aparece no código (o que é um record, uma sealed interface…); gerador de CRUD que segue a
-  arquitetura detectada no projeto e já passa em todas as katas
+  que aparece no código (o que é um record, uma sealed interface…) e os design patterns
 
 ## Rodando a partir do código
 
@@ -318,6 +321,45 @@ não é segura (um `@Qualifier` que teria de mudar de lugar, um `@Builder` que d
 construtor do Lombok…), a lição fica para você, com o exemplo do modo sensei. Por quê
 JavaParser e não OpenRewrite: [ADR 0003](docs/adr/0003-autofix.md).
 
+## Do zero: `shisho crud`
+
+O Spring Initializr resolve o build e as dependências, mas não diz onde cada classe vai nem por
+quê. O `shisho crud` cria um CRUD REST completo (entidade, repositório, DTOs, service,
+controller e tratamento de erros) na arquitetura do projeto, e explica o papel de cada arquivo:
+
+```
+$ shisho crud --arquitetura package-by-feature ./loja Produto nome:String preco:BigDecimal
+師匠 Shishō — CRUD de Produto em Pacotes por funcionalidade (Package by Feature)
+
++ src/main/java/com/exemplo/loja/produto/Produto.java
+  A entidade JPA: a tabela do banco vista como objeto. Como todas as classes de `produto`, ela é
+  package-private (sem `public`): nenhuma outra feature enxerga a entidade, e as features
+  conversam pelo service. [...]
+
++ src/main/java/com/exemplo/loja/produto/ProdutoService.java
+  Onde mora a regra de negócio e onde começa a transação. A classe inteira é `readOnly = true`, e
+  só os métodos que escrevem abrem uma transação de escrita. [...]
+...
+Criados 8 arquivos. Rode shisho analyze para conferir: o código gerado passa em todas as katas.
+```
+
+- **Arquitetura:** `layered` ou `package-by-feature`. Sem `--arquitetura`, vale a que o Shishō
+  detecta no projeto. Num projeto recém-saído do Initializr ainda não há o que detectar, então o
+  primeiro `crud` precisa da opção. Se você pede uma arquitetura diferente da do projeto, ele
+  gera e avisa que os estilos vão se misturar.
+- **Campos:** `nome:Tipo`, com `String`, `Integer`, `Long`, `Double`, `Boolean`, `BigDecimal`,
+  `LocalDate`, `LocalDateTime`, `Instant` ou `UUID`. Texto é validado com `@NotBlank`, e o resto
+  com `@NotNull`.
+- **Nunca sobrescreve.** Se algum arquivo já existe, nada é gravado. Arquivos comuns a todas as
+  entidades, como o `@RestControllerAdvice`, só são criados se o projeto ainda não tem um.
+- **Erros no padrão.** 404 e erros de validação respondem com ProblemDetail (RFC 9457), dizendo
+  quais campos falharam.
+
+Um teste aplica cada template a um projeto igual ao do Initializr e exige que o `shisho analyze`
+reconheça a arquitetura e não encontre **nenhuma** lição. O código foi conferido também num
+projeto real do Initializr (Spring Boot 4.1): compila, sobe e responde. Os templates ficam em
+[`catalog/scaffolds`](catalog/scaffolds), em Markdown. Por que assim: [ADR 0005](docs/adr/0005-crud-scaffolding.md).
+
 ## No GitHub Actions
 
 ```yaml
@@ -345,8 +387,8 @@ projeto.
 ## Contribuindo
 
 O jeito mais fácil de contribuir não exige escrever Java: **o catálogo é Markdown**. Uma
-arquitetura nova, um sinal de overengineering que faltou, uma explicação mais clara — tudo é
-um PR em `catalog/`. O schema está em [`catalog/README.md`](catalog/README.md).
+arquitetura nova, um sinal de overengineering que faltou, uma explicação mais clara, um template
+de CRUD para outra arquitetura — tudo é um PR em `catalog/`. O schema está em [`catalog/README.md`](catalog/README.md).
 
 ![Naruto fazendo o selo de mão do Kage Bunshin no Jutsu](docs/anime/contributing.gif)
 

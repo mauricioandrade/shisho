@@ -100,7 +100,13 @@ julga o que ele mesmo gera, e um template que sai do padrão quebra o build.
 
 ## Consequências
 
-- `shisho crud <Entidade> [campo:Tipo...] [--arquitetura] [--pacote] [--rota] <dir>`.
+- `shisho crud [--arquitetura] [--pacote] [--rota] <dir> <Entidade> campo:Tipo...`.
+- Conferido num projeto real do Spring Initializr (Spring Boot 4.1): o código gerado compila, o
+  contexto sobe e a API responde. O teste real revelou duas coisas, já corrigidas:
+  - o Boot 4 renomeou `spring-boot-starter-web` para `spring-boot-starter-webmvc`, então uma
+    entrada de `dependencias` aceita alternativas separadas por `|`;
+  - o 400 de validação só dizia "Invalid request content.". O `TratadorDeErros` gerado agora lista
+    os campos que falharam.
 - Um projeto package-by-feature plano com duas ou mais features passa a ser reconhecido. Com
   uma feature só, o segundo `crud` precisa de `--arquitetura` de novo.
 - O schema de `catalog/scaffolds` fica documentado em `catalog/README.md`.

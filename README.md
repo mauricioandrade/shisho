@@ -46,15 +46,18 @@ $ shisho analyze ./clareza-api
 
 Arquitetura detectada: Camadas técnicas (82%)
 
-✗ GRAVE  [field-injection]          UsuarioController.java:14
-         Injeção em campo. Use construtor explícito com private final:
-         a dependência fica visível e o objeto, imutável.
-✗ GRAVE  [jpa-entity-exposed]       PedidoController.java:31
-         O endpoint retorna a entidade JPA Pedido. Crie um record PedidoResponse.
-! MEDIA  [request-body-without-valid] PedidoController.java:27
-         @RequestBody sem @Valid: as anotações do DTO nunca são verificadas.
+✗ GRAVE  [field-injection]             UsuarioController.java:14
+         Injeção em campo em usuarioService. Use construtor explícito com private final: a
+         dependência fica visível e o objeto, imutável.
+! MEDIA  [request-body-without-valid]  PedidoController.java:27
+         @RequestBody CriarPedidoRequest sem @Valid: as anotações de validação do DTO nunca são
+         verificadas.
+! MEDIA  [entity-in-controller]        PedidoController.java:31
+         O endpoint buscar() expõe a entidade JPA Pedido na API. Use records de request/response: o
+         esquema do banco deixa de ser o contrato da API, campos internos não vazam e o cliente não
+         consegue sobrescrevê-los.
 
-Graduação: 3º kyū  (12 lições: 2 graves, 6 médias, 4 leves)
+Graduação: 3º kyū  (8 lições: 1 grave, 4 médias, 3 leves)
 ```
 
 <!-- TODO: substituir por docs/demo.gif gravado com vhs ou asciinema quando a Fase 1 estiver pronta -->
@@ -76,6 +79,40 @@ Cada lição desconta pontos. A nota final vira uma faixa:
 ![Jiraiya, de Naruto, partindo um picolé de palito duplo ao meio e oferecendo metade ao Naruto](docs/anime/graduation.gif)
 
 *Zero lições graves. O mestre divide o picolé.*
+
+## Katas
+
+| Kata | Severidade | O que aponta |
+|---|---|---|
+| `field-injection` | GRAVE | `@Autowired`/`@Inject` em campo |
+| `lombok-constructor` | MEDIA | `@RequiredArgsConstructor`/`@AllArgsConstructor` escondendo as dependências |
+| `non-final-dependency` | MEDIA | dependência injetada sem `final` |
+| `system-out` | MEDIA | `System.out`, `System.err`, `printStackTrace()` |
+| `request-body-without-valid` | MEDIA | `@RequestBody` sem `@Valid` |
+| `entity-in-controller` | MEDIA | endpoint que recebe ou devolve uma `@Entity` JPA |
+| `missing-controller-advice` | MEDIA | controllers sem nenhum `@RestControllerAdvice` no projeto |
+| `value-outside-constructor` | LEVE | `@Value` fora de parâmetro de construtor |
+| `dto-not-record` | LEVE | DTO (por pacote ou sufixo) que não é record |
+| `transactional-read-only` | LEVE | método de leitura (`find…`, `buscar…`) numa transação de escrita |
+| `configuration-properties-not-record` | LEVE | `@ConfigurationProperties` numa classe com setters |
+| `prefer-configuration-properties` | LEVE | 3 ou mais `@Value` com o mesmo prefixo na mesma classe |
+| `missing-actuator` | LEVE | aplicação web sem `spring-boot-starter-actuator` |
+| `missing-springdoc` | INFO | aplicação web sem springdoc-openapi (só sugestão, não tira nota) |
+
+Cada projeto tem suas razões. Um `shisho.yaml` na raiz do projeto analisado desliga katas ou
+muda a severidade delas:
+
+```yaml
+# shisho.yaml
+katas:
+  system-out:
+    ativa: false          # desliga a kata
+  dto-not-record:
+    severidade: info      # grave | media | leve | info
+```
+
+Kata desconhecida ou campo com erro de digitação faz a análise falhar (código de saída 3): é
+melhor do que uma configuração que, em silêncio, não faz nada.
 
 ## Overengineering
 
@@ -134,7 +171,8 @@ você pedir.
 ## Roadmap
 
 - [x] **Fase 1** — CLI, catálogo, 7 katas de AST, relatório no terminal
-- [ ] **Fase 2** — katas com resolução de tipos e de projeto, `shisho.yaml`
+- [x] **Fase 2** — katas de projeto (JPA, transações, tratamento de erros, build,
+  configuração) e `shisho.yaml`
 - [ ] **Fase 3** — classificação de arquitetura e veredito de overengineering
 - [ ] **Fase 4** — relatório HTML, SARIF e GitHub Action
 - [ ] **Fase 5** — exemplos antes/depois, catálogo de recursos do Java, autofix com OpenRewrite
@@ -174,7 +212,7 @@ O código de saída foi pensado para CI:
 | 0 | nenhuma lição grave |
 | 1 | há pelo menos uma lição **GRAVE** |
 | 2 | entrada inválida (caminho inexistente, argumento faltando) |
-| 3 | o projeto não pôde ser analisado (ex.: Java abaixo do 21) |
+| 3 | o projeto não pôde ser analisado (ex.: Java abaixo do 21, `shisho.yaml` inválido) |
 
 O mise é usado só para conveniência de desenvolvimento. Ele não é dependência do Shishō, e
 nada no build exige que você o use.

@@ -309,6 +309,10 @@ java -jar target/shisho.jar fix ~/projetos/minha-api            # mostra o diff
 java -jar target/shisho.jar fix --apply ~/projetos/minha-api    # grava
 ```
 
+![Joseph Joestar, de JoJo's Bizarre Adventure, com o Hermit Purple em punho e o olhar de quem já sabe o que vem](docs/anime/autofix.gif)
+
+*"Sua próxima linha vai ser: `private final UsuarioService service;`" O `fix` mostra o diff antes de gravar.*
+
 | Kata | O que o `fix` faz |
 |---|---|
 | `field-injection` | tira o `@Autowired`, deixa o campo `final` e o recebe pelo construtor |
@@ -344,6 +348,10 @@ $ shisho crud --arquitetura package-by-feature ./loja Produto nome:String preco:
 Criados 8 arquivos. Rode shisho analyze para conferir: o código gerado passa em todas as katas.
 ```
 
+![Sasuke, de Naruto, com o Sharingan ativado e um sorriso de canto](docs/anime/crud.gif)
+
+*O Sharingan copia o jutsu e entende cada selo. O `crud` copia a arquitetura do projeto e explica cada arquivo.*
+
 - **Arquitetura:** `layered`, `package-by-feature` ou `hexagonal`. Sem `--arquitetura`, vale a que o Shishō
   detecta no projeto. Num projeto recém-saído do Initializr ainda não há o que detectar, então o
   primeiro `crud` precisa da opção. Se você pede uma arquitetura diferente da do projeto, ele
@@ -355,6 +363,10 @@ Criados 8 arquivos. Rode shisho analyze para conferir: o código gerado passa em
   entidades, como o `@RestControllerAdvice`, só são criados se o projeto ainda não tem um.
 - **Erros no padrão.** 404 e erros de validação respondem com ProblemDetail (RFC 9457), dizendo
   quais campos falharam.
+
+![Joseph Joestar, de JoJo's Bizarre Adventure, correndo enquanto alguém grita "Run away!"](docs/anime/never-overwrites.gif)
+
+*O arquivo já existe? Nigerundayo! O Shishō recua sem gravar nada.*
 
 ### Antes de gerar: por quê?
 
@@ -373,10 +385,18 @@ shisho.yaml: a decisão fica registrada, e o shisho analyze passa a usá-la. Par
 use --mesmo-assim.
 ```
 
+![Gintoki, de Gintama, segurando uma caixinha de leite de morango com cara de descrença](docs/anime/cost-warning.gif)
+
+*Hexagonal. Para um CRUD de dois campos. Sério?*
+
 Com o motivo declarado no [`shisho.yaml`](#overengineering), o CRUD sai direto, e o relatório
 diz qual motivo pagou o custo. O `--mesmo-assim` serve para quem só quer ver como a arquitetura
 fica. Num projeto que já é hexagonal, o próximo `crud` segue sem perguntar: a decisão já foi
 tomada. Por que assim: [ADR 0006](docs/adr/0006-crud-cost-warning.md).
+
+![Dazai, de Bungou Stray Dogs, ajoelhado no jardim e rindo à toa](docs/anime/cost-paid.gif)
+
+*Com o motivo declarado no `shisho.yaml`, o Dazai sai do tambor.*
 
 Um teste aplica cada template a um projeto igual ao do Initializr e exige que o `shisho analyze`
 reconheça a arquitetura e não encontre **nenhuma** lição. O código foi conferido também num

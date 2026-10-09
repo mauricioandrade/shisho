@@ -40,13 +40,17 @@ class SenseiPromptTest {
                         師匠 Shishō — análise de aluno-astronauta  (Java 21)
                         Arquitetura: Clean Architecture  (100% da assinatura: \
                         """)
-                .contains("\nVeredito: overengineering. A arquitetura Clean Architecture custa de 7 a 12 classes")
                 .contains("\n- 4 use cases só para operações CRUD de Usuario")
                 .contains("""
-
-                        Considere package-by-feature.
                         Graduação: 1º dan  (nenhuma lição)
-                        Nota: 100 de 100. Cada lição GRAVE tira 10 pontos, MEDIA tira 4, LEVE tira 1; INFO é sugestão e não tira nota.
+                        Nota: 100 de 100.
+
+                        ## Veredito
+
+                        Veredito: overengineering. A arquitetura Clean Architecture custa de 7 a 12 classes\
+                        """)
+                .contains("""
+                        Considere package-by-feature.
 
                         ## Lições
 
@@ -63,7 +67,7 @@ class SenseiPromptTest {
     }
 
     @Test
-    void groupsTheLessonsByKataTheMostSevereFirstAndShowsOnlyTheFirstFew() {
+    void groupsTheLessonsBySeverityThenKataAndShowsOnlyTheFirstFew() {
         List<Lesson> lessons = Stream.concat(
                 Stream.of(lesson("dto-not-record", Severity.LEVE, 9, "UsuarioRequest")),
                 IntStream.rangeClosed(1, 5).mapToObj(line -> lesson("field-injection", Severity.GRAVE, line, "dependencia" + line))).toList();
@@ -74,22 +78,39 @@ class SenseiPromptTest {
                 師匠 Shishō — análise de loja  (Java 21)
                 Arquitetura: nenhuma do catálogo reconhecida
                 Graduação: 5º kyū  (6 lições: 5 graves, 0 médias, 1 leve)
-                Nota: 49 de 100. Cada lição GRAVE tira 10 pontos, MEDIA tira 4, LEVE tira 1; INFO é sugestão e não tira nota.
+                Nota: 49 de 100.
+
+                ## Veredito
+
+                Sem veredito: o projeto não se parece com nenhuma arquitetura do catálogo.
 
                 ## Lições
 
-                - [field-injection] Injeção de dependência em campo (GRAVE): 5 lições
+                ### GRAVE: 5 lições, cada uma tira 10 pontos
+
+                - [field-injection] Injeção de dependência em campo: 5 lições
                   - Loja.java:1: Injeção em campo em dependencia1. Use construtor explícito com private final: a dependência fica visível e o objeto, imutável.
                   - Loja.java:2: Injeção em campo em dependencia2. Use construtor explícito com private final: a dependência fica visível e o objeto, imutável.
                   - Loja.java:3: Injeção em campo em dependencia3. Use construtor explícito com private final: a dependência fica visível e o objeto, imutável.
                   - e mais 2 lições desta kata.
-                - [dto-not-record] DTO que não é record (LEVE): 1 lição
+
+                ### LEVE: 1 lição, cada uma tira 1 ponto
+
+                - [dto-not-record] DTO que não é record: 1 lição
                   - Loja.java:9: %s
 
                 ## Pergunta
 
                 Por onde começo?
                 """.formatted(new Messages(Messages.DEFAULT_LOCALE).text("kata.dto-not-record.lesson", "UsuarioRequest")));
+    }
+
+    @Test
+    void saysWhichSuggestionsTakeNoPoints() {
+        Lesson suggestion = new Lesson("missing-springdoc", Severity.INFO, Path.of("pom.xml"), 0, "kata.missing-springdoc.lesson", List.of());
+
+        assertThat(prompt.facts(analysis(List.of(suggestion)), Optional.empty()))
+                .contains("\n### INFO: 1 lição, sugestões que não tiram nota\n\n- [missing-springdoc] API sem documentação OpenAPI: 1 lição\n  - pom.xml: ");
     }
 
     @Test
@@ -105,6 +126,7 @@ class SenseiPromptTest {
     void tellsTheModelToExplainAndNeverToJudge() {
         assertThat(prompt.instructions())
                 .contains("Não invente lições")
+                .contains("na segunda pessoa (você)")
                 .contains("Não mude o veredito, a graduação nem a severidade das lições")
                 .contains("diga isso em vez de supor");
     }

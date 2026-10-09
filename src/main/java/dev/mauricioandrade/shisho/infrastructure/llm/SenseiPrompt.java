@@ -1,16 +1,14 @@
 package dev.mauricioandrade.shisho.infrastructure.llm;
 
 import dev.mauricioandrade.shisho.domain.model.Analysis;
-import dev.mauricioandrade.shisho.domain.model.ArchitectureMatch;
 import dev.mauricioandrade.shisho.domain.model.ArchitectureProfile;
 import dev.mauricioandrade.shisho.domain.model.Lesson;
 import dev.mauricioandrade.shisho.domain.model.Severity;
 import dev.mauricioandrade.shisho.domain.model.Verdict;
 import dev.mauricioandrade.shisho.infrastructure.i18n.Messages;
 import dev.mauricioandrade.shisho.infrastructure.report.ReportTexts;
-import dev.mauricioandrade.shisho.infrastructure.report.ReportTexts.VerdictText;
 
-import java.util.Comparator;
+import java.util.EnumMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -46,13 +44,11 @@ public final class SenseiPrompt {
     public String facts(Analysis analysis, Optional<String> question) {
         StringBuilder prompt = new StringBuilder()
                 .append(texts.header(analysis)).append('\n')
-                .append(texts.architecture(analysis)).append('\n');
-        analysis.architecture().ifPresent(match -> verdict(match, prompt));
-        prompt.append(texts.summary(analysis)).append('\n')
-                .append(texts.text("ask.prompt.score", analysis.score(),
-                        Severity.GRAVE.penalty(), Severity.MEDIA.penalty(), Severity.LEVE.penalty()))
-                .append("\n\n");
+                .append(texts.architecture(analysis)).append('\n')
+                .append(texts.summary(analysis)).append('\n')
+                .append(texts.text("ask.prompt.score", analysis.score())).append("\n\n");
 
+        verdict(analysis, prompt);
         lessons(analysis, prompt);
         architectures(analysis, prompt);
 
@@ -62,33 +58,45 @@ public final class SenseiPrompt {
                 .toString();
     }
 
-    private void verdict(ArchitectureMatch match, StringBuilder prompt) {
-        VerdictText verdict = texts.verdict(match);
-        prompt.append(verdict.headline()).append('\n');
-        verdict.evidence().forEach(evidence -> prompt.append("- ").append(evidence).append('\n'));
-        verdict.next().ifPresent(next -> prompt.append(next).append('\n'));
+    private void verdict(Analysis analysis, StringBuilder prompt) {
+        prompt.append("## ").append(texts.text("ask.prompt.verdict")).append("\n\n");
+        analysis.architecture().map(texts::verdict).ifPresentOrElse(verdict -> {
+            prompt.append(verdict.headline()).append('\n');
+            verdict.evidence().forEach(evidence -> prompt.append("- ").append(evidence).append('\n'));
+            verdict.next().ifPresent(next -> prompt.append(next).append('\n'));
+        }, () -> prompt.append(texts.text("ask.prompt.no-verdict")).append('\n'));
+        prompt.append('\n');
     }
 
-    /** One entry per kata, the most severe first, with how many lessons it taught and the first few of them. */
+    /**
+     * Under one heading per severity, the most severe first, one entry per kata with how many
+     * lessons it taught and the first few of them.
+     */
     private void lessons(Analysis analysis, StringBuilder prompt) {
         prompt.append("## ").append(texts.text("ask.prompt.lessons")).append("\n\n");
         if (analysis.lessons().isEmpty()) {
             prompt.append(texts.text("ask.prompt.no-lessons")).append("\n\n");
             return;
         }
-        Map<String, List<Lesson>> byKata = analysis.lessons().stream()
-                .collect(Collectors.groupingBy(Lesson::kataId, LinkedHashMap::new, Collectors.toList()));
-        byKata.values().stream().sorted(Comparator.comparing(lessons -> lessons.getFirst().severity())).forEach(lessons -> {
-            String kataId = lessons.getFirst().kataId();
-            prompt.append("- ").append(texts.text("ask.prompt.kata",
-                    kataId, texts.title(kataId), texts.severity(lessons.getFirst().severity()), lessons.size())).append('\n');
-            lessons.stream().limit(EXAMPLES_PER_KATA).forEach(lesson -> prompt
-                    .append("  - ").append(ReportTexts.location(lesson)).append(": ").append(texts.explanation(lesson)).append('\n'));
-            if (lessons.size() > EXAMPLES_PER_KATA) {
-                prompt.append("  - ").append(texts.text("ask.prompt.more", lessons.size() - EXAMPLES_PER_KATA)).append('\n');
-            }
+        Map<Severity, Map<String, List<Lesson>>> bySeverity = analysis.lessons().stream().collect(Collectors.groupingBy(
+                Lesson::severity, () -> new EnumMap<>(Severity.class),
+                Collectors.groupingBy(Lesson::kataId, LinkedHashMap::new, Collectors.toList())));
+        bySeverity.forEach((severity, byKata) -> {
+            int count = byKata.values().stream().mapToInt(List::size).sum();
+            prompt.append("### ").append(texts.text("ask.prompt.severity", texts.severity(severity), count, severity.penalty()))
+                    .append("\n\n");
+            byKata.forEach((kataId, lessons) -> kata(kataId, lessons, prompt));
+            prompt.append('\n');
         });
-        prompt.append('\n');
+    }
+
+    private void kata(String kataId, List<Lesson> lessons, StringBuilder prompt) {
+        prompt.append("- ").append(texts.text("ask.prompt.kata", kataId, texts.title(kataId), lessons.size())).append('\n');
+        lessons.stream().limit(EXAMPLES_PER_KATA).forEach(lesson -> prompt
+                .append("  - ").append(ReportTexts.location(lesson)).append(": ").append(texts.explanation(lesson)).append('\n'));
+        if (lessons.size() > EXAMPLES_PER_KATA) {
+            prompt.append("  - ").append(texts.text("ask.prompt.more", lessons.size() - EXAMPLES_PER_KATA)).append('\n');
+        }
     }
 
     /** The detected architecture, then the simpler or the next one the verdict suggests. */

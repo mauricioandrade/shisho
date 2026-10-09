@@ -36,22 +36,29 @@ public final class ClassifyArchitectureService implements ClassifyArchitecture {
     public Optional<ArchitectureMatch> classify(ProjectModel project) {
         Set<String> packages = project.classes().stream().map(ClassUnit::packageName).collect(Collectors.toSet());
         return catalog.architectures().stream()
-                .map(architecture -> match(architecture, packages, project))
-                .filter(match -> match.signals().size() >= match.architecture().signature().minimumSignals())
-                .min(Comparator.comparingInt((ArchitectureMatch match) -> -match.confidence())
-                        .thenComparingInt(match -> -match.signals().size())
-                        .thenComparing(match -> match.architecture().id()));
+                .map(architecture -> new Candidate(architecture, signals(architecture.signature(), packages, project)))
+                .filter(candidate -> candidate.signals().size() >= candidate.architecture().signature().minimumSignals())
+                .min(Comparator.comparingInt((Candidate candidate) -> -candidate.confidence())
+                        .thenComparingInt(candidate -> -candidate.signals().size())
+                        .thenComparing(candidate -> candidate.architecture().id()))
+                .map(candidate -> new ArchitectureMatch(candidate.architecture(), candidate.signals(), candidate.confidence(),
+                        new DependencyRules(candidate.architecture(), packages).violations(project.classes())));
     }
 
-    private static ArchitectureMatch match(ArchitectureProfile architecture, Set<String> packages, ProjectModel project) {
-        Signature signature = architecture.signature();
-        List<String> signals = Stream.concat(
+    private static List<String> signals(Signature signature, Set<String> packages, ProjectModel project) {
+        return Stream.concat(
                         signature.packages().stream().filter(pattern -> occurs(PackagePattern.parse(pattern), packages)),
                         signature.annotations().stream().filter(marker -> occurs(marker, project)))
                 .toList();
-        int total = signature.packages().size() + signature.annotations().size();
-        int confidence = total == 0 ? 0 : Math.round(100f * signals.size() / total);
-        return new ArchitectureMatch(architecture, signals, confidence);
+    }
+
+    private record Candidate(ArchitectureProfile architecture, List<String> signals) {
+
+        int confidence() {
+            Signature signature = architecture.signature();
+            int total = signature.packages().size() + signature.annotations().size();
+            return total == 0 ? 0 : Math.round(100f * signals.size() / total);
+        }
     }
 
     private static boolean occurs(PackagePattern pattern, Set<String> packages) {

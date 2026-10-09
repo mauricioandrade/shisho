@@ -3,6 +3,13 @@ package dev.mauricioandrade.shisho.application.usecase;
 import dev.mauricioandrade.shisho.domain.exception.AnalysisException;
 import dev.mauricioandrade.shisho.domain.exception.ConfigException;
 import dev.mauricioandrade.shisho.domain.model.Analysis;
+import dev.mauricioandrade.shisho.domain.model.ArchitectureMatch;
+import dev.mauricioandrade.shisho.domain.model.ArchitectureProfile;
+import dev.mauricioandrade.shisho.domain.model.ArchitectureProfile.ClassRange;
+import dev.mauricioandrade.shisho.domain.model.ArchitectureProfile.Complexity;
+import dev.mauricioandrade.shisho.domain.model.ArchitectureProfile.Cost;
+import dev.mauricioandrade.shisho.domain.model.ArchitectureProfile.Family;
+import dev.mauricioandrade.shisho.domain.model.ArchitectureProfile.Signature;
 import dev.mauricioandrade.shisho.domain.model.BuildInfo;
 import dev.mauricioandrade.shisho.domain.model.ClassKata;
 import dev.mauricioandrade.shisho.domain.model.ClassUnit;
@@ -16,6 +23,7 @@ import dev.mauricioandrade.shisho.domain.model.ProjectModel;
 import dev.mauricioandrade.shisho.domain.model.Rank;
 import dev.mauricioandrade.shisho.domain.model.Severity;
 import dev.mauricioandrade.shisho.domain.model.SourceFile;
+import dev.mauricioandrade.shisho.domain.port.in.ClassifyArchitecture;
 import dev.mauricioandrade.shisho.domain.port.out.BuildFileReader;
 import dev.mauricioandrade.shisho.domain.port.out.SourceParser;
 import org.junit.jupiter.api.Test;
@@ -36,6 +44,9 @@ class AnalyzeProjectServiceTest {
     private static final Path ROOT = Path.of("/projetos/loja");
     private static final ClassUnit B = unit("B.java", 1);
     private static final ClassUnit A = unit("A.java", 5);
+    private static final ArchitectureProfile LAYERED = new ArchitectureProfile("layered", "Layered", Family.SIMPLE,
+            new Signature(List.of("controller"), List.of(), 1), List.of(), new Cost(new ClassRange(4, 6), Complexity.LOW),
+            List.of(), List.of(), List.of(), List.of(), Optional.empty(), List.of(), "");
 
     private final RecordingParser parser = new RecordingParser(List.of(
             new SourceFile.Parsed(Path.of("B.java"), List.of(B)),
@@ -148,13 +159,30 @@ class AnalyzeProjectServiceTest {
     }
 
     @Test
+    void addsDependencyRuleViolationsAsConfigurableLessons() {
+        Lesson violation = new Lesson("dependency-rule", Severity.MEDIA, Path.of("A.java"), 3, "architecture.dependency-rule.lesson", List.of());
+        ArchitectureMatch match = new ArchitectureMatch(LAYERED, List.of("controller"), 50, List.of(violation));
+
+        Analysis standard = service(version(21), ProjectConfig.DEFAULT, project -> Optional.of(match)).analyze(ROOT);
+        assertThat(standard.architecture()).contains(match);
+        assertThat(standard.lessons()).containsExactly(violation);
+
+        ProjectConfig leve = new ProjectConfig(Map.of("dependency-rule", new KataSetting(true, Optional.of(Severity.LEVE))));
+        assertThat(service(version(21), leve, project -> Optional.of(match)).analyze(ROOT).lessons())
+                .extracting(Lesson::severity).containsExactly(Severity.LEVE);
+
+        ProjectConfig off = new ProjectConfig(Map.of("dependency-rule", new KataSetting(false, Optional.empty())));
+        assertThat(service(version(21), off, project -> Optional.of(match)).analyze(ROOT).lessons()).isEmpty();
+    }
+
+    @Test
     void refusesUnknownKatasInTheConfiguration() {
         ProjectConfig config = new ProjectConfig(Map.of("feild-injection", new KataSetting(false, Optional.empty())));
 
         assertThatThrownBy(() -> service(version(21), config, kata("leve", Severity.LEVE, 21), kata("grave", Severity.GRAVE, 21)).analyze(ROOT))
                 .isInstanceOfSatisfying(ConfigException.class, e -> {
                     assertThat(e.messageKey()).isEqualTo("config.error.unknown-kata");
-                    assertThat(e.arguments()).containsExactly("feild-injection", "grave, leve");
+                    assertThat(e.arguments()).containsExactly("feild-injection", "dependency-rule, grave, leve");
                 });
         assertThat(parser.languageLevels).isEmpty();
     }
@@ -174,8 +202,12 @@ class AnalyzeProjectServiceTest {
     }
 
     private AnalyzeProjectService service(BuildFileReader buildFileReader, ProjectConfig config, Kata... katas) {
-        return new AnalyzeProjectService(
-                buildFileReader, root -> config, parser, List.of(katas), project -> Optional.empty(), new RankCalculator());
+        return service(buildFileReader, config, project -> Optional.empty(), katas);
+    }
+
+    private AnalyzeProjectService service(
+            BuildFileReader buildFileReader, ProjectConfig config, ClassifyArchitecture classifier, Kata... katas) {
+        return new AnalyzeProjectService(buildFileReader, root -> config, parser, List.of(katas), classifier, new RankCalculator());
     }
 
     private static BuildFileReader version(int feature) {

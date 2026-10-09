@@ -27,6 +27,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 /**
  * Reads the build and the project's configuration, parses the sources at the project's Java
@@ -81,15 +82,20 @@ public final class AnalyzeProjectService implements AnalyzeProject {
 
         List<Lesson> lessons = new ArrayList<>();
         for (Kata kata : katas) {
-            if (!config.isEnabled(kata) || !javaVersion.isAtLeast(kata.minJavaVersion())) {
+            if (!config.isEnabled(kata.id()) || !javaVersion.isAtLeast(kata.minJavaVersion())) {
                 continue;
             }
             List<Lesson> found = switch (kata) {
                 case ClassKata classKata -> classes.stream().flatMap(unit -> classKata.evaluate(unit).stream()).toList();
                 case ProjectKata projectKata -> projectKata.evaluate(project);
             };
-            Severity severity = config.severity(kata);
+            Severity severity = config.severity(kata.id(), kata.severity());
             found.forEach(lesson -> lessons.add(lesson.withSeverity(severity)));
+        }
+        if (config.isEnabled(ArchitectureMatch.DEPENDENCY_RULE)) {
+            Severity severity = config.severity(ArchitectureMatch.DEPENDENCY_RULE, ArchitectureMatch.DEPENDENCY_RULE_SEVERITY);
+            architecture.stream().flatMap(match -> match.violations().stream())
+                    .forEach(lesson -> lessons.add(lesson.withSeverity(severity)));
         }
         // stable sort: lessons on the same line keep the kata order
         lessons.sort(Comparator.comparing((Lesson lesson) -> lesson.file().toString()).thenComparingInt(Lesson::line));
@@ -101,7 +107,9 @@ public final class AnalyzeProjectService implements AnalyzeProject {
 
     /** A typo in a kata id would silently configure nothing, so it is an error. */
     private void checkKatasExist(ProjectConfig config) {
-        List<String> known = katas.stream().map(Kata::id).sorted().toList();
+        List<String> known = Stream.concat(katas.stream().map(Kata::id), Stream.of(ArchitectureMatch.DEPENDENCY_RULE))
+                .sorted()
+                .toList();
         config.katas().keySet().stream().filter(id -> !known.contains(id)).sorted().findFirst().ifPresent(unknown -> {
             throw new ConfigException("config.error.unknown-kata", unknown, String.join(", ", known));
         });

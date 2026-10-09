@@ -120,7 +120,7 @@ class TerminalReportWriterTest {
                         Arquitetura: Camadas técnicas (Layered)  (83% da assinatura: controller, service, repository, model, dto)
 
                         · LEVE   [missing-actuator]""")
-                .endsWith("\nGraduação: 5º kyū  (16 lições: 1 grave, 8 médias, 6 leves, 1 sugestão)\n");
+                .endsWith("\nGraduação: 5º kyū  (17 lições: 1 grave, 9 médias, 6 leves, 1 sugestão)\n");
     }
 
     private static String render(Analysis analysis, Messages messages) {

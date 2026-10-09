@@ -3,7 +3,10 @@ package dev.mauricioandrade.shisho.domain.model;
 import java.util.Map;
 import java.util.Optional;
 
-/** The analyzed project's own settings: katas turned off and severities overridden, by kata id. */
+/**
+ * The analyzed project's own settings: katas turned off and severities overridden, by kata id.
+ * Dependency rule violations are configured like a kata, under {@link ArchitectureMatch#DEPENDENCY_RULE}.
+ */
 public record ProjectConfig(Map<String, KataSetting> katas) {
 
     public static final ProjectConfig DEFAULT = new ProjectConfig(Map.of());
@@ -12,16 +15,16 @@ public record ProjectConfig(Map<String, KataSetting> katas) {
         katas = Map.copyOf(katas);
     }
 
-    public boolean isEnabled(Kata kata) {
-        return setting(kata).map(KataSetting::enabled).orElse(true);
+    public boolean isEnabled(String kataId) {
+        return setting(kataId).map(KataSetting::enabled).orElse(true);
     }
 
-    public Severity severity(Kata kata) {
-        return setting(kata).flatMap(KataSetting::severity).orElse(kata.severity());
+    public Severity severity(String kataId, Severity standard) {
+        return setting(kataId).flatMap(KataSetting::severity).orElse(standard);
     }
 
-    private Optional<KataSetting> setting(Kata kata) {
-        return Optional.ofNullable(katas.get(kata.id()));
+    private Optional<KataSetting> setting(String kataId) {
+        return Optional.ofNullable(katas.get(kataId));
     }
 
     public record KataSetting(boolean enabled, Optional<Severity> severity) {

@@ -32,7 +32,8 @@ import java.util.stream.Stream;
 /**
  * Reads the build and the project's configuration, parses the sources at the project's Java
  * version, classifies the architecture and applies every enabled kata that version allows, with
- * the configured severity. Lessons are ordered by file, then line, then kata order.
+ * the configured severity. A kata that suggests a newer Java feature still runs below its version,
+ * as INFO suggestions for after the upgrade. Lessons are ordered by file, then line, then kata order.
  */
 public final class AnalyzeProjectService implements AnalyzeProject {
 
@@ -82,7 +83,8 @@ public final class AnalyzeProjectService implements AnalyzeProject {
 
         List<Lesson> lessons = new ArrayList<>();
         for (Kata kata : katas) {
-            if (!config.isEnabled(kata.id()) || !javaVersion.isAtLeast(kata.minJavaVersion())) {
+            boolean available = javaVersion.isAtLeast(kata.minJavaVersion());
+            if (!config.isEnabled(kata.id()) || !available && kata.javaFeature().isEmpty()) {
                 continue;
             }
             List<Lesson> found = switch (kata) {
@@ -90,7 +92,9 @@ public final class AnalyzeProjectService implements AnalyzeProject {
                 case ProjectKata projectKata -> projectKata.evaluate(project);
             };
             Severity severity = config.severity(kata.id(), kata.severity());
-            found.forEach(lesson -> lessons.add(lesson.withSeverity(severity)));
+            found.forEach(lesson -> lessons.add(available
+                    ? lesson.withSeverity(severity)
+                    : lesson.afterUpgradeTo(kata.minJavaVersion())));
         }
         if (config.isEnabled(ArchitectureMatch.DEPENDENCY_RULE)) {
             Severity severity = config.severity(ArchitectureMatch.DEPENDENCY_RULE, ArchitectureMatch.DEPENDENCY_RULE_SEVERITY);

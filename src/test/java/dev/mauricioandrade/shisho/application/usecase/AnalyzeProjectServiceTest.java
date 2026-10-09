@@ -190,6 +190,47 @@ class AnalyzeProjectServiceTest {
     }
 
     @Test
+    void katasSuggestingANewerJavaFeatureBecomeUpgradeSuggestions() {
+        Kata scoped = new ClassKata() {
+            @Override
+            public String id() {
+                return "scoped";
+            }
+
+            @Override
+            public Severity severity() {
+                return Severity.LEVE;
+            }
+
+            @Override
+            public JavaVersion minJavaVersion() {
+                return new JavaVersion(25);
+            }
+
+            @Override
+            public Optional<String> javaFeature() {
+                return Optional.of("scoped-values");
+            }
+
+            @Override
+            public List<Lesson> evaluate(ClassUnit unit) {
+                return List.of(lesson(unit, 3));
+            }
+        };
+
+        Analysis on21 = service(version(21), scoped, kata("future", Severity.GRAVE, 25, 1)).analyze(ROOT);
+        assertThat(on21.lessons()).extracting(Lesson::kataId, Lesson::severity, Lesson::afterUpgradeTo).containsExactly(
+                tuple("scoped", Severity.INFO, Optional.of(new JavaVersion(25))),
+                tuple("scoped", Severity.INFO, Optional.of(new JavaVersion(25))));
+        assertThat(on21.rank()).isEqualTo(Rank.DAN_1);
+
+        parser.languageLevels.clear();
+        Analysis on25 = service(version(25), scoped).analyze(ROOT);
+        assertThat(on25.lessons()).extracting(Lesson::severity, Lesson::afterUpgradeTo)
+                .containsOnly(tuple(Severity.LEVE, Optional.empty()));
+    }
+
+    @Test
     void refusesProjectsBelowTheBaseline() {
         assertThatThrownBy(() -> service(version(17)).analyze(ROOT))
                 .isInstanceOfSatisfying(AnalysisException.class, e -> {

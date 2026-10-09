@@ -6,6 +6,8 @@ import dev.mauricioandrade.shisho.domain.model.ArchitectureProfile.ClassRange;
 import dev.mauricioandrade.shisho.domain.model.ArchitectureProfile.Complexity;
 import dev.mauricioandrade.shisho.domain.model.ArchitectureProfile.DependencyRule;
 import dev.mauricioandrade.shisho.domain.model.ArchitectureProfile.Family;
+import dev.mauricioandrade.shisho.domain.model.JavaFeature;
+import dev.mauricioandrade.shisho.domain.model.JavaVersion;
 import dev.mauricioandrade.shisho.domain.model.KataExample;
 import dev.mauricioandrade.shisho.domain.model.KataExample.Snippet;
 import dev.mauricioandrade.shisho.domain.model.ProjectContext;
@@ -178,6 +180,36 @@ class MarkdownCatalogRepositoryTest {
 
         private void write(String fileName, String content) throws IOException {
             Files.writeString(Files.createDirectories(catalog.resolve("katas")).resolve(fileName), content);
+        }
+    }
+
+    @Nested
+    class JavaFeatures {
+
+        @Test
+        void readsTheRealCatalog() {
+            List<JavaFeature> features = MarkdownCatalogRepository.bundled().javaFeatures();
+
+            assertThat(features).extracting(JavaFeature::id).contains("virtual-threads", "scoped-values", "structured-concurrency");
+            assertThat(features).filteredOn(feature -> feature.id().equals("scoped-values")).singleElement().satisfies(feature -> {
+                assertThat(feature.name()).isEqualTo("Scoped values");
+                assertThat(feature.since()).isEqualTo(new JavaVersion(25));
+                assertThat(feature.status()).isEqualTo(JavaFeature.Status.FINAL);
+                assertThat(feature.jep()).isEqualTo(506);
+                assertThat(feature.markdown()).startsWith("## O que é");
+            });
+            assertThat(features).filteredOn(feature -> feature.id().equals("structured-concurrency"))
+                    .extracting(JavaFeature::status).containsExactly(JavaFeature.Status.PREVIEW);
+        }
+
+        @Test
+        void rejectsAnUnknownStatus(@TempDir Path catalog) throws IOException {
+            Files.writeString(Files.createDirectories(catalog.resolve("java-features")).resolve("x.md"),
+                    "---\nid: x\nnome: X\ndesde: 25\nstatus: beta\njep: 1\n---\n");
+
+            assertThatThrownBy(() -> new MarkdownCatalogRepository(catalog).javaFeatures())
+                    .isInstanceOfSatisfying(CatalogException.class, e ->
+                            assertThat(e.arguments()).containsExactly("x.md", "status", "beta"));
         }
     }
 

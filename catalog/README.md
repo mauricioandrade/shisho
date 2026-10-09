@@ -60,6 +60,26 @@ existir. Implementados hoje: `um_use_case_por_metodo_crud`, `dominio_anemico`,
 `entidade_de_dominio_identica_a_entidade_jpa`, `mappers_entre_estruturas_identicas`,
 `pacote_service_com_mais_de_15_classes`, `service_deus`, `dependencias_ciclicas_entre_services`.
 
+## Recursos do Java (`java-features/`)
+
+Cada arquivo descreve um recurso da linguagem ou da biblioteca padrão, a partir de quando ele
+existe e se já é final. É o que torna o Shishō consciente de versão: uma kata que sugere um
+recurso declara o `id` dele, e o teste exige que a versão mínima da kata seja o `desde` daqui.
+
+| Campo | Tipo | Descrição |
+|---|---|---|
+| `id` | string | Identificador único, igual ao nome do arquivo |
+| `nome` | string | Nome legível |
+| `desde` | int | Versão do Java em que o recurso é final (ou em que está em preview) |
+| `status` | enum | `final` · `preview` |
+| `jep` | int | Número do JEP |
+
+O corpo explica o recurso (`## O que é`) e mostra um `## Exemplo`.
+
+Num projeto abaixo do `desde`, a kata ainda roda, mas cada lição vira **INFO** ("Ao migrar
+para o Java 25: …"), sem tirar nota. Recursos em **preview nunca** são sugeridos: nenhuma kata
+pode apontar para um.
+
 ## Exemplos das katas (`katas/`)
 
 Cada arquivo em `katas/` mostra como corrigir uma kata: o código **antes** e **depois**. É o

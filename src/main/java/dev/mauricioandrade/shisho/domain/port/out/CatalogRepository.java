@@ -1,6 +1,7 @@
 package dev.mauricioandrade.shisho.domain.port.out;
 
 import dev.mauricioandrade.shisho.domain.model.ArchitectureProfile;
+import dev.mauricioandrade.shisho.domain.model.JavaFeature;
 import dev.mauricioandrade.shisho.domain.model.KataExample;
 
 import java.util.List;
@@ -18,4 +19,7 @@ public interface CatalogRepository {
      *         unreadable or lacks its "Antes" or "Depois" code block
      */
     List<KataExample> kataExamples();
+
+    /** @throws dev.mauricioandrade.shisho.domain.exception.CatalogException if an entry is invalid */
+    List<JavaFeature> javaFeatures();
 }

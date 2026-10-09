@@ -8,6 +8,9 @@ import dev.mauricioandrade.shisho.domain.model.ArchitectureProfile.Cost;
 import dev.mauricioandrade.shisho.domain.model.ArchitectureProfile.DependencyRule;
 import dev.mauricioandrade.shisho.domain.model.ArchitectureProfile.Family;
 import dev.mauricioandrade.shisho.domain.model.ArchitectureProfile.Signature;
+import dev.mauricioandrade.shisho.domain.model.JavaFeature;
+import dev.mauricioandrade.shisho.domain.model.JavaFeature.Status;
+import dev.mauricioandrade.shisho.domain.model.JavaVersion;
 import dev.mauricioandrade.shisho.domain.model.KataExample;
 import dev.mauricioandrade.shisho.domain.model.KataExample.Snippet;
 import dev.mauricioandrade.shisho.domain.port.out.CatalogRepository;
@@ -92,6 +95,26 @@ public final class MarkdownCatalogRepository implements CatalogRepository {
     @Override
     public List<KataExample> kataExamples() {
         return documents("katas").stream().map(MarkdownCatalogRepository::toExample).toList();
+    }
+
+    @Override
+    public List<JavaFeature> javaFeatures() {
+        return documents("java-features").stream().map(MarkdownCatalogRepository::toFeature).toList();
+    }
+
+    private static JavaFeature toFeature(Document document) {
+        FrontmatterFields fields = document.fields();
+        return new JavaFeature(document.id(), fields.text("nome"), new JavaVersion(fields.integer("desde")),
+                status(fields), fields.integer("jep"), document.markdown());
+    }
+
+    private static Status status(FrontmatterFields fields) {
+        String value = fields.text("status");
+        return switch (value) {
+            case "final" -> Status.FINAL;
+            case "preview" -> Status.PREVIEW;
+            default -> throw fields.invalid("status", value);
+        };
     }
 
     private record Document(String fileName, FrontmatterFields fields, String markdown) {

@@ -62,7 +62,10 @@ final class ReportTexts {
     }
 
     String explanation(Lesson lesson) {
-        return text(lesson.messageKey(), lesson.arguments().toArray());
+        String explanation = text(lesson.messageKey(), lesson.arguments().toArray());
+        return lesson.afterUpgradeTo()
+                .map(version -> text("report.after-upgrade", version.toString(), explanation))
+                .orElse(explanation);
     }
 
     String severity(Severity severity) {

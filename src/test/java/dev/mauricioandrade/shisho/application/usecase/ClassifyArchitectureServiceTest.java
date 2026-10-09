@@ -12,6 +12,7 @@ import dev.mauricioandrade.shisho.domain.model.ClassUnit;
 import dev.mauricioandrade.shisho.domain.model.ClassUnit.Annotation;
 import dev.mauricioandrade.shisho.domain.model.ClassUnit.Import;
 import dev.mauricioandrade.shisho.domain.model.Dependency;
+import dev.mauricioandrade.shisho.domain.model.JavaFeature;
 import dev.mauricioandrade.shisho.domain.model.JavaVersion;
 import dev.mauricioandrade.shisho.domain.model.KataExample;
 import dev.mauricioandrade.shisho.domain.model.ProjectModel;
@@ -40,6 +41,11 @@ class ClassifyArchitectureServiceTest {
 
         @Override
         public List<KataExample> kataExamples() {
+            return List.of();
+        }
+
+        @Override
+        public List<JavaFeature> javaFeatures() {
             return List.of();
         }
     }, List.of());

@@ -119,11 +119,13 @@ public final class GenerateCrudService implements GenerateCrud {
         return project.classes().stream().anyMatch(unit -> unit.isAnnotatedWith(simpleName));
     }
 
-    private static List<String> missingDependencies(Scaffold scaffold, ProjectModel project) {
+    private static List<List<String>> missingDependencies(Scaffold scaffold, ProjectModel project) {
         Set<String> present = project.build().stream()
                 .flatMap(build -> build.dependencies().stream())
                 .map(Dependency::artifactId)
                 .collect(Collectors.toSet());
-        return scaffold.requiredDependencies().stream().filter(artifactId -> !present.contains(artifactId)).toList();
+        return scaffold.requiredDependencies().stream()
+                .filter(alternatives -> alternatives.stream().noneMatch(present::contains))
+                .toList();
     }
 }

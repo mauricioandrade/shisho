@@ -80,7 +80,8 @@ class GenerateCrudServiceTest {
         CrudPlan plan = service.plan(project, new CrudRequest("Usuario", List.of(new CrudRequest.Field("nome", "String")),
                 Optional.of("layered"), Optional.of("com.loja"), Optional.empty()));
 
-        assertThat(plan.missingDependencies()).containsExactly("spring-boot-starter-validation", "spring-boot-starter-data-jpa");
+        assertThat(plan.missingDependencies()).as("Boot 3's web starter stands in for Boot 4's webmvc")
+                .containsExactly(List.of("spring-boot-starter-validation"), List.of("spring-boot-starter-data-jpa"));
         assertThat(plan.files()).first().extracting(GeneratedFile::file).isEqualTo(Path.of("src/main/java/com/loja/model/Usuario.java"));
     }
 

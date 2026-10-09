@@ -8,12 +8,13 @@ import java.util.Optional;
  * and content, and what each one is for. The schema is documented in {@code catalog/README.md}.
  *
  * @param architectureId       the catalog architecture this scaffold follows
- * @param requiredDependencies artifactIds the generated code needs in the build
+ * @param requiredDependencies what the generated code needs in the build: for each dependency,
+ *                             the artifactIds that provide it (Spring Boot 4 renamed some starters)
  */
-public record Scaffold(String architectureId, List<String> requiredDependencies, List<File> files) {
+public record Scaffold(String architectureId, List<List<String>> requiredDependencies, List<File> files) {
 
     public Scaffold {
-        requiredDependencies = List.copyOf(requiredDependencies);
+        requiredDependencies = requiredDependencies.stream().map(List::copyOf).toList();
         files = List.copyOf(files);
     }
 

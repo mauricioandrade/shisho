@@ -157,7 +157,7 @@ terminal, por que o arquivo existe; o bloco é o conteúdo.
 ```markdown
 ---
 id: layered                  # uma arquitetura de architectures/
-dependencias: [spring-boot-starter-web, spring-boot-starter-data-jpa]   # artifactIds que o código exige
+dependencias: ["spring-boot-starter-webmvc|spring-boot-starter-web", spring-boot-starter-data-jpa]   # artifactIds que o código exige; com |, qualquer um serve
 uma_vez_por_projeto:         # opcional: arquivo comum a todas as entidades
   controller/TratadorDeErros.java: RestControllerAdvice   # pulado se alguma classe já tem a anotação
 ---

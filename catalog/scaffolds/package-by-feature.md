@@ -1,6 +1,6 @@
 ---
 id: package-by-feature
-dependencias: [spring-boot-starter-web, spring-boot-starter-validation, spring-boot-starter-data-jpa]
+dependencias: ["spring-boot-starter-webmvc|spring-boot-starter-web", spring-boot-starter-validation, spring-boot-starter-data-jpa]
 uma_vez_por_projeto:
   TratadorDeErros.java: RestControllerAdvice
 ---

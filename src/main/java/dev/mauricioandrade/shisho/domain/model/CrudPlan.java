@@ -8,14 +8,15 @@ import java.util.Optional;
  *
  * @param skipped             files shared by every entity that the project already covers
  * @param otherArchitecture   the architecture the project follows, when it is not the one asked for
- * @param missingDependencies artifactIds the generated code needs and the build lacks
+ * @param missingDependencies dependencies the generated code needs and the build lacks, each as
+ *                            the artifactIds that would provide it
  */
 public record CrudPlan(ArchitectureProfile architecture, List<GeneratedFile> files, List<GeneratedFile> skipped,
-                       Optional<ArchitectureProfile> otherArchitecture, List<String> missingDependencies) {
+                       Optional<ArchitectureProfile> otherArchitecture, List<List<String>> missingDependencies) {
 
     public CrudPlan {
         files = List.copyOf(files);
         skipped = List.copyOf(skipped);
-        missingDependencies = List.copyOf(missingDependencies);
+        missingDependencies = missingDependencies.stream().map(List::copyOf).toList();
     }
 }

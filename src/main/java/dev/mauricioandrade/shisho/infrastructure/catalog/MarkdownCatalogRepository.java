@@ -135,7 +135,10 @@ public final class MarkdownCatalogRepository implements CatalogRepository {
         if (!once.isEmpty()) {
             throw fields.invalid("uma_vez_por_projeto", once.keySet().iterator().next());
         }
-        return new Scaffold(document.id(), fields.textList("dependencias"), files);
+        List<List<String>> dependencies = fields.textList("dependencias").stream()
+                .map(alternatives -> List.of(alternatives.split("\\|")))
+                .toList();
+        return new Scaffold(document.id(), dependencies, files);
     }
 
     private static AvoidedDependency toAvoidedDependency(Document document) {

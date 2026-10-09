@@ -304,7 +304,7 @@ class MarkdownCatalogRepositoryTest {
             Files.writeString(Files.createDirectories(catalog.resolve("scaffolds")).resolve("x.md"), """
                     ---
                     id: x
-                    dependencias: [spring-boot-starter-web]
+                    dependencias: ["spring-boot-starter-webmvc|spring-boot-starter-web"]
                     uma_vez_por_projeto:
                       Erros.java: RestControllerAdvice
                     ---
@@ -327,7 +327,7 @@ class MarkdownCatalogRepositoryTest {
                     """);
 
             assertThat(new MarkdownCatalogRepository(catalog).scaffolds()).singleElement().satisfies(scaffold -> {
-                assertThat(scaffold.requiredDependencies()).containsExactly("spring-boot-starter-web");
+                assertThat(scaffold.requiredDependencies()).containsExactly(List.of("spring-boot-starter-webmvc", "spring-boot-starter-web"));
                 assertThat(scaffold.files()).containsExactly(
                         new Scaffold.File("{{Entidade}}.java", "A entidade.", "class {{Entidade}} {}\n", Optional.empty()),
                         new Scaffold.File("Erros.java", "Os erros.", "class Erros {}\n", Optional.of("RestControllerAdvice")));

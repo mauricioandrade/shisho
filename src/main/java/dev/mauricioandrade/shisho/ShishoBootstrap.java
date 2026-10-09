@@ -53,7 +53,7 @@ public final class ShishoBootstrap {
                 new MavenBuildFileReader(),
                 new YamlProjectConfigReader(),
                 new JavaParserSourceParser(),
-                Katas.all(),
+                Katas.all(catalog.avoidedDependencies()),
                 new ClassifyArchitectureService(catalog, Detectors.all()),
                 new RankCalculator());
 

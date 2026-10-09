@@ -3,6 +3,7 @@ package dev.mauricioandrade.shisho.i18n;
 import dev.mauricioandrade.shisho.domain.model.ArchitectureMatch;
 import dev.mauricioandrade.shisho.domain.model.Detector;
 import dev.mauricioandrade.shisho.domain.model.Kata;
+import dev.mauricioandrade.shisho.infrastructure.catalog.MarkdownCatalogRepository;
 import dev.mauricioandrade.shisho.infrastructure.detector.Detectors;
 import dev.mauricioandrade.shisho.infrastructure.kata.Katas;
 import org.junit.jupiter.api.Test;
@@ -28,7 +29,7 @@ class MessageBundlesTest {
     void everyKataHasALessonMessage() throws IOException {
         Properties messages = load("messages_pt_BR.properties");
 
-        assertThat(Katas.all()).extracting(Kata::id).allSatisfy(id ->
+        assertThat(Katas.all(MarkdownCatalogRepository.bundled().avoidedDependencies())).extracting(Kata::id).allSatisfy(id ->
                 assertThat(messages).containsKey("kata." + id + ".lesson"));
     }
 
@@ -36,7 +37,7 @@ class MessageBundlesTest {
     void everyKataAndTheDependencyRuleHaveATitle() throws IOException {
         Properties messages = load("messages_pt_BR.properties");
 
-        assertThat(Stream.concat(Katas.all().stream().map(Kata::id), Stream.of(ArchitectureMatch.DEPENDENCY_RULE)))
+        assertThat(Stream.concat(Katas.all(MarkdownCatalogRepository.bundled().avoidedDependencies()).stream().map(Kata::id), Stream.of(ArchitectureMatch.DEPENDENCY_RULE)))
                 .allSatisfy(id -> assertThat(messages).containsKey("kata." + id + ".title"));
     }
 

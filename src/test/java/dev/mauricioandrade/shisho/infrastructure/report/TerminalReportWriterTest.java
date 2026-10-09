@@ -201,7 +201,7 @@ class TerminalReportWriterTest {
     @Test
     void reportsTheMessyStudentFixture() {
         AnalyzeProjectService service = new AnalyzeProjectService(
-                new MavenBuildFileReader(), new YamlProjectConfigReader(), new JavaParserSourceParser(), Katas.all(),
+                new MavenBuildFileReader(), new YamlProjectConfigReader(), new JavaParserSourceParser(), Katas.all(MarkdownCatalogRepository.bundled().avoidedDependencies()),
                 new ClassifyArchitectureService(MarkdownCatalogRepository.bundled(), Detectors.all()), new RankCalculator());
 
         String report = render(service.analyze(Path.of("src/test/resources/fixtures/aluno-baguncado")), PORTUGUESE);

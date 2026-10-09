@@ -30,7 +30,7 @@ class KatasTest {
 
     @Test
     void katasHaveUniqueIds() {
-        assertThat(Katas.all()).extracting(Kata::id).doesNotHaveDuplicates().hasSize(16);
+        assertThat(Katas.all(MarkdownCatalogRepository.bundled().avoidedDependencies())).extracting(Kata::id).doesNotHaveDuplicates().hasSize(17);
     }
 
     @Test
@@ -38,7 +38,7 @@ class KatasTest {
         Map<String, JavaFeature> features = MarkdownCatalogRepository.bundled().javaFeatures().stream()
                 .collect(Collectors.toMap(JavaFeature::id, Function.identity()));
 
-        assertThat(Katas.all()).filteredOn(kata -> kata.javaFeature().isPresent()).isNotEmpty().allSatisfy(kata -> {
+        assertThat(Katas.all(MarkdownCatalogRepository.bundled().avoidedDependencies())).filteredOn(kata -> kata.javaFeature().isPresent()).isNotEmpty().allSatisfy(kata -> {
             JavaFeature feature = features.get(kata.javaFeature().orElseThrow());
             assertThat(feature).as(kata.id()).isNotNull();
             assertThat(feature.status()).as(kata.id()).isEqualTo(JavaFeature.Status.FINAL);
@@ -98,7 +98,7 @@ class KatasTest {
     /** Through the real adapters, in the order the report uses: file, then line, then kata order. */
     private static List<Lesson> analyze(Path project) {
         return new AnalyzeProjectService(
-                new MavenBuildFileReader(), new YamlProjectConfigReader(), new JavaParserSourceParser(), Katas.all(),
+                new MavenBuildFileReader(), new YamlProjectConfigReader(), new JavaParserSourceParser(), Katas.all(MarkdownCatalogRepository.bundled().avoidedDependencies()),
                 new ClassifyArchitectureService(MarkdownCatalogRepository.bundled(), Detectors.all()), new RankCalculator())
                 .analyze(project)
                 .lessons();

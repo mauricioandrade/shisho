@@ -1,5 +1,6 @@
 package dev.mauricioandrade.shisho.infrastructure.kata;
 
+import dev.mauricioandrade.shisho.domain.model.AvoidedDependency;
 import dev.mauricioandrade.shisho.domain.model.Kata;
 
 import java.util.List;
@@ -9,8 +10,12 @@ public final class Katas {
     private Katas() {
     }
 
-    /** Every kata, in a fixed order so reports are reproducible. */
-    public static List<Kata> all() {
+    /**
+     * Every kata, in a fixed order so reports are reproducible.
+     *
+     * @param avoided the catalog's dependencies to avoid
+     */
+    public static List<Kata> all(List<AvoidedDependency> avoided) {
         return List.of(
                 new FieldInjectionKata(),
                 new LombokConstructorKata(),
@@ -24,6 +29,7 @@ public final class Katas {
                 new MissingControllerAdviceKata(),
                 new MissingActuatorKata(),
                 new MissingSpringdocKata(),
+                new AvoidedDependencyKata(avoided),
                 new ConfigurationPropertiesNotRecordKata(),
                 new PreferConfigurationPropertiesKata(),
                 new PreferVirtualThreadsKata(),

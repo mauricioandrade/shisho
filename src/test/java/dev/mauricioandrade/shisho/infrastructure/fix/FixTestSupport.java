@@ -53,7 +53,7 @@ final class FixTestSupport {
 
     static AnalyzeProjectService analyzer() {
         return new AnalyzeProjectService(new MavenBuildFileReader(), new YamlProjectConfigReader(), new JavaParserSourceParser(),
-                Katas.all(), new ClassifyArchitectureService(MarkdownCatalogRepository.bundled(), Detectors.all()), new RankCalculator());
+                Katas.all(MarkdownCatalogRepository.bundled().avoidedDependencies()), new ClassifyArchitectureService(MarkdownCatalogRepository.bundled(), Detectors.all()), new RankCalculator());
     }
 
     static void write(Path root, String file, String content) {

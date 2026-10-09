@@ -94,6 +94,7 @@ Cada lição desconta pontos. A nota final vira uma faixa:
 | `request-body-without-valid` | MEDIA | `@RequestBody` sem `@Valid` |
 | `entity-in-controller` | MEDIA | endpoint que recebe ou devolve uma `@Entity` JPA |
 | `missing-controller-advice` | MEDIA | controllers sem nenhum `@RestControllerAdvice` no projeto |
+| `avoided-dependency` | MEDIA | dependência que o próprio projeto declarou abandonada, substituída ou movida (Log4j 1, Springfox, Joda-Time... ver [`catalog/dependencies`](catalog/dependencies)) |
 | `value-outside-constructor` | LEVE | `@Value` fora de parâmetro de construtor |
 | `dto-not-record` | LEVE | DTO (por pacote ou sufixo) que não é record |
 | `transactional-read-only` | LEVE | método de leitura (`find…`, `buscar…`) numa transação de escrita |

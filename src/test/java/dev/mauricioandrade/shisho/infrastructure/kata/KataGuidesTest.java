@@ -22,18 +22,20 @@ import static org.assertj.core.api.Assertions.assertThat;
 /** The sensei's guides are code too: the kata must flag "Antes" and accept "Depois". */
 class KataGuidesTest {
 
+    private static final List<Kata> KATAS = Katas.all(MarkdownCatalogRepository.bundled().avoidedDependencies());
+
     private final Map<String, KataGuide> guides = MarkdownCatalogRepository.bundled().kataGuides().stream()
             .collect(Collectors.toMap(KataGuide::kataId, Function.identity()));
 
     @Test
     void everyKataAndTheDependencyRuleHaveAnExample() {
         assertThat(guides.keySet()).containsExactlyInAnyOrderElementsOf(
-                Stream.concat(Katas.all().stream().map(Kata::id), Stream.of(ArchitectureMatch.DEPENDENCY_RULE)).toList());
+                Stream.concat(KATAS.stream().map(Kata::id), Stream.of(ArchitectureMatch.DEPENDENCY_RULE)).toList());
     }
 
     @TestFactory
     Stream<DynamicTest> theKataFlagsTheCodeBeforeAndAcceptsTheCodeAfter() {
-        return Katas.all().stream()
+        return KATAS.stream()
                 .filter(kata -> guides.get(kata.id()).before().language().equals("java"))
                 .map(kata -> DynamicTest.dynamicTest(kata.id(), () -> {
                     KataGuide guide = guides.get(kata.id());
@@ -51,7 +53,7 @@ class KataGuidesTest {
 
     @Test
     void buildExamplesAreXml() {
-        assertThat(List.of("missing-actuator", "missing-springdoc")).allSatisfy(id ->
+        assertThat(List.of("missing-actuator", "missing-springdoc", "avoided-dependency")).allSatisfy(id ->
                 assertThat(guides.get(id).after().code()).startsWith("<dependencies>"));
     }
 

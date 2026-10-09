@@ -1,5 +1,6 @@
 package dev.mauricioandrade.shisho.i18n;
 
+import dev.mauricioandrade.shisho.domain.model.ArchitectureMatch;
 import dev.mauricioandrade.shisho.domain.model.Detector;
 import dev.mauricioandrade.shisho.domain.model.Kata;
 import dev.mauricioandrade.shisho.infrastructure.detector.Detectors;
@@ -11,6 +12,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.Properties;
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -28,6 +30,14 @@ class MessageBundlesTest {
 
         assertThat(Katas.all()).extracting(Kata::id).allSatisfy(id ->
                 assertThat(messages).containsKey("kata." + id + ".lesson"));
+    }
+
+    @Test
+    void everyKataAndTheDependencyRuleHaveATitle() throws IOException {
+        Properties messages = load("messages_pt_BR.properties");
+
+        assertThat(Stream.concat(Katas.all().stream().map(Kata::id), Stream.of(ArchitectureMatch.DEPENDENCY_RULE)))
+                .allSatisfy(id -> assertThat(messages).containsKey("kata." + id + ".title"));
     }
 
     @Test

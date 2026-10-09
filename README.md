@@ -261,10 +261,12 @@ nada no build exige que você o use.
 
 ## Modo sensei: aprender e corrigir
 
-Com `--sensei`, o relatório mostra, para cada kata encontrada, o código **antes e depois** da
-correção (os exemplos ficam em [`catalog/katas`](catalog/katas), e um teste garante que o
-"antes" gera a lição e o "depois" não). O relatório HTML e a ajuda dos alertas no GitHub
-mostram os mesmos exemplos.
+Com `--sensei`, o relatório explica cada kata encontrada: **por que** ela existe, **quando** o
+código acusado é uma escolha razoável, o código **antes e depois** da correção e as **fontes**
+(documentação do Spring, JEPs, OWASP). Uma kata aponta um custo, não um pecado: o sensei mostra
+a troca para você decidir. Os guias ficam em [`catalog/katas`](catalog/katas), e um teste
+garante que o "antes" gera a lição e o "depois" não. O relatório HTML e a ajuda dos alertas no
+GitHub mostram o mesmo conteúdo.
 
 ```bash
 java -jar target/shisho.jar analyze --sensei ~/projetos/minha-api

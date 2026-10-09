@@ -133,9 +133,15 @@ class TerminalReportWriterTest {
 
         assertThat(render(analysis, PORTUGUESE, List.of(guide))).contains("""
 
-                Como corrigir (modo sensei)
+                Por que e como corrigir (modo sensei)
 
                 [field-injection] Injeção de dependência em campo
+                  Por quê:
+                    O objeto nasce `completo`.
+
+                    E o teste não precisa de Spring.
+                  Quando é aceitável:
+                    Em testes.
                   Antes:
                       @Autowired
                       private Service service;
@@ -144,6 +150,9 @@ class TerminalReportWriterTest {
                       private final Service service;
 
                       App(Service service) {}
+                  Referências:
+                    https://docs.spring.io/a
+                    https://example.com/b
 
                 Graduação:""");
     }

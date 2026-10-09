@@ -84,12 +84,29 @@ public final class SarifReportWriter implements ReportWriter {
 
     /** Shown by GitHub code scanning next to each alert. */
     private Map<String, Object> help(KataGuide guide) {
+        String why = texts.text("html.why");
+        String acceptable = texts.text("html.acceptable");
         String before = texts.text("html.before");
         String after = texts.text("html.after");
+        String references = texts.text("html.references");
         Map<String, Object> help = new LinkedHashMap<>();
-        help.put("text", before + ":\n" + guide.before().code() + "\n\n" + after + ":\n" + guide.after().code());
-        help.put("markdown", markdown(before, guide.before()) + "\n\n" + markdown(after, guide.after()));
+        help.put("text", String.join("\n\n",
+                why + ":\n" + String.join("\n\n", guide.why()),
+                acceptable + ":\n" + String.join("\n\n", guide.acceptableWhen()),
+                before + ":\n" + guide.before().code(),
+                after + ":\n" + guide.after().code(),
+                references + ":\n" + String.join("\n", guide.references())));
+        help.put("markdown", String.join("\n\n",
+                markdown(why, guide.why()),
+                markdown(acceptable, guide.acceptableWhen()),
+                markdown(before, guide.before()),
+                markdown(after, guide.after()),
+                "**" + references + "**\n\n" + guide.references().stream().map(url -> "- " + url).collect(Collectors.joining("\n"))));
         return help;
+    }
+
+    private static String markdown(String label, List<String> paragraphs) {
+        return "**" + label + "**\n\n" + String.join("\n\n", paragraphs);
     }
 
     private static String markdown(String label, Snippet snippet) {

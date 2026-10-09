@@ -96,7 +96,12 @@ class HtmlReportWriterTest {
         assertThat(html.split("<a href=\"#kata-field-injection\">Como corrigir</a>", -1)).hasSize(3);
         assertThat(html).doesNotContain("#kata-system-out")
                 .contains("<h2>Como corrigir</h2>\n<article id=\"kata-field-injection\" class=\"guide\">\n"
-                        + "<h3>Injeção de dependência em campo <code class=\"muted\">field-injection</code></h3>")
+                        + "<h3>Injeção de dependência em campo <code class=\"muted\">field-injection</code></h3>\n"
+                        + "<h4>Por quê</h4>\n<p>O objeto nasce <code>completo</code>.</p>\n<p>E o teste não precisa de Spring.</p>\n"
+                        + "<h4>Quando é aceitável</h4>\n<p>Em testes.</p>\n<div class=\"before-after\">")
+                .contains("</div>\n<h4>Referências</h4>\n<ul class=\"references\">\n"
+                        + "<li><a href=\"https://docs.spring.io/a\">https://docs.spring.io/a</a></li>\n"
+                        + "<li><a href=\"https://example.com/b\">https://example.com/b</a></li>\n</ul>\n</article>")
                 .contains("<div class=\"snippet snippet-before\">\n<h4>Antes</h4>\n"
                         + "<pre><code class=\"language-java\">@Autowired\nprivate Service service;</code></pre>")
                 .contains("<h4>Depois</h4>\n<p>Use o <code>construtor</code> &amp; final.</p>");

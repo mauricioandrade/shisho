@@ -153,22 +153,37 @@ public final class HtmlReportWriter implements ReportWriter {
         for (KataGuide guide : guides) {
             html.append("<article id=\"kata-").append(escape(guide.kataId())).append("\" class=\"guide\">\n")
                     .append("<h3>").append(escape(texts.title(guide.kataId()))).append(" <code class=\"muted\">")
-                    .append(escape(guide.kataId())).append("</code></h3>\n")
-                    .append("<div class=\"before-after\">\n");
+                    .append(escape(guide.kataId())).append("</code></h3>\n");
+            prose(texts.text("html.why"), guide.why(), html);
+            prose(texts.text("html.acceptable"), guide.acceptableWhen(), html);
+            html.append("<div class=\"before-after\">\n");
             snippet(texts.text("html.before"), "before", guide.before(), html);
             snippet(texts.text("html.after"), "after", guide.after(), html);
-            html.append("</div>\n</article>\n");
+            html.append("</div>\n<h4>").append(escape(texts.text("html.references"))).append("</h4>\n<ul class=\"references\">\n");
+            guide.references().forEach(url -> html.append("<li><a href=\"").append(escape(url)).append("\">")
+                    .append(escape(url)).append("</a></li>\n"));
+            html.append("</ul>\n</article>\n");
         }
         html.append("</section>\n");
+    }
+
+    private static void prose(String label, List<String> paragraphs, StringBuilder html) {
+        html.append("<h4>").append(escape(label)).append("</h4>\n");
+        paragraphs.forEach(paragraph -> html.append("<p>").append(inline(paragraph)).append("</p>\n"));
     }
 
     private static void snippet(String label, String kind, Snippet snippet, StringBuilder html) {
         html.append("<div class=\"snippet snippet-").append(kind).append("\">\n<h4>").append(escape(label)).append("</h4>\n");
         if (!snippet.explanation().isEmpty()) {
-            html.append("<p>").append(INLINE_CODE.matcher(escape(snippet.explanation())).replaceAll("<code>$1</code>")).append("</p>\n");
+            html.append("<p>").append(inline(snippet.explanation())).append("</p>\n");
         }
         html.append("<pre><code class=\"language-").append(escape(snippet.language())).append("\">")
                 .append(escape(snippet.code())).append("</code></pre>\n</div>\n");
+    }
+
+    /** Escaped, with the Markdown {@code `code`} spans as {@code <code>}. */
+    private static String inline(String text) {
+        return INLINE_CODE.matcher(escape(text)).replaceAll("<code>$1</code>");
     }
 
     private static String kind(Verdict verdict) {
@@ -249,6 +264,9 @@ public final class HtmlReportWriter implements ReportWriter {
             .empty { font-size: 1.125rem; }
             .before-after { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px; }
             .snippet { min-width: 0; }
+            .guide > h4 { margin: 16px 0 6px; font-size: .75rem; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
+            .guide > p { margin: 0 0 8px; }
+            .references { margin: 0; padding-left: 20px; overflow-wrap: anywhere; }
             .snippet h4 { margin: 0 0 6px; font-size: .75rem; text-transform: uppercase; letter-spacing: .08em; }
             .snippet-before h4 { color: var(--grave); }
             .snippet-after h4 { color: var(--leve); }

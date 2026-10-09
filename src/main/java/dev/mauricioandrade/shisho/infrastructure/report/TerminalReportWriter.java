@@ -17,7 +17,7 @@ import java.util.List;
 
 /**
  * The report for people at a terminal: aligned columns, wrapped at {@value #WIDTH} characters.
- * Given the catalog's guides (the sensei mode), it also shows how to fix each kata found.
+ * Given the catalog's guides (the sensei mode), it also explains each kata found and how to fix it.
  */
 public final class TerminalReportWriter implements ReportWriter {
 
@@ -89,9 +89,24 @@ public final class TerminalReportWriter implements ReportWriter {
     private List<String> guide(KataGuide guide) {
         List<String> lines = new ArrayList<>();
         lines.add("[" + guide.kataId() + "] " + texts.title(guide.kataId()));
+        prose(texts.text("report.sensei.why"), guide.why(), lines);
+        prose(texts.text("report.sensei.acceptable"), guide.acceptableWhen(), lines);
         snippet(texts.text("report.sensei.before"), guide.before(), lines);
         snippet(texts.text("report.sensei.after"), guide.after(), lines);
+        lines.add(EXAMPLE_LABEL_INDENT + texts.text("report.sensei.references"));
+        guide.references().forEach(url -> lines.add(EXAMPLE_TEXT_INDENT + url));
         return lines;
+    }
+
+    /** The paragraphs under the label, with a blank line between them. */
+    private static void prose(String label, List<String> paragraphs, List<String> lines) {
+        lines.add(EXAMPLE_LABEL_INDENT + label);
+        for (int i = 0; i < paragraphs.size(); i++) {
+            if (i > 0) {
+                lines.add("");
+            }
+            wrap(paragraphs.get(i), WIDTH - EXAMPLE_TEXT_INDENT.length()).forEach(line -> lines.add(EXAMPLE_TEXT_INDENT + line));
+        }
     }
 
     private static void snippet(String label, Snippet snippet, List<String> lines) {

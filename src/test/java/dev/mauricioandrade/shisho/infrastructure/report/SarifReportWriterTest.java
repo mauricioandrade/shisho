@@ -217,8 +217,8 @@ class SarifReportWriterTest {
         assertThat(buffer.toString(StandardCharsets.UTF_8)).contains("""
                               "helpUri": "https://github.com/mauricioandrade/shiso#katas",
                               "help": {
-                                "text": "Antes:\\nSystem.out.println(x);\\n\\nDepois:\\nlog.info(\\"{}\\", x);",
-                                "markdown": "**Antes**\\n\\n```java\\nSystem.out.println(x);\\n```\\n\\n**Depois**\\n\\nUse um logger.\\n\\n```java\\nlog.info(\\"{}\\", x);\\n```"
+                                "text": "Por quê:\\nO console não tem nível.\\n\\nQuando é aceitável:\\nNuma CLI.\\n\\nAntes:\\nSystem.out.println(x);\\n\\nDepois:\\nlog.info(\\"{}\\", x);\\n\\nReferências:\\nhttps://openjdk.org/jeps/264",
+                                "markdown": "**Por quê**\\n\\nO console não tem nível.\\n\\n**Quando é aceitável**\\n\\nNuma CLI.\\n\\n**Antes**\\n\\n```java\\nSystem.out.println(x);\\n```\\n\\n**Depois**\\n\\nUse um logger.\\n\\n```java\\nlog.info(\\"{}\\", x);\\n```\\n\\n**Referências**\\n\\n- https://openjdk.org/jeps/264"
                               },
                 """);
     }

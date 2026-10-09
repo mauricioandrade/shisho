@@ -50,7 +50,7 @@ public final class TerminalReportWriter implements ReportWriter {
             out.println(symbol(lesson.severity()) + " "
                     + pad(texts.severity(lesson.severity()), severityWidth) + "  "
                     + pad("[" + lesson.kataId() + "]", kataWidth) + "  "
-                    + location(lesson));
+                    + ReportTexts.location(lesson));
             wrap(texts.explanation(lesson), WIDTH - indent.length()).forEach(line -> out.println(indent + line));
         }
         for (SourceFile.Unparseable file : analysis.unparseableFiles()) {
@@ -116,11 +116,6 @@ public final class TerminalReportWriter implements ReportWriter {
                     .forEach(line -> lines.add(EXAMPLE_TEXT_INDENT + line));
         }
         snippet.code().lines().forEach(line -> lines.add(line.isEmpty() ? "" : EXAMPLE_CODE_INDENT + line));
-    }
-
-    private static String location(Lesson lesson) {
-        String file = lesson.file().getFileName().toString();
-        return lesson.line() > 0 ? file + ":" + lesson.line() : file;
     }
 
     private static String symbol(Severity severity) {

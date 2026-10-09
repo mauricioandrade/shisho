@@ -17,13 +17,13 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-/** The sentences every report format shares, in the user's language. */
-final class ReportTexts {
+/** The sentences every report format, and the prompt of the local LLM, share in the user's language. */
+public final class ReportTexts {
 
     private final Messages messages;
     private final Map<String, KataGuide> guides;
 
-    ReportTexts(Messages messages, List<KataGuide> guides) {
+    public ReportTexts(Messages messages, List<KataGuide> guides) {
         this.messages = messages;
         this.guides = guides.stream().collect(Collectors.toMap(KataGuide::kataId, Function.identity()));
     }
@@ -41,34 +41,40 @@ final class ReportTexts {
         return Optional.ofNullable(guides.get(kataId));
     }
 
-    String title(String kataId) {
+    public String title(String kataId) {
         return text("kata." + kataId + ".title");
     }
 
     /** The verdict as a headline, the evidence behind it and where to go next. */
-    record VerdictText(String headline, List<String> evidence, Optional<String> next) {
+    public record VerdictText(String headline, List<String> evidence, Optional<String> next) {
     }
 
-    String header(Analysis analysis) {
+    public String header(Analysis analysis) {
         String key = analysis.javaVersionDeclared() ? "report.header" : "report.header.assumed";
         return text(key, analysis.projectName(), analysis.javaVersion().toString());
     }
 
-    String architecture(Analysis analysis) {
+    public String architecture(Analysis analysis) {
         return analysis.architecture()
                 .map(match -> text("report.architecture",
                         match.architecture().name(), match.confidence(), String.join(", ", match.signals())))
                 .orElseGet(() -> text("report.architecture.none"));
     }
 
-    String explanation(Lesson lesson) {
+    public String explanation(Lesson lesson) {
         String explanation = text(lesson.messageKey(), lesson.arguments().toArray());
         return lesson.afterUpgradeTo()
                 .map(version -> text("report.after-upgrade", version.toString(), explanation))
                 .orElse(explanation);
     }
 
-    String severity(Severity severity) {
+    /** {@code UsuarioController.java:14}, or only the file name for a lesson about the whole file. */
+    public static String location(Lesson lesson) {
+        String file = lesson.file().getFileName().toString();
+        return lesson.line() > 0 ? file + ":" + lesson.line() : file;
+    }
+
+    public String severity(Severity severity) {
         return text("severity." + severity.name());
     }
 
@@ -76,7 +82,7 @@ final class ReportTexts {
         return text("report.unparseable", file.file().toString(), String.valueOf(file.line()), file.problem());
     }
 
-    VerdictText verdict(ArchitectureMatch match) {
+    public VerdictText verdict(ArchitectureMatch match) {
         ArchitectureProfile architecture = match.architecture();
         return switch (match.verdict()) {
             case Verdict.Overengineering over -> new VerdictText(
@@ -103,7 +109,7 @@ final class ReportTexts {
         };
     }
 
-    String summary(Analysis analysis) {
+    public String summary(Analysis analysis) {
         return text("report.summary", rank(analysis), counts(analysis));
     }
 
@@ -123,7 +129,7 @@ final class ReportTexts {
         return text("rank." + analysis.rank().name());
     }
 
-    String text(String key, Object... arguments) {
+    public String text(String key, Object... arguments) {
         return messages.text(key, arguments);
     }
 

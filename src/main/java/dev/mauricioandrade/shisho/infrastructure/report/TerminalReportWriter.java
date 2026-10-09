@@ -1,9 +1,13 @@
 package dev.mauricioandrade.shisho.infrastructure.report;
 
 import dev.mauricioandrade.shisho.domain.model.Analysis;
+import dev.mauricioandrade.shisho.domain.model.ArchitectureMatch;
+import dev.mauricioandrade.shisho.domain.model.ArchitectureProfile;
+import dev.mauricioandrade.shisho.domain.model.Evidence;
 import dev.mauricioandrade.shisho.domain.model.Lesson;
 import dev.mauricioandrade.shisho.domain.model.Severity;
 import dev.mauricioandrade.shisho.domain.model.SourceFile;
+import dev.mauricioandrade.shisho.domain.model.Verdict;
 import dev.mauricioandrade.shisho.domain.port.out.ReportWriter;
 import dev.mauricioandrade.shisho.infrastructure.i18n.Messages;
 
@@ -16,6 +20,8 @@ import java.util.List;
 public final class TerminalReportWriter implements ReportWriter {
 
     private static final int WIDTH = 100;
+    private static final String EVIDENCE_BULLET = "  · ";
+    private static final String EVIDENCE_INDENT = "    ";
 
     private final PrintStream out;
     private final Messages messages;
@@ -52,7 +58,51 @@ public final class TerminalReportWriter implements ReportWriter {
         if (!analysis.lessons().isEmpty() || !analysis.unparseableFiles().isEmpty()) {
             out.println();
         }
+        analysis.architecture().ifPresent(match -> {
+            verdict(match).forEach(out::println);
+            out.println();
+        });
         out.println(text("report.summary", text("rank." + analysis.rank().name()), summary(analysis)));
+    }
+
+    private List<String> verdict(ArchitectureMatch match) {
+        ArchitectureProfile architecture = match.architecture();
+        List<String> lines = new ArrayList<>();
+        List<Evidence> evidence = switch (match.verdict()) {
+            case Verdict.Overengineering over -> {
+                lines.addAll(wrap(over.unjustified()
+                        ? text("verdict.overengineering.unjustified", architecture.name(),
+                                architecture.cost().classesPerFeature().min(), architecture.cost().classesPerFeature().max(),
+                                String.join(", ", architecture.makesSenseWhen()))
+                        : text("verdict.overengineering", architecture.name()), WIDTH));
+                yield over.evidence();
+            }
+            case Verdict.Underengineering under -> {
+                lines.addAll(wrap(text("verdict.underengineering", architecture.name()), WIDTH));
+                yield under.evidence();
+            }
+            case Verdict.Adequate adequate -> {
+                String key = !adequate.contextDeclared() ? "verdict.adequate.no-context"
+                        : adequate.justifications().isEmpty() ? "verdict.adequate"
+                        : "verdict.adequate.justified";
+                lines.addAll(wrap(text(key, architecture.name(), String.join(", ", adequate.justifications())), WIDTH));
+                yield List.of();
+            }
+        };
+        for (Evidence item : evidence) {
+            List<String> wrapped = wrap(text(item.messageKey(), item.arguments().toArray()), WIDTH - EVIDENCE_INDENT.length());
+            lines.add(EVIDENCE_BULLET + wrapped.getFirst());
+            wrapped.stream().skip(1).forEach(line -> lines.add(EVIDENCE_INDENT + line));
+        }
+        switch (match.verdict()) {
+            case Verdict.Overengineering over -> over.simplerAlternative()
+                    .ifPresent(simpler -> lines.add(text("verdict.simpler", simpler)));
+            case Verdict.Underengineering under when !under.evolvesTo().isEmpty() ->
+                    lines.add(text("verdict.evolves-to", String.join(", ", under.evolvesTo())));
+            default -> {
+            }
+        }
+        return lines;
     }
 
     private String summary(Analysis analysis) {

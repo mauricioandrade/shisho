@@ -4,11 +4,20 @@ import dev.mauricioandrade.shisho.application.usecase.AnalyzeProjectService;
 import dev.mauricioandrade.shisho.application.usecase.ClassifyArchitectureService;
 import dev.mauricioandrade.shisho.application.usecase.RankCalculator;
 import dev.mauricioandrade.shisho.domain.model.Analysis;
+import dev.mauricioandrade.shisho.domain.model.ArchitectureMatch;
+import dev.mauricioandrade.shisho.domain.model.ArchitectureProfile;
+import dev.mauricioandrade.shisho.domain.model.ArchitectureProfile.ClassRange;
+import dev.mauricioandrade.shisho.domain.model.ArchitectureProfile.Complexity;
+import dev.mauricioandrade.shisho.domain.model.ArchitectureProfile.Cost;
+import dev.mauricioandrade.shisho.domain.model.ArchitectureProfile.Family;
+import dev.mauricioandrade.shisho.domain.model.ArchitectureProfile.Signature;
+import dev.mauricioandrade.shisho.domain.model.Evidence;
 import dev.mauricioandrade.shisho.domain.model.JavaVersion;
 import dev.mauricioandrade.shisho.domain.model.Lesson;
 import dev.mauricioandrade.shisho.domain.model.Rank;
 import dev.mauricioandrade.shisho.domain.model.Severity;
 import dev.mauricioandrade.shisho.domain.model.SourceFile;
+import dev.mauricioandrade.shisho.domain.model.Verdict;
 import dev.mauricioandrade.shisho.infrastructure.build.MavenBuildFileReader;
 import dev.mauricioandrade.shisho.infrastructure.catalog.MarkdownCatalogRepository;
 import dev.mauricioandrade.shisho.infrastructure.detector.Detectors;
@@ -64,6 +73,48 @@ class TerminalReportWriterTest {
                 .contains("i INFO   [missing-springdoc]  pom.xml\n")
                 .contains("· LEVE   [dto-not-record]     UsuarioController.java:3\n")
                 .endsWith("Graduação: 1º dan  (2 lições: 0 graves, 0 médias, 1 leve, 1 sugestão)\n");
+    }
+
+    @Test
+    void explainsAnOverengineeringVerdict() {
+        Verdict verdict = new Verdict.Overengineering(List.of(
+                new Evidence("um_use_case_por_metodo_crud", List.of("Usuario", 4)),
+                new Evidence("entidade_de_dominio_identica_a_entidade_jpa", List.of("Usuario", "UsuarioJpaEntity"))),
+                true, Optional.of("package-by-feature"));
+
+        assertThat(render(withArchitecture(verdict), PORTUGUESE)).isEqualTo("""
+                師匠 Shishō — análise de loja  (Java 21)
+                Arquitetura: Clean Architecture  (67% da assinatura: domain, application, usecase, domain/model)
+
+                Veredito: overengineering. A arquitetura Clean Architecture custa de 7 a 12 classes por
+                funcionalidade, e nada no contexto declarado paga esse custo. Ela vale a pena quando:
+                dominio_com_regras_complexas, vida_util_longa.
+                  · 4 use cases só para operações CRUD de Usuario: um use case por método, sem regra de negócio que
+                    justifique cada um.
+                  · Usuario e a entidade JPA UsuarioJpaEntity têm exatamente os mesmos campos: duas cópias da mesma
+                    estrutura, mais o mapeamento entre elas.
+                Considere package-by-feature.
+
+                Graduação: 1º dan  (nenhuma lição)
+                """);
+    }
+
+    @Test
+    void explainsUnderengineeringAndAdequateVerdicts() {
+        Verdict under = new Verdict.Underengineering(
+                List.of(new Evidence("service_deus", List.of("PedidoService", 31, 9))), List.of("modular-monolith"));
+        assertThat(render(withArchitecture(under), PORTUGUESE)).contains("""
+
+                Veredito: subengenharia. O projeto já não cabe na arquitetura Clean Architecture:
+                  · PedidoService tem 31 métodos e 9 dependências no construtor.
+                Próximo passo natural: modular-monolith.
+
+                """);
+
+        assertThat(render(withArchitecture(new Verdict.Adequate(true, List.of("vida_util_longa"))), PORTUGUESE)).contains(
+                "\nVeredito: a arquitetura Clean Architecture é adequada. O contexto declarado paga o custo dela:\nvida_util_longa.\n");
+        assertThat(render(withArchitecture(new Verdict.Adequate(false, List.of())), PORTUGUESE)).contains(
+                "\nVeredito: nenhum sinal de overengineering ou subengenharia foi medido na arquitetura Clean\nArchitecture. Declare o contexto");
     }
 
     @Test
@@ -134,6 +185,16 @@ class TerminalReportWriterTest {
     private static Analysis analysis(boolean versionDeclared, List<Lesson> lessons, List<SourceFile.Unparseable> unparseable) {
         int score = new RankCalculator().score(lessons);
         return new Analysis("loja", new JavaVersion(21), versionDeclared, Optional.empty(), lessons, unparseable, score, Rank.forScore(score));
+    }
+
+    private static Analysis withArchitecture(Verdict verdict) {
+        ArchitectureProfile clean = new ArchitectureProfile("clean", "Clean Architecture", Family.DOMAIN_ISOLATION,
+                new Signature(List.of("domain", "application", "infrastructure", "usecase", "domain/model", "domain/port"), List.of(), 3),
+                List.of(), new Cost(new ClassRange(7, 12), Complexity.HIGH), List.of("dominio_com_regras_complexas", "vida_util_longa"),
+                List.of(), List.of(), List.of(), Optional.of("package-by-feature"), List.of(), "");
+        ArchitectureMatch match = new ArchitectureMatch(
+                clean, List.of("domain", "application", "usecase", "domain/model"), 67, List.of(), verdict);
+        return new Analysis("loja", new JavaVersion(21), true, Optional.of(match), List.of(), List.of(), 100, Rank.DAN_1);
     }
 
     private static Lesson lesson(String kata, Severity severity, int line, String argument) {

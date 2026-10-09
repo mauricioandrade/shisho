@@ -1,6 +1,7 @@
 package dev.mauricioandrade.shisho.application.usecase;
 
 import dev.mauricioandrade.shisho.domain.exception.AnalysisException;
+import dev.mauricioandrade.shisho.domain.exception.ConfigException;
 import dev.mauricioandrade.shisho.domain.model.Analysis;
 import dev.mauricioandrade.shisho.domain.model.BuildInfo;
 import dev.mauricioandrade.shisho.domain.model.ClassKata;
@@ -8,6 +9,8 @@ import dev.mauricioandrade.shisho.domain.model.ClassUnit;
 import dev.mauricioandrade.shisho.domain.model.JavaVersion;
 import dev.mauricioandrade.shisho.domain.model.Kata;
 import dev.mauricioandrade.shisho.domain.model.Lesson;
+import dev.mauricioandrade.shisho.domain.model.ProjectConfig;
+import dev.mauricioandrade.shisho.domain.model.ProjectConfig.KataSetting;
 import dev.mauricioandrade.shisho.domain.model.ProjectKata;
 import dev.mauricioandrade.shisho.domain.model.ProjectModel;
 import dev.mauricioandrade.shisho.domain.model.Rank;
@@ -21,6 +24,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -130,6 +134,32 @@ class AnalyzeProjectServiceTest {
     }
 
     @Test
+    void skipsKatasTurnedOffAndAppliesConfiguredSeverities() {
+        ProjectConfig config = new ProjectConfig(Map.of(
+                "grave", new KataSetting(true, Optional.of(Severity.INFO)),
+                "leve", new KataSetting(false, Optional.empty())));
+
+        Analysis analysis = service(version(21), config,
+                kata("grave", Severity.GRAVE, 21, 7), kata("leve", Severity.LEVE, 21, 2)).analyze(ROOT);
+
+        assertThat(analysis.lessons()).extracting(Lesson::kataId, Lesson::severity)
+                .containsOnly(tuple("grave", Severity.INFO));
+        assertThat(analysis.rank()).isEqualTo(Rank.DAN_1);
+    }
+
+    @Test
+    void refusesUnknownKatasInTheConfiguration() {
+        ProjectConfig config = new ProjectConfig(Map.of("feild-injection", new KataSetting(false, Optional.empty())));
+
+        assertThatThrownBy(() -> service(version(21), config, kata("leve", Severity.LEVE, 21), kata("grave", Severity.GRAVE, 21)).analyze(ROOT))
+                .isInstanceOfSatisfying(ConfigException.class, e -> {
+                    assertThat(e.messageKey()).isEqualTo("config.error.unknown-kata");
+                    assertThat(e.arguments()).containsExactly("feild-injection", "grave, leve");
+                });
+        assertThat(parser.languageLevels).isEmpty();
+    }
+
+    @Test
     void refusesProjectsBelowTheBaseline() {
         assertThatThrownBy(() -> service(version(17)).analyze(ROOT))
                 .isInstanceOfSatisfying(AnalysisException.class, e -> {
@@ -140,7 +170,11 @@ class AnalyzeProjectServiceTest {
     }
 
     private AnalyzeProjectService service(BuildFileReader buildFileReader, Kata... katas) {
-        return new AnalyzeProjectService(buildFileReader, parser, List.of(katas), new RankCalculator());
+        return service(buildFileReader, ProjectConfig.DEFAULT, katas);
+    }
+
+    private AnalyzeProjectService service(BuildFileReader buildFileReader, ProjectConfig config, Kata... katas) {
+        return new AnalyzeProjectService(buildFileReader, root -> config, parser, List.of(katas), new RankCalculator());
     }
 
     private static BuildFileReader version(int feature) {

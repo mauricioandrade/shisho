@@ -6,6 +6,7 @@ import dev.mauricioandrade.shisho.domain.port.in.AnalyzeProject;
 import dev.mauricioandrade.shisho.infrastructure.build.MavenBuildFileReader;
 import dev.mauricioandrade.shisho.infrastructure.cli.AnalyzeCommand;
 import dev.mauricioandrade.shisho.infrastructure.cli.ShishoCommand;
+import dev.mauricioandrade.shisho.infrastructure.config.YamlProjectConfigReader;
 import dev.mauricioandrade.shisho.infrastructure.i18n.Messages;
 import dev.mauricioandrade.shisho.infrastructure.kata.Katas;
 import dev.mauricioandrade.shisho.infrastructure.parser.JavaParserSourceParser;
@@ -36,7 +37,11 @@ public final class ShishoBootstrap {
         Messages messages = new Messages(Messages.DEFAULT_LOCALE);
 
         AnalyzeProject analyzeProject = new AnalyzeProjectService(
-                new MavenBuildFileReader(), new JavaParserSourceParser(), Katas.all(), new RankCalculator());
+                new MavenBuildFileReader(),
+                new YamlProjectConfigReader(),
+                new JavaParserSourceParser(),
+                Katas.all(),
+                new RankCalculator());
 
         CommandLine commandLine = new CommandLine(new ShishoCommand())
                 .addSubcommand(new AnalyzeCommand(analyzeProject, new TerminalReportWriter(out, messages), messages, err));

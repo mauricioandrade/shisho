@@ -60,6 +60,25 @@ class ShishoBootstrapTest {
     }
 
     @Test
+    void followsTheProjectConfiguration(@TempDir Path project) throws IOException {
+        Path controller = Files.createDirectories(project.resolve("src/main/java/app")).resolve("UserController.java");
+        Files.writeString(controller, "package app; class UserController { @Autowired private UserService service; }");
+        assertThat(run("analyze", project.toString())).isEqualTo(1);
+
+        Files.writeString(project.resolve("shisho.yaml"), "katas:\n  field-injection:\n    severidade: leve\n");
+        assertThat(run("analyze", project.toString())).isZero();
+        assertThat(out()).contains("· LEVE   [field-injection]");
+    }
+
+    @Test
+    void exitsWithThreeForAnInvalidConfiguration(@TempDir Path project) throws IOException {
+        Files.writeString(project.resolve("shisho.yaml"), "katas:\n  feild-injection:\n    ativa: false\n");
+
+        assertThat(run("analyze", project.toString())).isEqualTo(3);
+        assertThat(err()).startsWith("shisho.yaml: kata desconhecida: \"feild-injection\". Katas disponíveis: ");
+    }
+
+    @Test
     void showsUsageInPortugueseWithoutArguments() {
         assertThat(run()).isZero();
         assertThat(out()).startsWith("Uso: shisho").contains("Comandos:", "analyze");

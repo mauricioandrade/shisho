@@ -6,6 +6,7 @@ import dev.mauricioandrade.shisho.domain.model.Kata;
 import dev.mauricioandrade.shisho.domain.model.Lesson;
 import dev.mauricioandrade.shisho.domain.model.Severity;
 import dev.mauricioandrade.shisho.infrastructure.build.MavenBuildFileReader;
+import dev.mauricioandrade.shisho.infrastructure.config.YamlProjectConfigReader;
 import dev.mauricioandrade.shisho.infrastructure.parser.JavaParserSourceParser;
 import org.junit.jupiter.api.Test;
 
@@ -68,7 +69,7 @@ class KatasTest {
     /** Through the real adapters, in the order the report uses: file, then line, then kata order. */
     private static List<Lesson> analyze(Path project) {
         return new AnalyzeProjectService(
-                new MavenBuildFileReader(), new JavaParserSourceParser(), Katas.all(), new RankCalculator())
+                new MavenBuildFileReader(), new YamlProjectConfigReader(), new JavaParserSourceParser(), Katas.all(), new RankCalculator())
                 .analyze(project)
                 .lessons();
     }

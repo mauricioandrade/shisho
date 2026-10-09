@@ -1,6 +1,7 @@
 package dev.mauricioandrade.shisho.application.usecase;
 
 import dev.mauricioandrade.shisho.domain.exception.AnalysisException;
+import dev.mauricioandrade.shisho.domain.exception.ConfigException;
 import dev.mauricioandrade.shisho.domain.model.Analysis;
 import dev.mauricioandrade.shisho.domain.model.BuildInfo;
 import dev.mauricioandrade.shisho.domain.model.ClassKata;
@@ -8,12 +9,15 @@ import dev.mauricioandrade.shisho.domain.model.ClassUnit;
 import dev.mauricioandrade.shisho.domain.model.JavaVersion;
 import dev.mauricioandrade.shisho.domain.model.Kata;
 import dev.mauricioandrade.shisho.domain.model.Lesson;
+import dev.mauricioandrade.shisho.domain.model.ProjectConfig;
 import dev.mauricioandrade.shisho.domain.model.ProjectKata;
 import dev.mauricioandrade.shisho.domain.model.ProjectModel;
 import dev.mauricioandrade.shisho.domain.model.Rank;
+import dev.mauricioandrade.shisho.domain.model.Severity;
 import dev.mauricioandrade.shisho.domain.model.SourceFile;
 import dev.mauricioandrade.shisho.domain.port.in.AnalyzeProject;
 import dev.mauricioandrade.shisho.domain.port.out.BuildFileReader;
+import dev.mauricioandrade.shisho.domain.port.out.ProjectConfigReader;
 import dev.mauricioandrade.shisho.domain.port.out.SourceParser;
 
 import java.nio.file.Path;
@@ -23,19 +27,26 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * Reads the build, parses the sources at the project's Java version and applies every kata that
- * version allows. Lessons are ordered by file, then line, then kata order.
+ * Reads the build and the project's configuration, parses the sources at the project's Java
+ * version and applies every enabled kata that version allows, with the configured severity.
+ * Lessons are ordered by file, then line, then kata order.
  */
 public final class AnalyzeProjectService implements AnalyzeProject {
 
     private final BuildFileReader buildFileReader;
+    private final ProjectConfigReader configReader;
     private final SourceParser sourceParser;
     private final List<Kata> katas;
     private final RankCalculator rankCalculator;
 
     public AnalyzeProjectService(
-            BuildFileReader buildFileReader, SourceParser sourceParser, List<Kata> katas, RankCalculator rankCalculator) {
+            BuildFileReader buildFileReader,
+            ProjectConfigReader configReader,
+            SourceParser sourceParser,
+            List<Kata> katas,
+            RankCalculator rankCalculator) {
         this.buildFileReader = buildFileReader;
+        this.configReader = configReader;
         this.sourceParser = sourceParser;
         this.katas = List.copyOf(katas);
         this.rankCalculator = rankCalculator;
@@ -49,6 +60,8 @@ public final class AnalyzeProjectService implements AnalyzeProject {
         if (!javaVersion.isAtLeast(JavaVersion.BASELINE)) {
             throw new AnalysisException("analysis.error.unsupported-java-version", javaVersion, JavaVersion.BASELINE);
         }
+        ProjectConfig config = configReader.read(projectRoot);
+        checkKatasExist(config);
 
         List<ClassUnit> classes = new ArrayList<>();
         List<SourceFile.Unparseable> unparseable = new ArrayList<>();
@@ -62,13 +75,15 @@ public final class AnalyzeProjectService implements AnalyzeProject {
 
         List<Lesson> lessons = new ArrayList<>();
         for (Kata kata : katas) {
-            if (!javaVersion.isAtLeast(kata.minJavaVersion())) {
+            if (!config.isEnabled(kata) || !javaVersion.isAtLeast(kata.minJavaVersion())) {
                 continue;
             }
-            switch (kata) {
-                case ClassKata classKata -> classes.forEach(unit -> lessons.addAll(classKata.evaluate(unit)));
-                case ProjectKata projectKata -> lessons.addAll(projectKata.evaluate(project));
-            }
+            List<Lesson> found = switch (kata) {
+                case ClassKata classKata -> classes.stream().flatMap(unit -> classKata.evaluate(unit).stream()).toList();
+                case ProjectKata projectKata -> projectKata.evaluate(project);
+            };
+            Severity severity = config.severity(kata);
+            found.forEach(lesson -> lessons.add(lesson.withSeverity(severity)));
         }
         // stable sort: lessons on the same line keep the kata order
         lessons.sort(Comparator.comparing((Lesson lesson) -> lesson.file().toString()).thenComparingInt(Lesson::line));
@@ -76,6 +91,14 @@ public final class AnalyzeProjectService implements AnalyzeProject {
         int score = rankCalculator.score(lessons);
         return new Analysis(
                 projectName(projectRoot), javaVersion, declaredVersion.isPresent(), lessons, unparseable, score, Rank.forScore(score));
+    }
+
+    /** A typo in a kata id would silently configure nothing, so it is an error. */
+    private void checkKatasExist(ProjectConfig config) {
+        List<String> known = katas.stream().map(Kata::id).sorted().toList();
+        config.katas().keySet().stream().filter(id -> !known.contains(id)).sorted().findFirst().ifPresent(unknown -> {
+            throw new ConfigException("config.error.unknown-kata", unknown, String.join(", ", known));
+        });
     }
 
     private static String projectName(Path projectRoot) {

@@ -9,6 +9,7 @@ import dev.mauricioandrade.shisho.domain.model.Rank;
 import dev.mauricioandrade.shisho.domain.model.Severity;
 import dev.mauricioandrade.shisho.domain.model.SourceFile;
 import dev.mauricioandrade.shisho.infrastructure.build.MavenBuildFileReader;
+import dev.mauricioandrade.shisho.infrastructure.config.YamlProjectConfigReader;
 import dev.mauricioandrade.shisho.infrastructure.i18n.Messages;
 import dev.mauricioandrade.shisho.infrastructure.kata.Katas;
 import dev.mauricioandrade.shisho.infrastructure.parser.JavaParserSourceParser;
@@ -101,7 +102,7 @@ class TerminalReportWriterTest {
     @Test
     void reportsTheMessyStudentFixture() {
         AnalyzeProjectService service = new AnalyzeProjectService(
-                new MavenBuildFileReader(), new JavaParserSourceParser(), Katas.all(), new RankCalculator());
+                new MavenBuildFileReader(), new YamlProjectConfigReader(), new JavaParserSourceParser(), Katas.all(), new RankCalculator());
 
         String report = render(service.analyze(Path.of("src/test/resources/fixtures/aluno-baguncado")), PORTUGUESE);
 

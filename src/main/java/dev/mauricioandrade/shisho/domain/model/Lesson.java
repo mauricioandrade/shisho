@@ -18,4 +18,8 @@ public record Lesson(
     public Lesson {
         arguments = List.copyOf(arguments);
     }
+
+    public Lesson withSeverity(Severity newSeverity) {
+        return new Lesson(kataId, newSeverity, file, line, messageKey, arguments);
+    }
 }

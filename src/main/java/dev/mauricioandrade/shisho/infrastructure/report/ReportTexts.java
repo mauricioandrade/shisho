@@ -78,7 +78,12 @@ final class ReportTexts {
     }
 
     String summary(Analysis analysis) {
-        String counts = analysis.lessons().isEmpty()
+        return text("report.summary", rank(analysis), counts(analysis));
+    }
+
+    /** "12 lições: 2 graves, 6 médias, 4 leves", or "nenhuma lição". */
+    String counts(Analysis analysis) {
+        return analysis.lessons().isEmpty()
                 ? text("report.summary.none")
                 : text("report.summary.counts",
                         text("report.count.lessons", analysis.lessons().size()),
@@ -86,7 +91,6 @@ final class ReportTexts {
                         text("report.count.media", analysis.count(Severity.MEDIA)),
                         text("report.count.leve", analysis.count(Severity.LEVE)),
                         text("report.count.info", analysis.count(Severity.INFO)));
-        return text("report.summary", rank(analysis), counts);
     }
 
     String rank(Analysis analysis) {

@@ -14,6 +14,7 @@ import dev.mauricioandrade.shisho.infrastructure.config.YamlProjectConfigReader;
 import dev.mauricioandrade.shisho.infrastructure.i18n.Messages;
 import dev.mauricioandrade.shisho.infrastructure.kata.Katas;
 import dev.mauricioandrade.shisho.infrastructure.parser.JavaParserSourceParser;
+import dev.mauricioandrade.shisho.infrastructure.report.HtmlReportWriter;
 import dev.mauricioandrade.shisho.infrastructure.report.SarifReportWriter;
 import dev.mauricioandrade.shisho.infrastructure.report.TerminalReportWriter;
 import picocli.CommandLine;
@@ -53,6 +54,7 @@ public final class ShishoBootstrap {
         ReportWriterFactory reportWriters = (format, destination) -> switch (format) {
             case TERMINAL -> new TerminalReportWriter(destination, messages);
             case SARIF -> new SarifReportWriter(destination, messages, ShishoCommand.version(), Path.of(""));
+            case HTML -> new HtmlReportWriter(destination, messages, ShishoCommand.version());
         };
 
         CommandLine commandLine = new CommandLine(new ShishoCommand())

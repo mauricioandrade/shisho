@@ -18,7 +18,7 @@ import java.nio.file.Path;
 import java.util.concurrent.Callable;
 
 /**
- * {@code shisho analyze [--format terminal|sarif] [--output <file>] <dir>}: the exit code tells CI
+ * {@code shisho analyze [--format terminal|sarif|html] [--output <file>] <dir>}: the exit code tells CI
  * whether there is a GRAVE lesson, whatever the format.
  */
 @Command(name = "analyze", mixinStandardHelpOptions = true, exitCodeOnExecutionException = AnalyzeCommand.EXIT_NOT_ANALYZED)

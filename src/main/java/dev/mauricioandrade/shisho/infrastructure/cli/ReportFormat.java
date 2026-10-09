@@ -5,5 +5,7 @@ public enum ReportFormat {
     /** People at a terminal. */
     TERMINAL,
     /** GitHub code scanning and other SARIF 2.1.0 tools. */
-    SARIF
+    SARIF,
+    /** A page to read in the browser or publish as a CI artifact. */
+    HTML
 }

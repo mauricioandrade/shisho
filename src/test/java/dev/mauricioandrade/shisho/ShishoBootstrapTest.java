@@ -106,6 +106,12 @@ class ShishoBootstrapTest {
     }
 
     @Test
+    void writesHtmlToTheScreen() {
+        assertThat(run("analyze", "--format", "html", FIXTURES + "aluno-astronauta")).isZero();
+        assertThat(out()).startsWith("<!doctype html>").contains("verdict-over").endsWith("</html>\n");
+    }
+
+    @Test
     void exitsWithTwoForAnUnknownFormatOrAnUnwritableOutput(@TempDir Path directory) {
         assertThat(run("analyze", "--format", "pdf", FIXTURES + "aluno-exemplar")).isEqualTo(2);
         assertThat(err()).contains("--format");

@@ -48,7 +48,9 @@ class ShishoBootstrapTest {
     @Test
     void theShishoAnalyzesItselfWithoutGraveLessons() {
         assertThat(run("analyze", ".")).isZero();
-        assertThat(out()).startsWith("師匠 Shishō — análise de ").contains("  (Java 25)\n");
+        assertThat(out()).startsWith("師匠 Shishō — análise de ").contains("  (Java 25)\n")
+                .contains("\nVeredito: a arquitetura Clean Architecture é adequada. O contexto declarado paga o custo dela:\n"
+                        + "vida_util_longa, troca_provavel_de_infra.\n");
     }
 
     @Test

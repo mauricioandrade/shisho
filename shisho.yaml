@@ -1,0 +1,9 @@
+# O Shishō analisado por ele mesmo (dogfooding).
+# Clean Architecture se paga aqui porque as bordas vão mudar: parsers de outras stacks,
+# relatórios HTML e SARIF, um LLM local plugável. O núcleo (katas, veredito) não muda com elas.
+contexto:
+  tipo: produto
+  time: 1
+  vida_util: longa
+  caracteristicas:
+    - troca_provavel_de_infra

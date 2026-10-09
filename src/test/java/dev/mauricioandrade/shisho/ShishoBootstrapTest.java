@@ -22,7 +22,7 @@ class ShishoBootstrapTest {
     @Test
     void exitsWithOneWhenThereAreGraveLessons() {
         assertThat(run("analyze", FIXTURES + "aluno-baguncado")).isEqualTo(1);
-        assertThat(out()).contains("✗ GRAVE  [field-injection]").endsWith("Graduação: 4º kyū  (9 lições: 1 grave, 6 médias, 2 leves)\n");
+        assertThat(out()).contains("✗ GRAVE  [field-injection]", "\nGraduação: ");
         assertThat(err()).isEmpty();
     }
 

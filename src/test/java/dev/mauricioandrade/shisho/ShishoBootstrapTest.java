@@ -133,6 +133,24 @@ class ShishoBootstrapTest {
     }
 
     @Test
+    void fixesTheMessyStudentOnlyWithApply(@TempDir Path copy) throws IOException {
+        Path service = Path.of("src/main/java/com/exemplo/loja/service/PedidoService.java");
+        Files.createDirectories(copy.resolve(service).getParent());
+        Files.copy(Path.of(FIXTURES + "aluno-baguncado/pom.xml"), copy.resolve("pom.xml"));
+        Files.copy(Path.of(FIXTURES + "aluno-baguncado").resolve(service), copy.resolve(service));
+
+        assertThat(run("fix", copy.toString())).isZero();
+        assertThat(out()).contains("-    private PedidoRepository pedidoRepository;\n+    private final PedidoRepository pedidoRepository;\n");
+        assertThat(Files.readString(copy.resolve(service))).contains("    private PedidoRepository pedidoRepository;");
+
+        out.reset();
+        assertThat(run("fix", "--apply", copy.toString())).isZero();
+        assertThat(Files.readString(copy.resolve(service))).contains("    private final PedidoRepository pedidoRepository;");
+        assertThat(run("analyze", copy.toString())).isZero();
+        assertThat(out()).doesNotContain("[non-final-dependency]");
+    }
+
+    @Test
     void showsUsageInPortugueseWithoutArguments() {
         assertThat(run()).isZero();
         assertThat(out()).startsWith("Uso: shisho").contains("Comandos:", "analyze");

@@ -75,7 +75,7 @@ public final class JavaParserSourceParser implements SourceParser {
     }
 
     /** The highest JavaParser level not above {@code version}; never a preview level. */
-    static LanguageLevel languageLevel(JavaVersion version) {
+    public static LanguageLevel languageLevel(JavaVersion version) {
         return Arrays.stream(LanguageLevel.values())
                 .filter(level -> level.name().matches("JAVA_\\d+"))
                 .filter(level -> feature(level) <= version.feature())

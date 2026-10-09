@@ -2,12 +2,16 @@ package dev.mauricioandrade.shisho;
 
 import dev.mauricioandrade.shisho.application.usecase.AnalyzeProjectService;
 import dev.mauricioandrade.shisho.application.usecase.ClassifyArchitectureService;
+import dev.mauricioandrade.shisho.application.usecase.FixProjectService;
 import dev.mauricioandrade.shisho.application.usecase.RankCalculator;
 import dev.mauricioandrade.shisho.domain.port.in.AnalyzeProject;
+import dev.mauricioandrade.shisho.domain.port.in.FixProject;
 import dev.mauricioandrade.shisho.infrastructure.build.MavenBuildFileReader;
 import dev.mauricioandrade.shisho.infrastructure.catalog.MarkdownCatalogRepository;
 import dev.mauricioandrade.shisho.infrastructure.detector.Detectors;
+import dev.mauricioandrade.shisho.infrastructure.fix.JavaParserSourceFixer;
 import dev.mauricioandrade.shisho.infrastructure.cli.AnalyzeCommand;
+import dev.mauricioandrade.shisho.infrastructure.cli.FixCommand;
 import dev.mauricioandrade.shisho.infrastructure.cli.ReportWriterFactory;
 import dev.mauricioandrade.shisho.infrastructure.cli.ShishoCommand;
 import dev.mauricioandrade.shisho.infrastructure.config.YamlProjectConfigReader;
@@ -59,8 +63,11 @@ public final class ShishoBootstrap {
             case HTML -> new HtmlReportWriter(destination, messages, catalog.kataExamples(), ShishoCommand.version());
         };
 
+        FixProject fixProject = new FixProjectService(analyzeProject, new JavaParserSourceFixer());
+
         CommandLine commandLine = new CommandLine(new ShishoCommand())
-                .addSubcommand(new AnalyzeCommand(analyzeProject, reportWriters, messages, out, err));
+                .addSubcommand(new AnalyzeCommand(analyzeProject, reportWriters, messages, out, err))
+                .addSubcommand(new FixCommand(fixProject, messages, out, err));
         commandLine.setResourceBundle(messages.bundle());
         commandLine.setCaseInsensitiveEnumValuesAllowed(true);
         commandLine.setOut(new PrintWriter(out, true));

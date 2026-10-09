@@ -290,7 +290,7 @@ class MarkdownCatalogRepositoryTest {
             MarkdownCatalogRepository catalog = MarkdownCatalogRepository.bundled();
             Set<String> architectures = catalog.architectures().stream().map(ArchitectureProfile::id).collect(Collectors.toSet());
 
-            assertThat(catalog.scaffolds()).extracting(Scaffold::architectureId).containsExactly("layered", "package-by-feature")
+            assertThat(catalog.scaffolds()).extracting(Scaffold::architectureId).containsExactly("hexagonal", "layered", "package-by-feature")
                     .allMatch(architectures::contains);
             assertThat(catalog.scaffolds()).allSatisfy(scaffold -> assertThat(scaffold.files()).allSatisfy(file -> {
                 assertThat(file.path()).as(scaffold.architectureId()).endsWith(".java");

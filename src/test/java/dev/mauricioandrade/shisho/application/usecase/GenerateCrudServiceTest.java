@@ -90,14 +90,14 @@ class GenerateCrudServiceTest {
         assertThatExceptionOfType(ScaffoldException.class)
                 .isThrownBy(() -> service.plan(FIXTURES.resolve("initializr"), request(Optional.empty())))
                 .satisfies(e -> assertThat(e.messageKey()).isEqualTo("crud.error.no-architecture"))
-                .satisfies(e -> assertThat(e.arguments()).containsExactly("layered, package-by-feature"));
+                .satisfies(e -> assertThat(e.arguments()).containsExactly("hexagonal, layered, package-by-feature"));
         assertThatExceptionOfType(ScaffoldException.class)
-                .isThrownBy(() -> service.plan(FIXTURES.resolve("initializr"), request(Optional.of("hexagonal"))))
+                .isThrownBy(() -> service.plan(FIXTURES.resolve("initializr"), request(Optional.of("clean"))))
                 .satisfies(e -> assertThat(e.messageKey()).isEqualTo("crud.error.unknown-architecture"));
         assertThatExceptionOfType(ScaffoldException.class)
                 .isThrownBy(() -> service.plan(FIXTURES.resolve("aluno-astronauta"), request(Optional.empty())))
                 .satisfies(e -> assertThat(e.messageKey()).isEqualTo("crud.error.no-scaffold"))
-                .satisfies(e -> assertThat(e.arguments()).containsExactly("Clean Architecture", "layered, package-by-feature"));
+                .satisfies(e -> assertThat(e.arguments()).containsExactly("Clean Architecture", "hexagonal, layered, package-by-feature"));
     }
 
     @Test

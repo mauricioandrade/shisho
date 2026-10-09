@@ -37,7 +37,9 @@ minuto, e ver o texto aparecendo é a diferença entre "está funcionando" e "tr
 - **`temperature: 0.2`.** A resposta deve se apoiar nos fatos, não ser criativa. Zero absoluto
   faz modelos pequenos repetirem frases.
 
-Modelo padrão: **`gemma3:4b`**. Ele cabe em máquinas sem GPU dedicada e escreve bem em português.
+Modelo padrão: **`gemma3:4b`**: cerca de 3 GB e escreve bem em português. No teste com os
+fixtures, acertou o veredito e as evidências, mas trocou detalhes (uma severidade, um ID de
+kata). Modelos de 7B a 14B tendem a se ater melhor aos fatos, ao custo de mais memória.
 `--model` troca o modelo e `--url` troca o servidor.
 
 ### 2. O prompt: fatos, veredito e o Markdown das arquiteturas relevantes
@@ -46,10 +48,16 @@ Modelo padrão: **`gemma3:4b`**. Ele cabe em máquinas sem GPU dedicada e escrev
 
 - **system:** o papel do sensei e as regras. Use só os fatos, não mude o veredito nem a
   graduação, e diga "a análise não mostra isso" quando a pergunta sair do que foi medido.
-- **user:** projeto e versão do Java, arquitetura detectada, veredito com as evidências,
-  graduação, lições **agrupadas por kata** (contagem e até 3 exemplos, para o prompt não crescer
-  com o tamanho do projeto), o Markdown da arquitetura detectada e das que o veredito sugere
-  (`alternativa_mais_simples`, `evolui_para`), e por fim a pergunta.
+- **user:** projeto e versão do Java, arquitetura detectada, graduação e nota, o veredito numa
+  seção própria com as evidências, as lições **sob um título por severidade** (com a contagem e
+  quantos pontos cada uma tira) e, dentro dele, **agrupadas por kata** (contagem e até 3
+  exemplos, para o prompt não crescer com o tamanho do projeto), o Markdown da arquitetura
+  detectada e das que o veredito sugere (`alternativa_mais_simples`, `evolui_para`), e por fim a
+  pergunta.
+
+  Os títulos por severidade vieram de um teste real: com a severidade só como rótulo de cada
+  kata, o `gemma3:4b` chamou lições MEDIA de graves e contou errado as sugestões. Modelos
+  pequenos acertam mais quando o fato está no título da seção, e não espalhado pelas linhas.
 
 Os textos vêm do mesmo `ReportTexts` dos relatórios. O que o modelo lê é exatamente o que o
 `analyze` mostra, nas mesmas palavras.

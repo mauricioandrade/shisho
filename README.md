@@ -172,12 +172,37 @@ em Markdown, com quando ela vale o custo e quando é exagero.
 ## O LLM explica, não julga
 
 Tudo que o Shishō decide é determinístico: mesma entrada, mesmo resultado, pronto para CI. O
-LLM local (via [Ollama](https://ollama.com)) é **opcional e vem desligado**. Quando ligado,
-ele recebe os fatos e o veredito já calculados e só escreve a explicação:
+LLM local (via [Ollama](https://ollama.com)) é **opcional e vem desligado**: só o `shisho ask`
+fala com ele. O modelo recebe os fatos e o veredito já calculados, mais o texto do catálogo
+sobre a arquitetura detectada e a sugerida, e só escreve a explicação:
 
 ```
-$ shisho ask "por que não Clean Architecture aqui?"
+$ shisho ask ./loja-api "por que não Clean Architecture aqui?"
+Perguntando ao gemma3:4b em http://localhost:11434...
+Aluno, a análise indica que o projeto apresenta um overengineering significativo, utilizando a
+Clean Architecture de forma excessiva. [...]
+
+Observe que o mapper converte `UsuarioJpaEntity` em `Usuario` com exatamente os mesmos campos.
+[...] Os quatro use cases para operações CRUD de `Usuario` também são um exemplo de excesso, com
+um use case por método, sem necessidade de regras de negócio que justifiquem essa separação.
+[...]
+
+Explicação escrita por gemma3:4b, que pode errar. O veredito, a graduação e as lições vêm da
+análise determinística: shisho analyze.
 ```
+
+Sem pergunta, ele explica o veredito, a graduação e por onde começar. Para usar:
+
+```bash
+# instale o Ollama: https://ollama.com/download
+ollama pull gemma3:4b                                  # o modelo padrão, ~3 GB
+java -jar target/shisho.jar ask ~/projetos/minha-api   # explica o veredito
+java -jar target/shisho.jar ask --model qwen2.5:7b ~/projetos/minha-api "qual lição corrijo primeiro?"
+```
+
+O `gemma3:4b` é leve, mas às vezes troca uma severidade ou um detalhe; modelos maiores (7B a
+14B) tendem a se ater melhor aos fatos. `--url` aponta para um Ollama em outra máquina. Por
+que Ollama, sem SDK, e como o prompt é montado: [ADR 0004](docs/adr/0004-local-llm.md).
 
 ![Gintoki, de Gintama, de jaleco escrevendo o próprio nome no quadro enquanto a turma chama "Sensei!"](docs/anime/sensei.gif)
 
@@ -211,7 +236,7 @@ Recursos em preview nunca são recomendados. O que o Shishō sabe sobre cada ver
 - [x] **Fase 4** — relatório HTML, SARIF e GitHub Action
 - [x] **Fase 5** — modo sensei (exemplos antes/depois), catálogo de recursos do Java,
   `shisho fix`
-- [ ] **Fase 6** — LLM local opcional
+- [x] **Fase 6** — LLM local opcional (`shisho ask`)
 - [ ] **Depois** — outras stacks, reaproveitando o catálogo de arquiteturas
 - [ ] **Ideias** — modo `--shoshin` (初心, "mente de principiante"), que explica cada conceito
   que aparece no código (o que é um record, uma sealed interface…); gerador de CRUD que segue a
@@ -255,7 +280,7 @@ O código de saída foi pensado para CI e não depende do formato:
 | 0 | nenhuma lição grave |
 | 1 | há pelo menos uma lição **GRAVE** |
 | 2 | entrada inválida (caminho inexistente, argumento faltando, `--output` que não pode ser gravado) |
-| 3 | o projeto não pôde ser analisado (ex.: Java abaixo do 21, `shisho.yaml` inválido); no `fix --apply`, um arquivo que não pôde ser gravado |
+| 3 | o projeto não pôde ser analisado (ex.: Java abaixo do 21, `shisho.yaml` inválido); no `fix --apply`, um arquivo que não pôde ser gravado; no `ask`, o Ollama fora do ar ou o modelo não instalado |
 
 O mise é usado só para conveniência de desenvolvimento. Ele não é dependência do Shishō, e
 nada no build exige que você o use.
@@ -342,4 +367,5 @@ e são usados apenas como ilustração.
   código Java usado pelas katas. A escolha está em [`docs/adr/0001-parser.md`](docs/adr/0001-parser.md).
 - [picocli](https://picocli.info) (Apache 2.0) — linha de comando.
 - [SnakeYAML](https://bitbucket.org/snakeyaml/snakeyaml) (Apache 2.0) — leitura do frontmatter
-  do catálogo.
+  do catálogo e das respostas do Ollama.
+- [Ollama](https://ollama.com) (MIT) — servidor do LLM local opcional; não vai dentro do jar.

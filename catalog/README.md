@@ -179,7 +179,8 @@ Placeholders, no caminho, na explicação e no código:
 | `{{pacote}}` | `com.loja` |
 | `{{Entidade}}` / `{{entidade}}` | `Usuario` / `usuario` |
 | `{{feature}}` | `usuario` (nome do pacote da funcionalidade) |
-| `{{rota}}` | `usuarios` |
+| `{{rota}}` | `usuarios` (`ItemPedido` vira `item-pedidos`; `--rota` corrige um plural errado) |
+| `{{tabela}}` | `usuarios` (`ItemPedido` vira `item_pedidos`) |
 | `{{#campos}}…{{/campos}}` | repete o trecho para cada campo, com `{{campo}}`, `{{Campo}}`, `{{tipo}}` e `{{validacao}}` (`NotBlank` para texto, `NotNull` para o resto); `{{,}}` vira `, ` entre os campos |
 | `{{#importacoes}}…{{/importacoes}}` | um item por tipo que precisa de import, com `{{importacao}}` (`java.math.BigDecimal`) |
 | `{{#validacoes}}…{{/validacoes}}` | um item por anotação de validação usada, com `{{validacao}}` |

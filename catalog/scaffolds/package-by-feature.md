@@ -10,7 +10,8 @@ uma_vez_por_projeto:
 A entidade JPA: a tabela do banco vista como objeto. Como todas as classes de `{{feature}}`, ela
 é package-private (sem `public`): nenhuma outra feature enxerga a entidade, e as features
 conversam pelo service. É a fronteira mais barata que existe, sem framework nenhum. Não há
-setters: toda mudança passa por `atualizar()`.
+setters: toda mudança passa por `atualizar()`. A tabela tem nome próprio (`{{tabela}}`) para não
+esbarrar em palavras reservadas do SQL, como `user` e `order`.
 
 ```java
 package {{pacote}}.{{feature}};
@@ -18,12 +19,14 @@ package {{pacote}}.{{feature}};
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 
 {{#importacoes}}
 import {{importacao}};
 {{/importacoes}}
 
 @Entity
+@Table(name = "{{tabela}}")
 class {{Entidade}} {
 
     @Id

@@ -9,6 +9,8 @@ uma_vez_por_projeto:
 
 A entidade JPA: a tabela do banco vista como objeto. O construtor sem argumentos é `protected`
 porque só o Hibernate deve usá-lo; quem cria um {{Entidade}} passa pelo construtor com os campos.
+A tabela tem nome próprio (`{{tabela}}`) para não esbarrar em palavras reservadas do SQL, como
+`user` e `order`.
 Não há setters: toda mudança passa por `atualizar()`, e é ali que uma regra de negócio entra
 quando aparecer.
 
@@ -18,12 +20,14 @@ package {{pacote}}.model;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 
 {{#importacoes}}
 import {{importacao}};
 {{/importacoes}}
 
 @Entity
+@Table(name = "{{tabela}}")
 public class {{Entidade}} {
 
     @Id

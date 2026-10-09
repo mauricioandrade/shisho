@@ -8,7 +8,8 @@ import java.util.List;
  * adapter can explain it in the user's language.
  */
 public abstract sealed class ShishoException extends RuntimeException
-        permits AnalysisException, BuildFileException, CatalogException, ConfigException, LlmException, SourceException {
+        permits AnalysisException, BuildFileException, CatalogException, ConfigException, LlmException, ScaffoldException,
+        SourceException {
 
     private final String messageKey;
     private final List<Object> arguments;

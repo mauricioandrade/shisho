@@ -1,10 +1,9 @@
 package dev.mauricioandrade.shisho.application.usecase;
 
-import dev.mauricioandrade.shisho.domain.exception.AnalysisException;
+import dev.mauricioandrade.shisho.application.usecase.ProjectLoader.LoadedProject;
 import dev.mauricioandrade.shisho.domain.exception.ConfigException;
 import dev.mauricioandrade.shisho.domain.model.Analysis;
 import dev.mauricioandrade.shisho.domain.model.ArchitectureMatch;
-import dev.mauricioandrade.shisho.domain.model.BuildInfo;
 import dev.mauricioandrade.shisho.domain.model.ClassKata;
 import dev.mauricioandrade.shisho.domain.model.ClassUnit;
 import dev.mauricioandrade.shisho.domain.model.JavaVersion;
@@ -15,7 +14,6 @@ import dev.mauricioandrade.shisho.domain.model.ProjectKata;
 import dev.mauricioandrade.shisho.domain.model.ProjectModel;
 import dev.mauricioandrade.shisho.domain.model.Rank;
 import dev.mauricioandrade.shisho.domain.model.Severity;
-import dev.mauricioandrade.shisho.domain.model.SourceFile;
 import dev.mauricioandrade.shisho.domain.port.in.AnalyzeProject;
 import dev.mauricioandrade.shisho.domain.port.in.ClassifyArchitecture;
 import dev.mauricioandrade.shisho.domain.port.out.BuildFileReader;
@@ -30,16 +28,13 @@ import java.util.Optional;
 import java.util.stream.Stream;
 
 /**
- * Reads the build and the project's configuration, parses the sources at the project's Java
- * version, classifies the architecture and applies every enabled kata that version allows, with
+ * Loads the project (see {@link ProjectLoader}), classifies the architecture and applies every enabled kata that version allows, with
  * the configured severity. A kata that suggests a newer Java feature still runs below its version,
  * as INFO suggestions for after the upgrade. Lessons are ordered by file, then line, then kata order.
  */
 public final class AnalyzeProjectService implements AnalyzeProject {
 
-    private final BuildFileReader buildFileReader;
-    private final ProjectConfigReader configReader;
-    private final SourceParser sourceParser;
+    private final ProjectLoader projectLoader;
     private final List<Kata> katas;
     private final ClassifyArchitecture classifyArchitecture;
     private final RankCalculator rankCalculator;
@@ -51,9 +46,7 @@ public final class AnalyzeProjectService implements AnalyzeProject {
             List<Kata> katas,
             ClassifyArchitecture classifyArchitecture,
             RankCalculator rankCalculator) {
-        this.buildFileReader = buildFileReader;
-        this.configReader = configReader;
-        this.sourceParser = sourceParser;
+        this.projectLoader = new ProjectLoader(buildFileReader, configReader, sourceParser);
         this.katas = List.copyOf(katas);
         this.classifyArchitecture = classifyArchitecture;
         this.rankCalculator = rankCalculator;
@@ -61,24 +54,11 @@ public final class AnalyzeProjectService implements AnalyzeProject {
 
     @Override
     public Analysis analyze(Path projectRoot) {
-        Optional<BuildInfo> build = buildFileReader.read(projectRoot);
-        Optional<JavaVersion> declaredVersion = build.flatMap(BuildInfo::javaVersion);
-        JavaVersion javaVersion = declaredVersion.orElse(JavaVersion.BASELINE);
-        if (!javaVersion.isAtLeast(JavaVersion.BASELINE)) {
-            throw new AnalysisException("analysis.error.unsupported-java-version", javaVersion, JavaVersion.BASELINE);
-        }
-        ProjectConfig config = configReader.read(projectRoot);
-        checkKatasExist(config);
-
-        List<ClassUnit> classes = new ArrayList<>();
-        List<SourceFile.Unparseable> unparseable = new ArrayList<>();
-        for (SourceFile file : sourceParser.parse(projectRoot, javaVersion)) {
-            switch (file) {
-                case SourceFile.Parsed parsed -> classes.addAll(parsed.classes());
-                case SourceFile.Unparseable failure -> unparseable.add(failure);
-            }
-        }
-        ProjectModel project = new ProjectModel(javaVersion, build, classes);
+        LoadedProject loaded = projectLoader.load(projectRoot, this::checkKatasExist);
+        ProjectConfig config = loaded.config();
+        ProjectModel project = loaded.model();
+        JavaVersion javaVersion = project.javaVersion();
+        List<ClassUnit> classes = project.classes();
         Optional<ArchitectureMatch> architecture = classifyArchitecture.classify(project, config.context());
 
         List<Lesson> lessons = new ArrayList<>();
@@ -107,7 +87,8 @@ public final class AnalyzeProjectService implements AnalyzeProject {
         int score = rankCalculator.score(lessons);
         return new Analysis(
                 projectRoot,
-                projectName(projectRoot), javaVersion, declaredVersion.isPresent(), build, architecture, lessons, unparseable, score, Rank.forScore(score));
+                projectName(projectRoot), javaVersion, loaded.javaVersionDeclared(), project.build(), architecture, lessons,
+                loaded.unparseable(), score, Rank.forScore(score));
     }
 
     /** A typo in a kata id would silently configure nothing, so it is an error. */

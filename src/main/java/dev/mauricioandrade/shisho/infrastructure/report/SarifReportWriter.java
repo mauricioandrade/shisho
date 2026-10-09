@@ -10,6 +10,7 @@ import dev.mauricioandrade.shisho.domain.model.SourceFile;
 import dev.mauricioandrade.shisho.domain.model.Verdict;
 import dev.mauricioandrade.shisho.domain.port.out.ReportWriter;
 import dev.mauricioandrade.shisho.infrastructure.i18n.Messages;
+import dev.mauricioandrade.shisho.infrastructure.json.Json;
 import dev.mauricioandrade.shisho.infrastructure.report.ReportTexts.VerdictText;
 
 import java.io.PrintStream;

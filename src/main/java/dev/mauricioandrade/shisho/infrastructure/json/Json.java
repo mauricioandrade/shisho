@@ -1,21 +1,21 @@
-package dev.mauricioandrade.shisho.infrastructure.report;
+package dev.mauricioandrade.shisho.infrastructure.json;
 
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
 /**
- * Writes maps, lists, strings, numbers and booleans as indented JSON. Enough for SARIF: the
- * Shishō only writes JSON, it never reads it, so a library would add more than it saves.
+ * Writes maps, lists, strings, numbers and booleans as indented JSON: enough for SARIF and for
+ * requests to the local LLM, so a library would add more than it saves.
  */
-final class Json {
+public final class Json {
 
     private static final String INDENT = "  ";
 
     private Json() {
     }
 
-    static String write(Object value) {
+    public static String write(Object value) {
         StringBuilder json = new StringBuilder();
         write(value, json, "");
         return json.append('\n').toString();

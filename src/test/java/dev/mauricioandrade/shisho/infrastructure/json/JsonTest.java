@@ -1,4 +1,4 @@
-package dev.mauricioandrade.shisho.infrastructure.report;
+package dev.mauricioandrade.shisho.infrastructure.json;
 
 import org.junit.jupiter.api.Test;
 

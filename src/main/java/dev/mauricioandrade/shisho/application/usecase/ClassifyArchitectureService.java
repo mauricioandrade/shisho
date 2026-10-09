@@ -5,7 +5,9 @@ import dev.mauricioandrade.shisho.domain.model.ArchitectureProfile;
 import dev.mauricioandrade.shisho.domain.model.ArchitectureProfile.Signature;
 import dev.mauricioandrade.shisho.domain.model.ClassUnit;
 import dev.mauricioandrade.shisho.domain.model.ClassUnit.Annotation;
+import dev.mauricioandrade.shisho.domain.model.Detector;
 import dev.mauricioandrade.shisho.domain.model.PackagePattern;
+import dev.mauricioandrade.shisho.domain.model.ProjectContext;
 import dev.mauricioandrade.shisho.domain.model.ProjectModel;
 import dev.mauricioandrade.shisho.domain.port.in.ClassifyArchitecture;
 import dev.mauricioandrade.shisho.domain.port.out.CatalogRepository;
@@ -18,8 +20,9 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
- * Matches the project against the signature of every catalog architecture and picks the one
- * with the highest share of signals found. See docs/adr/0002-architecture-classification.md.
+ * Matches the project against the signature of every catalog architecture, picks the one with
+ * the highest share of signals found, checks its dependency rules and judges whether it fits.
+ * See docs/adr/0002-architecture-classification.md.
  */
 public final class ClassifyArchitectureService implements ClassifyArchitecture {
 
@@ -27,13 +30,15 @@ public final class ClassifyArchitectureService implements ClassifyArchitecture {
     static final int MINIMUM_PLACEHOLDER_BINDINGS = 2;
 
     private final CatalogRepository catalog;
+    private final ArchitectureJudge judge;
 
-    public ClassifyArchitectureService(CatalogRepository catalog) {
+    public ClassifyArchitectureService(CatalogRepository catalog, List<Detector> detectors) {
         this.catalog = catalog;
+        this.judge = new ArchitectureJudge(detectors);
     }
 
     @Override
-    public Optional<ArchitectureMatch> classify(ProjectModel project) {
+    public Optional<ArchitectureMatch> classify(ProjectModel project, Optional<ProjectContext> context) {
         Set<String> packages = project.classes().stream().map(ClassUnit::packageName).collect(Collectors.toSet());
         return catalog.architectures().stream()
                 .map(architecture -> new Candidate(architecture, signals(architecture.signature(), packages, project)))
@@ -42,7 +47,8 @@ public final class ClassifyArchitectureService implements ClassifyArchitecture {
                         .thenComparingInt(candidate -> -candidate.signals().size())
                         .thenComparing(candidate -> candidate.architecture().id()))
                 .map(candidate -> new ArchitectureMatch(candidate.architecture(), candidate.signals(), candidate.confidence(),
-                        new DependencyRules(candidate.architecture(), packages).violations(project.classes())));
+                        new DependencyRules(candidate.architecture(), packages).violations(project.classes()),
+                        judge.judge(candidate.architecture(), project, context)));
     }
 
     private static List<String> signals(Signature signature, Set<String> packages, ProjectModel project) {

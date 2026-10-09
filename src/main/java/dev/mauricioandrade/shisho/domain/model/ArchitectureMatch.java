@@ -7,7 +7,8 @@ import java.util.List;
  * entries found in the project; {@code confidence} is the share of the signature they cover, 0–100.
  * {@code violations} are lessons for imports that break the architecture's dependency rules.
  */
-public record ArchitectureMatch(ArchitectureProfile architecture, List<String> signals, int confidence, List<Lesson> violations) {
+public record ArchitectureMatch(
+        ArchitectureProfile architecture, List<String> signals, int confidence, List<Lesson> violations, Verdict verdict) {
 
     /** The kata id of dependency rule violations, so shisho.yaml can configure them like any kata. */
     public static final String DEPENDENCY_RULE = "dependency-rule";

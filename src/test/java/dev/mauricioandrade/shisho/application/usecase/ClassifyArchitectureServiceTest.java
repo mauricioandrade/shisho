@@ -30,7 +30,7 @@ class ClassifyArchitectureServiceTest {
     private static final ArchitectureProfile EVENTS = architecture("events", 2, List.of("events"),
             List.of("@KafkaListener", "spring-kafka", "org.axonframework", "broker_externo_no_mesmo_servico"));
 
-    private final ClassifyArchitectureService service = new ClassifyArchitectureService(() -> List.of(LAYERED, BY_FEATURE, EVENTS));
+    private final ClassifyArchitectureService service = new ClassifyArchitectureService(() -> List.of(LAYERED, BY_FEATURE, EVENTS), List.of());
 
     @Test
     void picksTheArchitectureWithTheHighestShareOfSignals() {
@@ -67,7 +67,7 @@ class ClassifyArchitectureServiceTest {
                 List.of(new Dependency("org.springframework.kafka", "spring-kafka")));
 
         ArchitectureMatch match = service.classify(
-                new ProjectModel(new JavaVersion(21), Optional.of(build), List.of(listener))).orElseThrow();
+                new ProjectModel(new JavaVersion(21), Optional.of(build), List.of(listener)), Optional.empty()).orElseThrow();
 
         assertThat(match.architecture()).isEqualTo(EVENTS);
         assertThat(match.signals()).containsExactly("events", "@KafkaListener", "spring-kafka", "org.axonframework");
@@ -75,7 +75,7 @@ class ClassifyArchitectureServiceTest {
     }
 
     private Optional<ArchitectureMatch> classify(ProjectModel project) {
-        return service.classify(project);
+        return service.classify(project, Optional.empty());
     }
 
     private static ProjectModel project(String... packages) {

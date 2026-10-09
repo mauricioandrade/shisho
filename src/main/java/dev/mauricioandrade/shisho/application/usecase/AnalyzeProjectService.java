@@ -78,7 +78,7 @@ public final class AnalyzeProjectService implements AnalyzeProject {
             }
         }
         ProjectModel project = new ProjectModel(javaVersion, build, classes);
-        Optional<ArchitectureMatch> architecture = classifyArchitecture.classify(project);
+        Optional<ArchitectureMatch> architecture = classifyArchitecture.classify(project, config.context());
 
         List<Lesson> lessons = new ArrayList<>();
         for (Kata kata : katas) {

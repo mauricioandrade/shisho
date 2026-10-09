@@ -6,6 +6,7 @@ import dev.mauricioandrade.shisho.application.usecase.RankCalculator;
 import dev.mauricioandrade.shisho.domain.port.in.AnalyzeProject;
 import dev.mauricioandrade.shisho.infrastructure.build.MavenBuildFileReader;
 import dev.mauricioandrade.shisho.infrastructure.catalog.MarkdownCatalogRepository;
+import dev.mauricioandrade.shisho.infrastructure.detector.Detectors;
 import dev.mauricioandrade.shisho.infrastructure.cli.AnalyzeCommand;
 import dev.mauricioandrade.shisho.infrastructure.cli.ShishoCommand;
 import dev.mauricioandrade.shisho.infrastructure.config.YamlProjectConfigReader;
@@ -43,7 +44,7 @@ public final class ShishoBootstrap {
                 new YamlProjectConfigReader(),
                 new JavaParserSourceParser(),
                 Katas.all(),
-                new ClassifyArchitectureService(MarkdownCatalogRepository.bundled()),
+                new ClassifyArchitectureService(MarkdownCatalogRepository.bundled(), Detectors.all()),
                 new RankCalculator());
 
         CommandLine commandLine = new CommandLine(new ShishoCommand())

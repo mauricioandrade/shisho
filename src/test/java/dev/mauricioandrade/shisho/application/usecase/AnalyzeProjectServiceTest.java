@@ -23,6 +23,7 @@ import dev.mauricioandrade.shisho.domain.model.ProjectModel;
 import dev.mauricioandrade.shisho.domain.model.Rank;
 import dev.mauricioandrade.shisho.domain.model.Severity;
 import dev.mauricioandrade.shisho.domain.model.SourceFile;
+import dev.mauricioandrade.shisho.domain.model.Verdict;
 import dev.mauricioandrade.shisho.domain.port.in.ClassifyArchitecture;
 import dev.mauricioandrade.shisho.domain.port.out.BuildFileReader;
 import dev.mauricioandrade.shisho.domain.port.out.SourceParser;
@@ -161,18 +162,19 @@ class AnalyzeProjectServiceTest {
     @Test
     void addsDependencyRuleViolationsAsConfigurableLessons() {
         Lesson violation = new Lesson("dependency-rule", Severity.MEDIA, Path.of("A.java"), 3, "architecture.dependency-rule.lesson", List.of());
-        ArchitectureMatch match = new ArchitectureMatch(LAYERED, List.of("controller"), 50, List.of(violation));
+        ArchitectureMatch match = new ArchitectureMatch(
+                LAYERED, List.of("controller"), 50, List.of(violation), new Verdict.Adequate(false, List.of()));
 
-        Analysis standard = service(version(21), ProjectConfig.DEFAULT, project -> Optional.of(match)).analyze(ROOT);
+        Analysis standard = service(version(21), ProjectConfig.DEFAULT, (project, context) -> Optional.of(match)).analyze(ROOT);
         assertThat(standard.architecture()).contains(match);
         assertThat(standard.lessons()).containsExactly(violation);
 
         ProjectConfig leve = new ProjectConfig(Map.of("dependency-rule", new KataSetting(true, Optional.of(Severity.LEVE))));
-        assertThat(service(version(21), leve, project -> Optional.of(match)).analyze(ROOT).lessons())
+        assertThat(service(version(21), leve, (project, context) -> Optional.of(match)).analyze(ROOT).lessons())
                 .extracting(Lesson::severity).containsExactly(Severity.LEVE);
 
         ProjectConfig off = new ProjectConfig(Map.of("dependency-rule", new KataSetting(false, Optional.empty())));
-        assertThat(service(version(21), off, project -> Optional.of(match)).analyze(ROOT).lessons()).isEmpty();
+        assertThat(service(version(21), off, (project, context) -> Optional.of(match)).analyze(ROOT).lessons()).isEmpty();
     }
 
     @Test
@@ -202,7 +204,7 @@ class AnalyzeProjectServiceTest {
     }
 
     private AnalyzeProjectService service(BuildFileReader buildFileReader, ProjectConfig config, Kata... katas) {
-        return service(buildFileReader, config, project -> Optional.empty(), katas);
+        return service(buildFileReader, config, (project, context) -> Optional.empty(), katas);
     }
 
     private AnalyzeProjectService service(

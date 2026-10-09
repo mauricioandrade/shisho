@@ -8,6 +8,7 @@ import dev.mauricioandrade.shisho.domain.model.Lesson;
 import dev.mauricioandrade.shisho.domain.model.Severity;
 import dev.mauricioandrade.shisho.infrastructure.build.MavenBuildFileReader;
 import dev.mauricioandrade.shisho.infrastructure.catalog.MarkdownCatalogRepository;
+import dev.mauricioandrade.shisho.infrastructure.detector.Detectors;
 import dev.mauricioandrade.shisho.infrastructure.config.YamlProjectConfigReader;
 import dev.mauricioandrade.shisho.infrastructure.parser.JavaParserSourceParser;
 import org.junit.jupiter.api.Test;
@@ -73,7 +74,7 @@ class KatasTest {
     private static List<Lesson> analyze(Path project) {
         return new AnalyzeProjectService(
                 new MavenBuildFileReader(), new YamlProjectConfigReader(), new JavaParserSourceParser(), Katas.all(),
-                new ClassifyArchitectureService(MarkdownCatalogRepository.bundled()), new RankCalculator())
+                new ClassifyArchitectureService(MarkdownCatalogRepository.bundled(), Detectors.all()), new RankCalculator())
                 .analyze(project)
                 .lessons();
     }

@@ -6,6 +6,7 @@ import dev.mauricioandrade.shisho.domain.model.ProjectModel;
 import dev.mauricioandrade.shisho.domain.model.SourceFile.Parsed;
 import dev.mauricioandrade.shisho.infrastructure.build.MavenBuildFileReader;
 import dev.mauricioandrade.shisho.infrastructure.catalog.MarkdownCatalogRepository;
+import dev.mauricioandrade.shisho.infrastructure.detector.Detectors;
 import dev.mauricioandrade.shisho.infrastructure.parser.JavaParserSourceParser;
 import org.junit.jupiter.api.Test;
 
@@ -17,7 +18,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 /** The real catalog against real projects: the fixtures and the Shishō itself. */
 class CatalogClassificationTest {
 
-    private final ClassifyArchitectureService service = new ClassifyArchitectureService(MarkdownCatalogRepository.bundled());
+    private final ClassifyArchitectureService service = new ClassifyArchitectureService(MarkdownCatalogRepository.bundled(), Detectors.all());
 
     @Test
     void theShishoIsCleanArchitecture() {
@@ -43,6 +44,6 @@ class CatalogClassificationTest {
                 .map(Parsed.class::cast)
                 .flatMap(parsed -> parsed.classes().stream())
                 .toList();
-        return service.classify(new ProjectModel(new JavaVersion(25), new MavenBuildFileReader().read(root), classes));
+        return service.classify(new ProjectModel(new JavaVersion(25), new MavenBuildFileReader().read(root), classes), Optional.empty());
     }
 }

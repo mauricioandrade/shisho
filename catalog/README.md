@@ -60,6 +60,35 @@ existir. Implementados hoje: `um_use_case_por_metodo_crud`, `dominio_anemico`,
 `entidade_de_dominio_identica_a_entidade_jpa`, `mappers_entre_estruturas_identicas`,
 `pacote_service_com_mais_de_15_classes`, `service_deus`, `dependencias_ciclicas_entre_services`.
 
+## Exemplos das katas (`katas/`)
+
+Cada arquivo em `katas/` mostra como corrigir uma kata: o código **antes** e **depois**. É o
+que o modo sensei (`--sensei`), o relatório HTML e a ajuda das regras no SARIF mostram.
+
+```markdown
+---
+id: field-injection        # igual ao nome do arquivo e ao id da kata
+---
+
+## Antes
+
+```java
+...
+```
+
+## Depois
+
+Texto opcional explicando a correção.
+
+```java
+...
+```
+```
+
+As duas seções e um bloco de código em cada uma são obrigatórios. Um teste roda cada kata sobre
+o próprio exemplo: o "Antes" precisa gerar a lição e o "Depois" não pode gerar nenhuma. Toda
+kata precisa de um exemplo.
+
 ## Famílias e o caminho natural de evolução
 
 ```

@@ -8,6 +8,8 @@ import dev.mauricioandrade.shisho.domain.model.ArchitectureProfile.Cost;
 import dev.mauricioandrade.shisho.domain.model.ArchitectureProfile.DependencyRule;
 import dev.mauricioandrade.shisho.domain.model.ArchitectureProfile.Family;
 import dev.mauricioandrade.shisho.domain.model.ArchitectureProfile.Signature;
+import dev.mauricioandrade.shisho.domain.model.KataExample;
+import dev.mauricioandrade.shisho.domain.model.KataExample.Snippet;
 import dev.mauricioandrade.shisho.domain.port.out.CatalogRepository;
 import org.yaml.snakeyaml.LoaderOptions;
 import org.yaml.snakeyaml.Yaml;
@@ -23,15 +25,18 @@ import java.nio.file.FileSystemAlreadyExistsException;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.MatchResult;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 /**
- * Reads {@code catalog/architectures/*.md}: YAML frontmatter between {@code ---} lines, followed
- * by the Markdown explanation. The schema is documented in {@code catalog/README.md}.
+ * Reads {@code catalog/architectures/*.md} and {@code catalog/katas/*.md}: YAML frontmatter
+ * between {@code ---} lines, followed by Markdown. The schema is documented in
+ * {@code catalog/README.md}.
  */
 public final class MarkdownCatalogRepository implements CatalogRepository {
 
@@ -40,10 +45,15 @@ public final class MarkdownCatalogRepository implements CatalogRepository {
     private static final Pattern CLASS_RANGE = Pattern.compile("(\\d+)-(\\d+)");
     private static final String BUNDLED_CATALOG = "/catalog";
 
-    private final Path architecturesDirectory;
+    private static final String BEFORE = "Antes";
+    private static final String AFTER = "Depois";
+    private static final Pattern SECTION = Pattern.compile("(?m)^## (.+)$");
+    private static final Pattern CODE_BLOCK = Pattern.compile("(?ms)^```(\\w+)\\n(.*?)^```$");
+
+    private final Path catalogRoot;
 
     public MarkdownCatalogRepository(Path catalogRoot) {
-        this.architecturesDirectory = catalogRoot.resolve("architectures");
+        this.catalogRoot = catalogRoot;
     }
 
     /** The catalog packaged with the Shishō: a directory when run from the build, a folder of the jar otherwise. */
@@ -74,18 +84,42 @@ public final class MarkdownCatalogRepository implements CatalogRepository {
 
     @Override
     public List<ArchitectureProfile> architectures() {
-        try (Stream<Path> files = Files.list(architecturesDirectory)) {
-            return files
-                    .filter(file -> file.getFileName().toString().endsWith(EXTENSION))
-                    .sorted()
-                    .map(MarkdownCatalogRepository::readArchitecture)
-                    .toList();
-        } catch (IOException e) {
-            throw new CatalogException("catalog.error.read", e, architecturesDirectory.toString());
+        return documents("architectures").stream()
+                .map(document -> toProfile(document.fileName(), document.fields(), document.markdown()))
+                .toList();
+    }
+
+    @Override
+    public List<KataExample> kataExamples() {
+        return documents("katas").stream().map(MarkdownCatalogRepository::toExample).toList();
+    }
+
+    private record Document(String fileName, FrontmatterFields fields, String markdown) {
+
+        /** The {@code id} field, which must be the file name without the extension. */
+        String id() {
+            String id = fields.text("id");
+            if (!id.equals(fileName.substring(0, fileName.length() - EXTENSION.length()))) {
+                throw new CatalogException("catalog.error.id-mismatch", fileName, id);
+            }
+            return id;
         }
     }
 
-    private static ArchitectureProfile readArchitecture(Path file) {
+    private List<Document> documents(String folder) {
+        Path directory = catalogRoot.resolve(folder);
+        try (Stream<Path> files = Files.list(directory)) {
+            return files
+                    .filter(file -> file.getFileName().toString().endsWith(EXTENSION))
+                    .sorted()
+                    .map(MarkdownCatalogRepository::read)
+                    .toList();
+        } catch (IOException e) {
+            throw new CatalogException("catalog.error.read", e, directory.toString());
+        }
+    }
+
+    private static Document read(Path file) {
         String fileName = file.getFileName().toString();
         String content;
         try {
@@ -103,7 +137,32 @@ public final class MarkdownCatalogRepository implements CatalogRepository {
         }
         String yaml = String.join("\n", lines.subList(1, closing));
         String markdown = String.join("\n", lines.subList(closing + 1, lines.size())).strip();
-        return toProfile(fileName, parseYaml(fileName, yaml), markdown);
+        return new Document(fileName, parseYaml(fileName, yaml), markdown);
+    }
+
+    private static KataExample toExample(Document document) {
+        String id = document.id();
+        Map<String, String> sections = new LinkedHashMap<>();
+        Matcher heading = SECTION.matcher(document.markdown());
+        List<MatchResult> headings = heading.results().toList();
+        for (int i = 0; i < headings.size(); i++) {
+            int end = i + 1 < headings.size() ? headings.get(i + 1).start() : document.markdown().length();
+            sections.put(headings.get(i).group(1).strip(), document.markdown().substring(headings.get(i).end(), end));
+        }
+        return new KataExample(id, snippet(document.fileName(), sections, BEFORE), snippet(document.fileName(), sections, AFTER));
+    }
+
+    private static Snippet snippet(String fileName, Map<String, String> sections, String section) {
+        String text = sections.get(section);
+        if (text == null) {
+            throw new CatalogException("catalog.error.missing-field", fileName, "## " + section);
+        }
+        Matcher code = CODE_BLOCK.matcher(text);
+        if (!code.find()) {
+            throw new CatalogException("catalog.error.missing-code", fileName, section);
+        }
+        String explanation = (text.substring(0, code.start()) + text.substring(code.end())).strip().replaceAll("\\s*\\n\\s*", " ");
+        return new Snippet(code.group(1), code.group(2).stripTrailing(), explanation);
     }
 
     private static FrontmatterFields parseYaml(String fileName, String yaml) {
@@ -120,11 +179,7 @@ public final class MarkdownCatalogRepository implements CatalogRepository {
     }
 
     private static ArchitectureProfile toProfile(String fileName, FrontmatterFields fields, String markdown) {
-        String id = fields.text("id");
-        String expectedId = fileName.substring(0, fileName.length() - EXTENSION.length());
-        if (!id.equals(expectedId)) {
-            throw new CatalogException("catalog.error.id-mismatch", fileName, id);
-        }
+        String id = new Document(fileName, fields, markdown).id();
         FrontmatterFields signature = fields.section("assinatura");
         FrontmatterFields cost = fields.section("custo");
         return new ArchitectureProfile(

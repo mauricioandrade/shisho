@@ -13,7 +13,9 @@ import dev.mauricioandrade.shisho.domain.model.ClassUnit.Annotation;
 import dev.mauricioandrade.shisho.domain.model.ClassUnit.Import;
 import dev.mauricioandrade.shisho.domain.model.Dependency;
 import dev.mauricioandrade.shisho.domain.model.JavaVersion;
+import dev.mauricioandrade.shisho.domain.model.KataExample;
 import dev.mauricioandrade.shisho.domain.model.ProjectModel;
+import dev.mauricioandrade.shisho.domain.port.out.CatalogRepository;
 import org.junit.jupiter.api.Test;
 
 import java.nio.file.Path;
@@ -30,7 +32,17 @@ class ClassifyArchitectureServiceTest {
     private static final ArchitectureProfile EVENTS = architecture("events", 2, List.of("events"),
             List.of("@KafkaListener", "spring-kafka", "org.axonframework", "broker_externo_no_mesmo_servico"));
 
-    private final ClassifyArchitectureService service = new ClassifyArchitectureService(() -> List.of(LAYERED, BY_FEATURE, EVENTS), List.of());
+    private final ClassifyArchitectureService service = new ClassifyArchitectureService(new CatalogRepository() {
+        @Override
+        public List<ArchitectureProfile> architectures() {
+            return List.of(LAYERED, BY_FEATURE, EVENTS);
+        }
+
+        @Override
+        public List<KataExample> kataExamples() {
+            return List.of();
+        }
+    }, List.of());
 
     @Test
     void picksTheArchitectureWithTheHighestShareOfSignals() {

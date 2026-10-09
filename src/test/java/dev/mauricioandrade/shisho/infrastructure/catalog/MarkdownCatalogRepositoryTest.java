@@ -6,6 +6,8 @@ import dev.mauricioandrade.shisho.domain.model.ArchitectureProfile.ClassRange;
 import dev.mauricioandrade.shisho.domain.model.ArchitectureProfile.Complexity;
 import dev.mauricioandrade.shisho.domain.model.ArchitectureProfile.DependencyRule;
 import dev.mauricioandrade.shisho.domain.model.ArchitectureProfile.Family;
+import dev.mauricioandrade.shisho.domain.model.KataExample;
+import dev.mauricioandrade.shisho.domain.model.KataExample.Snippet;
 import dev.mauricioandrade.shisho.domain.model.ProjectContext;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -111,6 +113,71 @@ class MarkdownCatalogRepositoryTest {
                     .filteredOn(architecture -> architecture.id().equals("layered"))
                     .singleElement()
                     .satisfies(layered -> assertThat(layered.simplerAlternative()).isEmpty());
+        }
+    }
+
+    @Nested
+    class KataExamples {
+
+        @TempDir
+        Path catalog;
+
+        @Test
+        void readsTheCodeBeforeAndAfterWithTheirExplanation() throws IOException {
+            write("system-out.md", """
+                    ---
+                    id: system-out
+                    ---
+
+                    ## Antes
+
+                    ```java
+                    System.out.println("x");
+                    ```
+
+                    ## Depois
+
+                    O logger tem nível
+                    e formato.
+
+                    ```java
+                    log.info("x");
+
+                    log.debug("y");
+                    ```
+                    """);
+
+            assertThat(new MarkdownCatalogRepository(catalog).kataExamples()).containsExactly(new KataExample("system-out",
+                    new Snippet("java", "System.out.println(\"x\");", ""),
+                    new Snippet("java", "log.info(\"x\");\n\nlog.debug(\"y\");", "O logger tem nível e formato.")));
+        }
+
+        @Test
+        void rejectsAnExampleWithoutBothSectionsOrCode() throws IOException {
+            write("system-out.md", "---\nid: system-out\n---\n\n## Antes\n\n```java\nx();\n```\n");
+            assertThatThrownBy(() -> new MarkdownCatalogRepository(catalog).kataExamples())
+                    .isInstanceOfSatisfying(CatalogException.class, e ->
+                            assertThat(e.arguments()).containsExactly("system-out.md", "## Depois"));
+
+            write("system-out.md", "---\nid: system-out\n---\n\n## Antes\n\nsó texto\n\n## Depois\n\n```java\nx();\n```\n");
+            assertThatThrownBy(() -> new MarkdownCatalogRepository(catalog).kataExamples())
+                    .isInstanceOfSatisfying(CatalogException.class, e -> {
+                        assertThat(e.messageKey()).isEqualTo("catalog.error.missing-code");
+                        assertThat(e.arguments()).containsExactly("system-out.md", "Antes");
+                    });
+        }
+
+        @Test
+        void rejectsAnIdDifferentFromTheFileName() throws IOException {
+            write("system-out.md", "---\nid: sistema\n---\n");
+
+            assertThatThrownBy(() -> new MarkdownCatalogRepository(catalog).kataExamples())
+                    .isInstanceOfSatisfying(CatalogException.class, e ->
+                            assertThat(e.messageKey()).isEqualTo("catalog.error.id-mismatch"));
+        }
+
+        private void write(String fileName, String content) throws IOException {
+            Files.writeString(Files.createDirectories(catalog.resolve("katas")).resolve(fileName), content);
         }
     }
 

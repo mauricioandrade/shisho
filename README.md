@@ -43,8 +43,7 @@ Linters dizem **o que** está errado. O Shishō é opinativo e didático: diz o 
 $ shisho analyze ./clareza-api
 
 師匠 Shishō — análise de clareza-api  (Java 21)
-
-Arquitetura detectada: Camadas técnicas (82%)
+Arquitetura: Camadas técnicas (Layered)  (83% da assinatura: controller, service, repository, model, dto)
 
 ✗ GRAVE  [field-injection]             UsuarioController.java:14
          Injeção em campo em usuarioService. Use construtor explícito com private final: a
@@ -56,6 +55,10 @@ Arquitetura detectada: Camadas técnicas (82%)
          O endpoint buscar() expõe a entidade JPA Pedido na API. Use records de request/response: o
          esquema do banco deixa de ser o contrato da API, campos internos não vazam e o cliente não
          consegue sobrescrevê-los.
+
+Veredito: subengenharia. O projeto já não cabe na arquitetura Camadas técnicas (Layered):
+  · PedidoService tem 31 métodos e 9 dependências no construtor.
+Próximo passo natural: package-by-feature.
 
 Graduação: 3º kyū  (8 lições: 1 grave, 4 médias, 3 leves)
 ```
@@ -111,6 +114,9 @@ katas:
     severidade: info      # grave | media | leve | info
 ```
 
+Violações das regras de dependência da arquitetura detectada aparecem como a kata
+`dependency-rule` (MEDIA) e podem ser configuradas da mesma forma.
+
 Kata desconhecida ou campo com erro de digitação faz a análise falhar (código de saída 3): é
 melhor do que uma configuração que, em silêncio, não faz nada.
 
@@ -120,22 +126,38 @@ A pergunta que o Shishō mais gosta de responder: **essa arquitetura cabe nesse 
 
 Overengineering não é uma propriedade do código sozinho, é a relação entre a complexidade da
 solução e a do problema. Por isso o Shishō junta duas coisas: os **fatos medidos** no código
-(classes por feature, interfaces com uma implementação só, use cases que só repassam chamadas,
-microsserviços dividindo banco…) e o **contexto** que você declara:
+(um use case por operação de CRUD, entidade JPA idêntica ao domínio, mappers entre estruturas
+iguais, um service que faz tudo…) e o **contexto** que você declara:
 
 ```yaml
 # shisho.yaml
 contexto:
-  tipo: portfolio        # mvp | portfolio | produto | corporativo
-  time: 1
-  vida_util_esperada: curta
-  carga_esperada: baixa
+  tipo: mvp              # mvp | portfolio | produto | corporativo
+  time: 1                # pessoas no projeto (10 ou mais conta como time grande)
+  vida_util: curta       # curta | media | longa
+  caracteristicas:       # o que mais justifica uma arquitetura maior, nas chaves do catálogo
+    - dominio_com_regras_complexas
 ```
 
-E aí vem o veredito:
+Primeiro o Shishō reconhece a arquitetura pela estrutura de pacotes e confere as regras de
+dependência dela (o `domain` importando Spring vira lição). Depois vem o veredito:
 
-> Clean Architecture detectada. Cerca de 11 classes por feature para 3 entidades sem regra de
-> domínio, time de 1 pessoa. Considere **package-by-feature**.
+```
+Arquitetura: Clean Architecture  (100% da assinatura: domain, application, infrastructure, usecase, domain/model, domain/port)
+
+Veredito: overengineering. A arquitetura Clean Architecture custa de 7 a 12 classes por
+funcionalidade, e nada no contexto declarado paga esse custo. Ela vale a pena quando:
+dominio_com_regras_complexas, vida_util_longa, troca_provavel_de_infra, time_grande.
+  · Um mapper converte UsuarioJpaEntity em Usuario, que têm exatamente os mesmos campos.
+  · Usuario e a entidade JPA UsuarioJpaEntity têm exatamente os mesmos campos: duas cópias da mesma
+    estrutura, mais o mapeamento entre elas.
+  · 4 use cases só para operações CRUD de Usuario: um use case por método, sem regra de negócio que
+    justifique cada um.
+Considere package-by-feature.
+```
+
+O caminho inverso também existe: um projeto em camadas com um service de 30 métodos ou services
+que dependem um do outro recebe **subengenharia** e a sugestão do próximo degrau.
 
 ![Dazai, de Bungou Stray Dogs, entalado de cabeça para baixo dentro de um tambor, com cara de sofrimento](docs/anime/overengineering.gif)
 
@@ -173,7 +195,8 @@ você pedir.
 - [x] **Fase 1** — CLI, catálogo, 7 katas de AST, relatório no terminal
 - [x] **Fase 2** — katas de projeto (JPA, transações, tratamento de erros, build,
   configuração) e `shisho.yaml`
-- [ ] **Fase 3** — classificação de arquitetura e veredito de overengineering
+- [x] **Fase 3** — classificação de arquitetura, regras de dependência e veredito de
+  overengineering/subengenharia
 - [ ] **Fase 4** — relatório HTML, SARIF e GitHub Action
 - [ ] **Fase 5** — exemplos antes/depois, catálogo de recursos do Java, autofix com OpenRewrite
 - [ ] **Fase 6** — LLM local opcional

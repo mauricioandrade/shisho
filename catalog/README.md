@@ -26,9 +26,26 @@ Contribuir com uma arquitetura nova = abrir um PR com um único arquivo neste fo
 | `alternativa_mais_simples` | id | Para onde recuar se for overengineering |
 | `referencias` | lista | Fontes primárias |
 
+### Como a assinatura e as regras são lidas
+
+Detalhes e motivos em [`docs/adr/0002-architecture-classification.md`](../docs/adr/0002-architecture-classification.md).
+
+- **Padrão de pacote** (`pacotes`, `de`, `nao_pode_depender_de`): segmentos separados por `/`
+  que aparecem consecutivos no nome do pacote. `domain/model` casa com `dev.app.domain.model`.
+- **Placeholder** (`<feature>`, `<modulo>`): qualquer segmento. Na assinatura, só conta com
+  pelo menos dois valores diferentes (duas features, dois módulos). Regras com placeholder ou
+  qualificador (`banco:`, `codigo:`, `ciclo:`) ainda não são checadas.
+- **Marcador** (`anotacoes`): com maiúscula ou `@`, uma anotação (`@KafkaListener`); com
+  ponto, prefixo de import ou de `groupId` (`org.axonframework`); senão, prefixo de
+  `artifactId` (`spring-kafka`). Com `_`, um ID de detector ainda não implementado.
+- **Regra de dependência**: entrada com ponto (`org.springframework`) é prefixo de import;
+  as demais são padrões aplicados aos pacotes do próprio projeto.
+
 ### Chaves de contexto (`faz_sentido_quando`)
 
-Correspondem ao que o autor declara em `shisho.yaml` e ao que o Shishō mede:
+Correspondem ao que o autor declara na seção `contexto` do `shisho.yaml` (diretamente em
+`caracteristicas`, ou derivadas de `tipo`, `time` e `vida_util`). Um teste garante que o
+catálogo só usa estas:
 
 `dominio_com_regras_complexas`, `multiplas_integracoes_externas`, `troca_provavel_de_infra`,
 `vida_util_longa`, `time_grande`, `multiplos_times`, `carga_leitura_escrita_assimetrica`,
@@ -37,8 +54,11 @@ Correspondem ao que o autor declara em `shisho.yaml` e ao que o Shishō mede:
 
 ### IDs de detectores
 
-São implementados em Java (`infrastructure/detector`). IDs desconhecidos são ignorados com aviso,
-então o catálogo pode documentar um sinal antes de o detector existir.
+São implementados em Java (`infrastructure/detector`). IDs sem detector são ignorados (com um
+aviso no log em nível DEBUG), então o catálogo pode documentar um sinal antes de o detector
+existir. Implementados hoje: `um_use_case_por_metodo_crud`, `dominio_anemico`,
+`entidade_de_dominio_identica_a_entidade_jpa`, `mappers_entre_estruturas_identicas`,
+`pacote_service_com_mais_de_15_classes`, `service_deus`, `dependencias_ciclicas_entre_services`.
 
 ## Famílias e o caminho natural de evolução
 

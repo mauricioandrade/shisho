@@ -23,7 +23,7 @@ final class OneUseCasePerCrudMethodDetector implements Detector {
     static final int MINIMUM_USE_CASES = 3;
     private static final Pattern CRUD_USE_CASE = Pattern.compile(
             "(Create|Get|Find|List|Update|Delete|Remove|Criar|Cadastrar|Buscar|Listar|Obter|Atualizar|Remover|Excluir|Deletar)"
-                    + "(All|Todos|Todas)?(\\w+?)(ById|PorId)?(UseCase|Usecase)");
+                    + "(All|Todos|Todas)?(\\p{Lu}\\w*?)(ById|PorId)?(UseCase|Usecase)");
 
     @Override
     public String id() {

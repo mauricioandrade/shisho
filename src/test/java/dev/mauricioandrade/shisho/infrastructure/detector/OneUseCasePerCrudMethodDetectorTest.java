@@ -25,6 +25,15 @@ class OneUseCasePerCrudMethodDetectorTest {
     }
 
     @Test
+    void readsVerbsThatStartWithAnotherVerb() {
+        assertThat(detector.detect(project("""
+                class ListarUsuariosUseCase {}
+                class RemoverUsuarioUseCase {}
+                class CriarUsuarioUseCase {}
+                """))).hasValueSatisfying(evidence -> assertThat(evidence.arguments()).containsExactly("Usuario", 3));
+    }
+
+    @Test
     void acceptsUseCasesWithBusinessNames() {
         assertThat(detector.detect(project("""
                 class CriarPedidoUseCase {}

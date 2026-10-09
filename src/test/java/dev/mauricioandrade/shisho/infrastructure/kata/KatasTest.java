@@ -22,7 +22,7 @@ class KatasTest {
 
     @Test
     void katasHaveUniqueIds() {
-        assertThat(Katas.all()).extracting(Kata::id).doesNotHaveDuplicates().hasSize(7);
+        assertThat(Katas.all()).extracting(Kata::id).doesNotHaveDuplicates().hasSize(8);
     }
 
     @Test
@@ -35,15 +35,16 @@ class KatasTest {
         assertThat(analyze(FIXTURES.resolve("aluno-baguncado")))
                 .extracting(lesson -> lesson.file().toString(), Lesson::line, Lesson::kataId, Lesson::severity)
                 .containsExactly(
-                        tuple(controller, 12, "field-injection", Severity.GRAVE),
-                        tuple(controller, 16, "request-body-without-valid", Severity.MEDIA),
-                        tuple(controller, 17, "system-out", Severity.MEDIA),
+                        tuple(controller, 15, "field-injection", Severity.GRAVE),
+                        tuple(controller, 19, "request-body-without-valid", Severity.MEDIA),
+                        tuple(controller, 20, "system-out", Severity.MEDIA),
+                        tuple(controller, 24, "entity-in-controller", Severity.MEDIA),
                         tuple(request, 3, "dto-not-record", Severity.LEVE),
                         tuple(pedido, 9, "non-final-dependency", Severity.MEDIA),
-                        tuple(usuario, 10, "lombok-constructor", Severity.MEDIA),
-                        tuple(usuario, 13, "non-final-dependency", Severity.MEDIA),
-                        tuple(usuario, 15, "value-outside-constructor", Severity.LEVE),
-                        tuple(usuario, 22, "system-out", Severity.MEDIA));
+                        tuple(usuario, 13, "lombok-constructor", Severity.MEDIA),
+                        tuple(usuario, 16, "non-final-dependency", Severity.MEDIA),
+                        tuple(usuario, 18, "value-outside-constructor", Severity.LEVE),
+                        tuple(usuario, 25, "system-out", Severity.MEDIA));
     }
 
     @Test

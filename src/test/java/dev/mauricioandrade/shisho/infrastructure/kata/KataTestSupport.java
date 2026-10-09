@@ -4,6 +4,8 @@ import dev.mauricioandrade.shisho.domain.model.ClassKata;
 import dev.mauricioandrade.shisho.domain.model.ClassUnit;
 import dev.mauricioandrade.shisho.domain.model.JavaVersion;
 import dev.mauricioandrade.shisho.domain.model.Lesson;
+import dev.mauricioandrade.shisho.domain.model.ProjectKata;
+import dev.mauricioandrade.shisho.domain.model.ProjectModel;
 import dev.mauricioandrade.shisho.domain.model.SourceFile.Parsed;
 import dev.mauricioandrade.shisho.infrastructure.parser.JavaParserSourceParser;
 
@@ -13,6 +15,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Stream;
 
 /** Runs a kata over Java source written inline in the test, through the real parser. */
@@ -23,6 +26,11 @@ final class KataTestSupport {
 
     static List<Lesson> evaluate(ClassKata kata, String source) {
         return classes(source).stream().flatMap(unit -> kata.evaluate(unit).stream()).toList();
+    }
+
+    /** A project made of {@code source} alone, with no build file. */
+    static List<Lesson> evaluate(ProjectKata kata, String source) {
+        return kata.evaluate(new ProjectModel(new JavaVersion(25), Optional.empty(), classes(source)));
     }
 
     static List<ClassUnit> classes(String source) {

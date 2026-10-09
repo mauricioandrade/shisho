@@ -95,7 +95,7 @@ class TerminalReportWriterTest {
 
         assertThat(report)
                 .startsWith("師匠 Shishō — análise de aluno-baguncado  (Java 21)\n\n✗ GRAVE  [field-injection]")
-                .endsWith("\nGraduação: 4º kyū  (9 lições: 1 grave, 6 médias, 2 leves)\n");
+                .endsWith("\nGraduação: 4º kyū  (10 lições: 1 grave, 7 médias, 2 leves)\n");
     }
 
     private static String render(Analysis analysis, Messages messages) {

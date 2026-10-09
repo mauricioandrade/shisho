@@ -73,7 +73,7 @@ class FixCommandTest {
     }
 
     private FixPlan plan(String original) {
-        Analysis analysis = new Analysis(project, "p", new JavaVersion(21), true, Optional.empty(), List.of(FIXED, UNFIXED),
+        Analysis analysis = new Analysis(project, "p", new JavaVersion(21), true, Optional.empty(), Optional.empty(), List.of(FIXED, UNFIXED),
                 List.of(), 95, Rank.DAN_1);
         return new FixPlan(analysis, List.of(new FileFix(Path.of("A.java"), original, "final class A {}\n", List.of(FIXED))));
     }

@@ -235,7 +235,7 @@ class SarifReportWriterTest {
                 new Verdict.Underengineering(List.of(new Evidence(
                         "service_deus", List.of("PedidoService", 31, 9))), List.of("package-by-feature")));
         int score = 100 - 10 - 10 - 1;
-        return new Analysis(root, "api", new JavaVersion(21), true, Optional.of(match), lessons,
+        return new Analysis(root, "api", new JavaVersion(21), true, Optional.empty(), Optional.of(match), lessons,
                 List.of(new SourceFile.Unparseable(Path.of("src/main/java/Quebrado.java"), 4, "Parse error")), score, Rank.forScore(score));
     }
 

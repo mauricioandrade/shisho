@@ -109,7 +109,7 @@ class HtmlReportWriterTest {
         ArchitectureMatch match = new ArchitectureMatch(CLEAN, List.of("domain", "application"), 67, List.of(),
                 new Verdict.Overengineering(List.of(new Evidence("um_use_case_por_metodo_crud", List.of("Usuario", 4))),
                         false, Optional.of("package-by-feature")));
-        return new Analysis(Path.of("loja"), "loja", new JavaVersion(21), true, Optional.of(match), lessons,
+        return new Analysis(Path.of("loja"), "loja", new JavaVersion(21), true, Optional.empty(), Optional.of(match), lessons,
                 List.of(new SourceFile.Unparseable(Path.of("src/main/java/Quebrado.java"), 4, "<Parse error>")), score, Rank.forScore(score));
     }
 

@@ -107,7 +107,7 @@ public final class AnalyzeProjectService implements AnalyzeProject {
         int score = rankCalculator.score(lessons);
         return new Analysis(
                 projectRoot,
-                projectName(projectRoot), javaVersion, declaredVersion.isPresent(), architecture, lessons, unparseable, score, Rank.forScore(score));
+                projectName(projectRoot), javaVersion, declaredVersion.isPresent(), build, architecture, lessons, unparseable, score, Rank.forScore(score));
     }
 
     /** A typo in a kata id would silently configure nothing, so it is an error. */

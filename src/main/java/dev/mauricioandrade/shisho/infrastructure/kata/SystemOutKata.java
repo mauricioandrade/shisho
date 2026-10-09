@@ -1,9 +1,9 @@
 package dev.mauricioandrade.shisho.infrastructure.kata;
 
+import dev.mauricioandrade.shisho.domain.model.ClassKata;
 import dev.mauricioandrade.shisho.domain.model.ClassUnit;
 import dev.mauricioandrade.shisho.domain.model.ClassUnit.Invocation;
 import dev.mauricioandrade.shisho.domain.model.JavaVersion;
-import dev.mauricioandrade.shisho.domain.model.Kata;
 import dev.mauricioandrade.shisho.domain.model.Lesson;
 import dev.mauricioandrade.shisho.domain.model.Severity;
 
@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.Set;
 
 /** Calls on {@code System.out} / {@code System.err} and {@code printStackTrace()}. */
-final class SystemOutKata implements Kata {
+final class SystemOutKata implements ClassKata {
 
     private static final Set<String> CONSOLE_STREAMS = Set.of(
             "System.out", "System.err", "java.lang.System.out", "java.lang.System.err");

@@ -1,9 +1,9 @@
 package dev.mauricioandrade.shisho.infrastructure.kata;
 
+import dev.mauricioandrade.shisho.domain.model.ClassKata;
 import dev.mauricioandrade.shisho.domain.model.ClassUnit;
 import dev.mauricioandrade.shisho.domain.model.ClassUnit.Parameter;
 import dev.mauricioandrade.shisho.domain.model.JavaVersion;
-import dev.mauricioandrade.shisho.domain.model.Kata;
 import dev.mauricioandrade.shisho.domain.model.Lesson;
 import dev.mauricioandrade.shisho.domain.model.Severity;
 
@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.Set;
 
 /** {@code @RequestBody} without {@code @Valid}/{@code @Validated}, for bodies that have something to validate. */
-final class RequestBodyWithoutValidKata implements Kata {
+final class RequestBodyWithoutValidKata implements ClassKata {
 
     private static final Set<String> REQUEST_BODY = Set.of("RequestBody");
     private static final Set<String> VALIDATION = Set.of("Valid", "Validated");

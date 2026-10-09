@@ -1,8 +1,8 @@
 package dev.mauricioandrade.shisho.infrastructure.kata;
 
+import dev.mauricioandrade.shisho.domain.model.ClassKata;
 import dev.mauricioandrade.shisho.domain.model.ClassUnit;
 import dev.mauricioandrade.shisho.domain.model.JavaVersion;
-import dev.mauricioandrade.shisho.domain.model.Kata;
 import dev.mauricioandrade.shisho.domain.model.Lesson;
 import dev.mauricioandrade.shisho.domain.model.SourceFile.Parsed;
 import dev.mauricioandrade.shisho.infrastructure.parser.JavaParserSourceParser;
@@ -21,7 +21,7 @@ final class KataTestSupport {
     private KataTestSupport() {
     }
 
-    static List<Lesson> evaluate(Kata kata, String source) {
+    static List<Lesson> evaluate(ClassKata kata, String source) {
         return classes(source).stream().flatMap(unit -> kata.evaluate(unit).stream()).toList();
     }
 

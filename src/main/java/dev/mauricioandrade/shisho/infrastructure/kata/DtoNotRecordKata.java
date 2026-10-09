@@ -1,9 +1,9 @@
 package dev.mauricioandrade.shisho.infrastructure.kata;
 
+import dev.mauricioandrade.shisho.domain.model.ClassKata;
 import dev.mauricioandrade.shisho.domain.model.ClassUnit;
 import dev.mauricioandrade.shisho.domain.model.ClassUnit.Kind;
 import dev.mauricioandrade.shisho.domain.model.JavaVersion;
-import dev.mauricioandrade.shisho.domain.model.Kata;
 import dev.mauricioandrade.shisho.domain.model.Lesson;
 import dev.mauricioandrade.shisho.domain.model.Severity;
 
@@ -13,7 +13,7 @@ import java.util.Locale;
 import java.util.Set;
 
 /** A class that looks like a DTO (by package or by name suffix) but is not a record. */
-final class DtoNotRecordKata implements Kata {
+final class DtoNotRecordKata implements ClassKata {
 
     private static final Set<String> DTO_PACKAGES = Set.of("request", "response", "dto", "dtos");
     private static final List<String> DTO_SUFFIXES = List.of("Request", "Response", "Dto", "DTO");

@@ -1,9 +1,9 @@
 package dev.mauricioandrade.shisho.infrastructure.kata;
 
+import dev.mauricioandrade.shisho.domain.model.ClassKata;
 import dev.mauricioandrade.shisho.domain.model.ClassUnit;
 import dev.mauricioandrade.shisho.domain.model.ClassUnit.Annotation;
 import dev.mauricioandrade.shisho.domain.model.JavaVersion;
-import dev.mauricioandrade.shisho.domain.model.Kata;
 import dev.mauricioandrade.shisho.domain.model.Lesson;
 import dev.mauricioandrade.shisho.domain.model.Severity;
 
@@ -13,7 +13,7 @@ import java.util.Set;
 import java.util.stream.Stream;
 
 /** Spring's {@code @Value} on a field, a method or a method parameter instead of a constructor parameter. */
-final class ValueOutsideConstructorKata implements Kata {
+final class ValueOutsideConstructorKata implements ClassKata {
 
     private static final Set<String> VALUE = Set.of("Value");
 

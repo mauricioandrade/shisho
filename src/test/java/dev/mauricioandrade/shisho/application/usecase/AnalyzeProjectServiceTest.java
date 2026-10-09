@@ -3,10 +3,13 @@ package dev.mauricioandrade.shisho.application.usecase;
 import dev.mauricioandrade.shisho.domain.exception.AnalysisException;
 import dev.mauricioandrade.shisho.domain.model.Analysis;
 import dev.mauricioandrade.shisho.domain.model.BuildInfo;
+import dev.mauricioandrade.shisho.domain.model.ClassKata;
 import dev.mauricioandrade.shisho.domain.model.ClassUnit;
 import dev.mauricioandrade.shisho.domain.model.JavaVersion;
 import dev.mauricioandrade.shisho.domain.model.Kata;
 import dev.mauricioandrade.shisho.domain.model.Lesson;
+import dev.mauricioandrade.shisho.domain.model.ProjectKata;
+import dev.mauricioandrade.shisho.domain.model.ProjectModel;
 import dev.mauricioandrade.shisho.domain.model.Rank;
 import dev.mauricioandrade.shisho.domain.model.Severity;
 import dev.mauricioandrade.shisho.domain.model.SourceFile;
@@ -55,6 +58,47 @@ class AnalyzeProjectServiceTest {
         assertThat(analysis.rank()).isEqualTo(Rank.KYU_4);
         assertThat(analysis.unparseableFiles()).extracting(SourceFile::file).containsExactly(Path.of("C.java"));
         assertThat(analysis.projectName()).isEqualTo("loja");
+    }
+
+    @Test
+    void givesProjectKatasTheWholeProjectOnce() {
+        List<ProjectModel> seen = new ArrayList<>();
+        ProjectKata projectKata = new ProjectKata() {
+            @Override
+            public String id() {
+                return "project";
+            }
+
+            @Override
+            public Severity severity() {
+                return Severity.MEDIA;
+            }
+
+            @Override
+            public JavaVersion minJavaVersion() {
+                return JavaVersion.BASELINE;
+            }
+
+            @Override
+            public List<Lesson> evaluate(ProjectModel project) {
+                seen.add(project);
+                return List.of(lesson(Path.of("A.java"), 2));
+            }
+        };
+
+        Analysis analysis = service(version(21), kata("grave", Severity.GRAVE, 21, 2), projectKata).analyze(ROOT);
+
+        assertThat(seen).singleElement().satisfies(project -> {
+            assertThat(project.classes()).containsExactly(B, A);
+            assertThat(project.javaVersion()).isEqualTo(new JavaVersion(21));
+            assertThat(project.build()).isPresent();
+        });
+        assertThat(analysis.lessons())
+                .extracting(lesson -> lesson.file().toString(), Lesson::line, Lesson::kataId)
+                .containsExactly(
+                        tuple("A.java", 2, "grave"),
+                        tuple("A.java", 2, "project"),
+                        tuple("B.java", 2, "grave"));
     }
 
     @Test
@@ -110,7 +154,7 @@ class AnalyzeProjectServiceTest {
 
     /** A kata that reports one lesson per given line in every class. */
     private static Kata kata(String id, Severity severity, int minJavaVersion, int... lines) {
-        return new Kata() {
+        return new ClassKata() {
             @Override
             public String id() {
                 return id;

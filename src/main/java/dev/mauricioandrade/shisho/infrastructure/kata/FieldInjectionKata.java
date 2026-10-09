@@ -1,15 +1,15 @@
 package dev.mauricioandrade.shisho.infrastructure.kata;
 
+import dev.mauricioandrade.shisho.domain.model.ClassKata;
 import dev.mauricioandrade.shisho.domain.model.ClassUnit;
 import dev.mauricioandrade.shisho.domain.model.JavaVersion;
-import dev.mauricioandrade.shisho.domain.model.Kata;
 import dev.mauricioandrade.shisho.domain.model.Lesson;
 import dev.mauricioandrade.shisho.domain.model.Severity;
 
 import java.util.List;
 
 /** {@code @Autowired} (or {@code @Inject}) on a field. */
-final class FieldInjectionKata implements Kata {
+final class FieldInjectionKata implements ClassKata {
 
     @Override
     public String id() {

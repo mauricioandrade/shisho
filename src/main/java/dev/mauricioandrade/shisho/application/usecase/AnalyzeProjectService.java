@@ -3,9 +3,13 @@ package dev.mauricioandrade.shisho.application.usecase;
 import dev.mauricioandrade.shisho.domain.exception.AnalysisException;
 import dev.mauricioandrade.shisho.domain.model.Analysis;
 import dev.mauricioandrade.shisho.domain.model.BuildInfo;
+import dev.mauricioandrade.shisho.domain.model.ClassKata;
+import dev.mauricioandrade.shisho.domain.model.ClassUnit;
 import dev.mauricioandrade.shisho.domain.model.JavaVersion;
 import dev.mauricioandrade.shisho.domain.model.Kata;
 import dev.mauricioandrade.shisho.domain.model.Lesson;
+import dev.mauricioandrade.shisho.domain.model.ProjectKata;
+import dev.mauricioandrade.shisho.domain.model.ProjectModel;
 import dev.mauricioandrade.shisho.domain.model.Rank;
 import dev.mauricioandrade.shisho.domain.model.SourceFile;
 import dev.mauricioandrade.shisho.domain.port.in.AnalyzeProject;
@@ -39,22 +43,34 @@ public final class AnalyzeProjectService implements AnalyzeProject {
 
     @Override
     public Analysis analyze(Path projectRoot) {
-        Optional<JavaVersion> declaredVersion = buildFileReader.read(projectRoot).flatMap(BuildInfo::javaVersion);
+        Optional<BuildInfo> build = buildFileReader.read(projectRoot);
+        Optional<JavaVersion> declaredVersion = build.flatMap(BuildInfo::javaVersion);
         JavaVersion javaVersion = declaredVersion.orElse(JavaVersion.BASELINE);
         if (!javaVersion.isAtLeast(JavaVersion.BASELINE)) {
             throw new AnalysisException("analysis.error.unsupported-java-version", javaVersion, JavaVersion.BASELINE);
         }
-        List<Kata> applicable = katas.stream().filter(kata -> javaVersion.isAtLeast(kata.minJavaVersion())).toList();
 
-        List<Lesson> lessons = new ArrayList<>();
+        List<ClassUnit> classes = new ArrayList<>();
         List<SourceFile.Unparseable> unparseable = new ArrayList<>();
         for (SourceFile file : sourceParser.parse(projectRoot, javaVersion)) {
             switch (file) {
-                case SourceFile.Parsed parsed -> parsed.classes().forEach(unit ->
-                        applicable.forEach(kata -> lessons.addAll(kata.evaluate(unit))));
+                case SourceFile.Parsed parsed -> classes.addAll(parsed.classes());
                 case SourceFile.Unparseable failure -> unparseable.add(failure);
             }
         }
+        ProjectModel project = new ProjectModel(javaVersion, build, classes);
+
+        List<Lesson> lessons = new ArrayList<>();
+        for (Kata kata : katas) {
+            if (!javaVersion.isAtLeast(kata.minJavaVersion())) {
+                continue;
+            }
+            switch (kata) {
+                case ClassKata classKata -> classes.forEach(unit -> lessons.addAll(classKata.evaluate(unit)));
+                case ProjectKata projectKata -> lessons.addAll(projectKata.evaluate(project));
+            }
+        }
+        // stable sort: lessons on the same line keep the kata order
         lessons.sort(Comparator.comparing((Lesson lesson) -> lesson.file().toString()).thenComparingInt(Lesson::line));
 
         int score = rankCalculator.score(lessons);

@@ -1,10 +1,10 @@
 package dev.mauricioandrade.shisho.infrastructure.kata;
 
+import dev.mauricioandrade.shisho.domain.model.ClassKata;
 import dev.mauricioandrade.shisho.domain.model.ClassUnit;
 import dev.mauricioandrade.shisho.domain.model.ClassUnit.Field;
 import dev.mauricioandrade.shisho.domain.model.ClassUnit.Parameter;
 import dev.mauricioandrade.shisho.domain.model.JavaVersion;
-import dev.mauricioandrade.shisho.domain.model.Kata;
 import dev.mauricioandrade.shisho.domain.model.Lesson;
 import dev.mauricioandrade.shisho.domain.model.Severity;
 
@@ -18,7 +18,7 @@ import java.util.stream.Collectors;
  * type, or when Lombok's {@code @AllArgsConstructor} puts every field in the constructor.
  * Fields with {@code @Autowired} or {@code @Value} are left to their own katas.
  */
-final class NonFinalDependencyKata implements Kata {
+final class NonFinalDependencyKata implements ClassKata {
 
     private static final Set<String> HANDLED_ELSEWHERE = Set.of("Autowired", "Inject", "Value");
 

@@ -1,15 +1,15 @@
 package dev.mauricioandrade.shisho.infrastructure.kata;
 
-import dev.mauricioandrade.shisho.domain.model.JavaVersion;
+import dev.mauricioandrade.shisho.application.usecase.AnalyzeProjectService;
+import dev.mauricioandrade.shisho.application.usecase.RankCalculator;
 import dev.mauricioandrade.shisho.domain.model.Kata;
 import dev.mauricioandrade.shisho.domain.model.Lesson;
 import dev.mauricioandrade.shisho.domain.model.Severity;
-import dev.mauricioandrade.shisho.domain.model.SourceFile.Parsed;
+import dev.mauricioandrade.shisho.infrastructure.build.MavenBuildFileReader;
 import dev.mauricioandrade.shisho.infrastructure.parser.JavaParserSourceParser;
 import org.junit.jupiter.api.Test;
 
 import java.nio.file.Path;
-import java.util.Comparator;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -56,15 +56,11 @@ class KatasTest {
         assertThat(analyze(Path.of(""))).isEmpty();
     }
 
-    /** Ordered by file, then line, then kata order — the same order the report will use. */
+    /** Through the real adapters, in the order the report uses: file, then line, then kata order. */
     private static List<Lesson> analyze(Path project) {
-        List<Kata> katas = Katas.all();
-        return new JavaParserSourceParser().parse(project, new JavaVersion(25)).stream()
-                .map(Parsed.class::cast)
-                .flatMap(parsed -> parsed.classes().stream())
-                .flatMap(unit -> katas.stream().flatMap(kata -> kata.evaluate(unit).stream()))
-                .sorted(Comparator.comparing((Lesson lesson) -> lesson.file().toString())
-                        .thenComparingInt(Lesson::line))
-                .toList();
+        return new AnalyzeProjectService(
+                new MavenBuildFileReader(), new JavaParserSourceParser(), Katas.all(), new RankCalculator())
+                .analyze(project)
+                .lessons();
     }
 }

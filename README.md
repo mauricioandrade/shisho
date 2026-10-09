@@ -208,7 +208,8 @@ Recursos em preview nunca são recomendados. O que o Shishō sabe sobre cada ver
 - [x] **Fase 3** — classificação de arquitetura, regras de dependência e veredito de
   overengineering/subengenharia
 - [x] **Fase 4** — relatório HTML, SARIF e GitHub Action
-- [ ] **Fase 5** — exemplos antes/depois, catálogo de recursos do Java, autofix com OpenRewrite
+- [x] **Fase 5** — modo sensei (exemplos antes/depois), catálogo de recursos do Java,
+  `shisho fix`
 - [ ] **Fase 6** — LLM local opcional
 - [ ] **Depois** — outras stacks, reaproveitando o catálogo de arquiteturas
 - [ ] **Ideias** — modo `--shoshin` (初心, "mente de principiante"), que explica cada conceito
@@ -253,10 +254,41 @@ O código de saída foi pensado para CI e não depende do formato:
 | 0 | nenhuma lição grave |
 | 1 | há pelo menos uma lição **GRAVE** |
 | 2 | entrada inválida (caminho inexistente, argumento faltando, `--output` que não pode ser gravado) |
-| 3 | o projeto não pôde ser analisado (ex.: Java abaixo do 21, `shisho.yaml` inválido) |
+| 3 | o projeto não pôde ser analisado (ex.: Java abaixo do 21, `shisho.yaml` inválido); no `fix --apply`, um arquivo que não pôde ser gravado |
 
 O mise é usado só para conveniência de desenvolvimento. Ele não é dependência do Shishō, e
 nada no build exige que você o use.
+
+## Modo sensei: aprender e corrigir
+
+Com `--sensei`, o relatório mostra, para cada kata encontrada, o código **antes e depois** da
+correção (os exemplos ficam em [`catalog/katas`](catalog/katas), e um teste garante que o
+"antes" gera a lição e o "depois" não). O relatório HTML e a ajuda dos alertas no GitHub
+mostram os mesmos exemplos.
+
+```bash
+java -jar target/shisho.jar analyze --sensei ~/projetos/minha-api
+```
+
+Parte das lições tem uma correção mecânica segura, e o Shishō faz por você:
+
+```bash
+java -jar target/shisho.jar fix ~/projetos/minha-api            # mostra o diff
+java -jar target/shisho.jar fix --apply ~/projetos/minha-api    # grava
+```
+
+| Kata | O que o `fix` faz |
+|---|---|
+| `field-injection` | tira o `@Autowired`, deixa o campo `final` e o recebe pelo construtor |
+| `lombok-constructor` | troca a anotação pelo construtor que o Lombok geraria |
+| `non-final-dependency` | adiciona `final`, se todo construtor atribui o campo e nada mais o altera |
+| `request-body-without-valid` | adiciona `@Valid`, se o build tem Bean Validation |
+| `transactional-read-only` | coloca `readOnly = true` |
+
+Só as linhas da correção mudam: formatação e comentários ficam como estavam. Quando a correção
+não é segura (um `@Qualifier` que teria de mudar de lugar, um `@Builder` que depende do
+construtor do Lombok…), a lição fica para você, com o exemplo do modo sensei. Por quê
+JavaParser e não OpenRewrite: [ADR 0003](docs/adr/0003-autofix.md).
 
 ## No GitHub Actions
 

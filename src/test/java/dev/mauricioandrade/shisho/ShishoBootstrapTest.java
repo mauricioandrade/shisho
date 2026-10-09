@@ -134,6 +134,16 @@ class ShishoBootstrapTest {
     }
 
     @Test
+    void asksOnlyWhenOllamaAnswersAndSaysHowToStartIt() {
+        assertThat(run("ask", "--url", "http://127.0.0.1:1", FIXTURES + "aluno-exemplar")).isEqualTo(3);
+        assertThat(out()).isEmpty();
+        assertThat(err()).isEqualTo("""
+                Perguntando ao gemma3:4b em http://127.0.0.1:1...
+                Não foi possível falar com o Ollama em http://127.0.0.1:1. Ele está rodando? Inicie com: ollama serve
+                """);
+    }
+
+    @Test
     void hasNothingToFixInTheShisho() {
         assertThat(run("fix", ".")).isZero();
         assertThat(out()).isEqualTo("Nenhuma lição: nada a corrigir.\n");

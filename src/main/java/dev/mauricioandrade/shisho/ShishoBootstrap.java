@@ -11,12 +11,15 @@ import dev.mauricioandrade.shisho.infrastructure.catalog.MarkdownCatalogReposito
 import dev.mauricioandrade.shisho.infrastructure.detector.Detectors;
 import dev.mauricioandrade.shisho.infrastructure.fix.JavaParserSourceFixer;
 import dev.mauricioandrade.shisho.infrastructure.cli.AnalyzeCommand;
+import dev.mauricioandrade.shisho.infrastructure.cli.AskCommand;
 import dev.mauricioandrade.shisho.infrastructure.cli.FixCommand;
 import dev.mauricioandrade.shisho.infrastructure.cli.ReportWriterFactory;
 import dev.mauricioandrade.shisho.infrastructure.cli.ShishoCommand;
 import dev.mauricioandrade.shisho.infrastructure.config.YamlProjectConfigReader;
 import dev.mauricioandrade.shisho.infrastructure.i18n.Messages;
 import dev.mauricioandrade.shisho.infrastructure.kata.Katas;
+import dev.mauricioandrade.shisho.infrastructure.llm.OllamaLlmProvider;
+import dev.mauricioandrade.shisho.infrastructure.llm.SenseiPrompt;
 import dev.mauricioandrade.shisho.infrastructure.parser.JavaParserSourceParser;
 import dev.mauricioandrade.shisho.infrastructure.report.HtmlReportWriter;
 import dev.mauricioandrade.shisho.infrastructure.report.SarifReportWriter;
@@ -67,7 +70,9 @@ public final class ShishoBootstrap {
 
         CommandLine commandLine = new CommandLine(new ShishoCommand())
                 .addSubcommand(new AnalyzeCommand(analyzeProject, reportWriters, messages, out, err))
-                .addSubcommand(new FixCommand(fixProject, messages, out, err));
+                .addSubcommand(new FixCommand(fixProject, messages, out, err))
+                .addSubcommand(new AskCommand(analyzeProject, new SenseiPrompt(messages, catalog.architectures()),
+                        OllamaLlmProvider::new, messages, out, err));
         commandLine.setResourceBundle(messages.bundle());
         commandLine.setCaseInsensitiveEnumValuesAllowed(true);
         commandLine.setOut(new PrintWriter(out, true));

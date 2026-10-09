@@ -8,6 +8,8 @@ import dev.mauricioandrade.shisho.domain.model.ArchitectureProfile.Cost;
 import dev.mauricioandrade.shisho.domain.model.ArchitectureProfile.DependencyRule;
 import dev.mauricioandrade.shisho.domain.model.ArchitectureProfile.Family;
 import dev.mauricioandrade.shisho.domain.model.ArchitectureProfile.Signature;
+import dev.mauricioandrade.shisho.domain.model.AvoidedDependency;
+import dev.mauricioandrade.shisho.domain.model.Dependency;
 import dev.mauricioandrade.shisho.domain.model.JavaFeature;
 import dev.mauricioandrade.shisho.domain.model.JavaFeature.Status;
 import dev.mauricioandrade.shisho.domain.model.JavaVersion;
@@ -37,8 +39,8 @@ import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 /**
- * Reads {@code catalog/architectures/*.md} and {@code catalog/katas/*.md}: YAML frontmatter
- * between {@code ---} lines, followed by Markdown. The schema is documented in
+ * Reads the catalog's folders ({@code architectures}, {@code katas}, {@code java-features},
+ * {@code dependencies}): YAML frontmatter between {@code ---} lines, followed by Markdown. The schema is documented in
  * {@code catalog/README.md}.
  */
 public final class MarkdownCatalogRepository implements CatalogRepository {
@@ -46,6 +48,7 @@ public final class MarkdownCatalogRepository implements CatalogRepository {
     private static final String FRONTMATTER_DELIMITER = "---";
     private static final String EXTENSION = ".md";
     private static final Pattern CLASS_RANGE = Pattern.compile("(\\d+)-(\\d+)");
+    private static final Pattern COORDINATES = Pattern.compile("([^:\\s]+):([^:\\s]+)");
     private static final String BUNDLED_CATALOG = "/catalog";
 
     private static final String WHY = "Por quê";
@@ -103,6 +106,36 @@ public final class MarkdownCatalogRepository implements CatalogRepository {
     @Override
     public List<JavaFeature> javaFeatures() {
         return documents("java-features").stream().map(MarkdownCatalogRepository::toFeature).toList();
+    }
+
+    @Override
+    public List<AvoidedDependency> avoidedDependencies() {
+        return documents("dependencies").stream().map(MarkdownCatalogRepository::toAvoidedDependency).toList();
+    }
+
+    private static AvoidedDependency toAvoidedDependency(Document document) {
+        FrontmatterFields fields = document.fields();
+        List<Dependency> coordinates = fields.textList("coordenadas").stream()
+                .map(value -> coordinates(fields, value))
+                .toList();
+        if (coordinates.isEmpty()) {
+            throw fields.invalid("coordenadas", coordinates);
+        }
+        List<String> references = fields.textList("referencias");
+        if (references.isEmpty()) {
+            throw fields.invalid("referencias", references);
+        }
+        return new AvoidedDependency(document.id(), fields.text("nome"), coordinates, fields.text("resumo"),
+                fields.text("alternativa"), references, document.markdown());
+    }
+
+    /** {@code groupId:artifactId}. */
+    private static Dependency coordinates(FrontmatterFields fields, String value) {
+        Matcher matcher = COORDINATES.matcher(value);
+        if (!matcher.matches()) {
+            throw fields.invalid("coordenadas", value);
+        }
+        return new Dependency(matcher.group(1), matcher.group(2));
     }
 
     private static JavaFeature toFeature(Document document) {

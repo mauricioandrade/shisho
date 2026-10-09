@@ -72,6 +72,7 @@
                     <include>architectures/*.md</include>
                     <include>katas/*.md</include>
                     <include>java-features/*.md</include>
+                    <include>dependencies/*.md</include>
                 </includes>
             </resource>
         </resources>

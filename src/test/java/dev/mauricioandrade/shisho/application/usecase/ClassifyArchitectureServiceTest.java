@@ -7,6 +7,7 @@ import dev.mauricioandrade.shisho.domain.model.ArchitectureProfile.Complexity;
 import dev.mauricioandrade.shisho.domain.model.ArchitectureProfile.Cost;
 import dev.mauricioandrade.shisho.domain.model.ArchitectureProfile.Family;
 import dev.mauricioandrade.shisho.domain.model.ArchitectureProfile.Signature;
+import dev.mauricioandrade.shisho.domain.model.AvoidedDependency;
 import dev.mauricioandrade.shisho.domain.model.BuildInfo;
 import dev.mauricioandrade.shisho.domain.model.ClassUnit;
 import dev.mauricioandrade.shisho.domain.model.ClassUnit.Annotation;
@@ -46,6 +47,11 @@ class ClassifyArchitectureServiceTest {
 
         @Override
         public List<JavaFeature> javaFeatures() {
+            return List.of();
+        }
+
+        @Override
+        public List<AvoidedDependency> avoidedDependencies() {
             return List.of();
         }
     }, List.of());

@@ -80,6 +80,26 @@ Num projeto abaixo do `desde`, a kata ainda roda, mas cada lição vira **INFO**
 para o Java 25: …"), sem tirar nota. Recursos em **preview nunca** são sugeridos: nenhuma kata
 pode apontar para um.
 
+## Dependências a evitar (`dependencies/`)
+
+Cada arquivo descreve uma biblioteca que o Shishō desaconselha: abandonada, substituída por um
+sucessor que o próprio projeto recomenda, ou publicada em coordenadas novas. A kata
+`avoided-dependency` procura as `coordenadas` no build do projeto analisado.
+
+| Campo | Tipo | Descrição |
+|---|---|---|
+| `id` | string | Identificador único, igual ao nome do arquivo |
+| `nome` | string | Nome legível |
+| `coordenadas` | lista | `groupId:artifactId`; qualquer uma delas no build gera a lição |
+| `resumo` | string | O motivo em uma frase, mostrado na lição |
+| `alternativa` | string | O que usar no lugar, mostrado na lição |
+| `referencias` | lista | Fontes primárias (URLs `https://`): o anúncio do próprio projeto, notas de versão |
+
+O corpo explica o motivo (`## Por quê`). Só entra aqui o que tem fonte verificável. Uma
+biblioteca de que alguém não gosta não entra: o critério é o próprio projeto ter declarado
+abandono, sucessor ou mudança de coordenadas. Uma mesma coordenada não pode aparecer em dois
+arquivos.
+
 ## Guias das katas (`katas/`)
 
 Cada arquivo em `katas/` ensina uma kata: **por que** ela existe, **quando** o código que ela

@@ -6,6 +6,8 @@ import dev.mauricioandrade.shisho.domain.model.ArchitectureProfile.ClassRange;
 import dev.mauricioandrade.shisho.domain.model.ArchitectureProfile.Complexity;
 import dev.mauricioandrade.shisho.domain.model.ArchitectureProfile.DependencyRule;
 import dev.mauricioandrade.shisho.domain.model.ArchitectureProfile.Family;
+import dev.mauricioandrade.shisho.domain.model.AvoidedDependency;
+import dev.mauricioandrade.shisho.domain.model.Dependency;
 import dev.mauricioandrade.shisho.domain.model.JavaFeature;
 import dev.mauricioandrade.shisho.domain.model.JavaVersion;
 import dev.mauricioandrade.shisho.domain.model.KataGuide;
@@ -241,6 +243,40 @@ class MarkdownCatalogRepositoryTest {
             assertThatThrownBy(() -> new MarkdownCatalogRepository(catalog).javaFeatures())
                     .isInstanceOfSatisfying(CatalogException.class, e ->
                             assertThat(e.arguments()).containsExactly("x.md", "status", "beta"));
+        }
+    }
+
+    @Nested
+    class AvoidedDependencies {
+
+        @Test
+        void readsTheRealCatalog() {
+            List<AvoidedDependency> avoided = MarkdownCatalogRepository.bundled().avoidedDependencies();
+
+            assertThat(avoided).extracting(AvoidedDependency::id).contains("log4j-1", "springfox", "junit-4");
+            assertThat(avoided).allSatisfy(dependency -> {
+                assertThat(dependency.references()).as(dependency.id()).allMatch(url -> url.startsWith("https://"));
+                assertThat(dependency.markdown()).as(dependency.id()).startsWith("## Por quê");
+            });
+            assertThat(avoided).filteredOn(dependency -> dependency.id().equals("springfox")).singleElement()
+                    .satisfies(springfox -> assertThat(springfox.coordinates())
+                            .contains(new Dependency("io.springfox", "springfox-boot-starter")));
+        }
+
+        @Test
+        void neverAdvisesAgainstTheSameLibraryTwice() {
+            assertThat(MarkdownCatalogRepository.bundled().avoidedDependencies().stream()
+                    .flatMap(dependency -> dependency.coordinates().stream())).doesNotHaveDuplicates();
+        }
+
+        @Test
+        void rejectsCoordinatesThatAreNotGroupAndArtifact(@TempDir Path catalog) throws IOException {
+            Files.writeString(Files.createDirectories(catalog.resolve("dependencies")).resolve("x.md"),
+                    "---\nid: x\nnome: X\ncoordenadas: [log4j]\nresumo: r\nalternativa: a\nreferencias: [https://x.dev]\n---\n");
+
+            assertThatThrownBy(() -> new MarkdownCatalogRepository(catalog).avoidedDependencies())
+                    .isInstanceOfSatisfying(CatalogException.class, e ->
+                            assertThat(e.arguments()).containsExactly("x.md", "coordenadas", "log4j"));
         }
     }
 

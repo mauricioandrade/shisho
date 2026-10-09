@@ -49,6 +49,18 @@ class TerminalReportWriterTest {
     }
 
     @Test
+    void showsWholeFileLessonsWithoutLineAndCountsSuggestionsOnlyWhenThereAreAny() {
+        Analysis analysis = analysis(true, List.of(
+                new Lesson("lombok-constructor", Severity.INFO, Path.of("pom.xml"), 0, "kata.lombok-constructor.lesson", List.of("Data")),
+                lesson("dto-not-record", Severity.LEVE, 3, "UsuarioRequest")), List.of());
+
+        assertThat(render(analysis, PORTUGUESE))
+                .contains("i INFO   [lombok-constructor]  pom.xml\n")
+                .contains("· LEVE   [dto-not-record]      UsuarioController.java:3\n")
+                .endsWith("Graduação: 1º dan  (2 lições: 0 graves, 0 médias, 1 leve, 1 sugestão)\n");
+    }
+
+    @Test
     void celebratesAProjectWithoutLessons() {
         assertThat(render(analysis(true, List.of(), List.of()), PORTUGUESE)).isEqualTo("""
                 師匠 Shishō — análise de loja  (Java 21)

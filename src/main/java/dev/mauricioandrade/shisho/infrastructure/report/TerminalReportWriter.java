@@ -38,7 +38,7 @@ public final class TerminalReportWriter implements ReportWriter {
             out.println(symbol(lesson.severity()) + " "
                     + pad(severityLabel(lesson.severity()), severityWidth) + "  "
                     + pad("[" + lesson.kataId() + "]", kataWidth) + "  "
-                    + lesson.file().getFileName() + ":" + lesson.line());
+                    + location(lesson));
             wrap(text(lesson.messageKey(), lesson.arguments().toArray()), WIDTH - indent.length())
                     .forEach(line -> out.println(indent + line));
         }
@@ -59,7 +59,13 @@ public final class TerminalReportWriter implements ReportWriter {
                 text("report.count.lessons", analysis.lessons().size()),
                 text("report.count.grave", analysis.count(Severity.GRAVE)),
                 text("report.count.media", analysis.count(Severity.MEDIA)),
-                text("report.count.leve", analysis.count(Severity.LEVE)));
+                text("report.count.leve", analysis.count(Severity.LEVE)),
+                text("report.count.info", analysis.count(Severity.INFO)));
+    }
+
+    private static String location(Lesson lesson) {
+        String file = lesson.file().getFileName().toString();
+        return lesson.line() > 0 ? file + ":" + lesson.line() : file;
     }
 
     private static String symbol(Severity severity) {

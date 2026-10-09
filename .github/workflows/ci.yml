@@ -1,0 +1,37 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "25"
+          cache: maven
+      - run: mvn -B verify
+
+  # Dogfooding: o Shishō analisa a si mesmo com a própria action.
+  shisho:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./
+        with:
+          html: shisho.html
+      - uses: actions/upload-artifact@v4
+        with:
+          name: shisho-report
+          path: shisho.html

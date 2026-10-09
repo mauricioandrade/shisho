@@ -239,9 +239,10 @@ Recursos em preview nunca são recomendados. O que o Shishō sabe sobre cada ver
 - [x] **Fase 5** — modo sensei (exemplos antes/depois), catálogo de recursos do Java,
   `shisho fix`
 - [x] **Fase 6** — LLM local opcional (`shisho ask`)
-- [x] **Fase 7** — gerador de CRUD (`shisho crud`), começando por layered e package-by-feature
-- [ ] **Depois** — templates de CRUD para hexagonal e clean, com aviso de overengineering;
-  outras stacks, reaproveitando o catálogo de arquiteturas
+- [x] **Fase 7** — gerador de CRUD (`shisho crud`): layered, package-by-feature e hexagonal,
+  com aviso de overengineering antes de gerar
+- [ ] **Depois** — template de CRUD para clean; outras stacks, reaproveitando o catálogo de
+  arquiteturas
 - [ ] **Ideias** — modo `--shoshin` (初心, "mente de principiante"), que explica cada conceito
   que aparece no código (o que é um record, uma sealed interface…) e os design patterns
 
@@ -343,7 +344,7 @@ $ shisho crud --arquitetura package-by-feature ./loja Produto nome:String preco:
 Criados 8 arquivos. Rode shisho analyze para conferir: o código gerado passa em todas as katas.
 ```
 
-- **Arquitetura:** `layered` ou `package-by-feature`. Sem `--arquitetura`, vale a que o Shishō
+- **Arquitetura:** `layered`, `package-by-feature` ou `hexagonal`. Sem `--arquitetura`, vale a que o Shishō
   detecta no projeto. Num projeto recém-saído do Initializr ainda não há o que detectar, então o
   primeiro `crud` precisa da opção. Se você pede uma arquitetura diferente da do projeto, ele
   gera e avisa que os estilos vão se misturar.
@@ -354,6 +355,28 @@ Criados 8 arquivos. Rode shisho analyze para conferir: o código gerado passa em
   entidades, como o `@RestControllerAdvice`, só são criados se o projeto ainda não tem um.
 - **Erros no padrão.** 404 e erros de validação respondem com ProblemDetail (RFC 9457), dizendo
   quais campos falharam.
+
+### Antes de gerar: por quê?
+
+O hexagonal custa mais arquivos que um CRUD costuma precisar. Antes de gerá-lo, o Shishō
+pergunta o motivo, e sem motivo não grava nada:
+
+```
+$ shisho crud --arquitetura hexagonal ./loja Produto nome:String preco:BigDecimal
+⚠ Este CRUD em Hexagonal (Ports & Adapters) cria 12 arquivos, e nada no contexto do shisho.yaml paga
+esse custo. A arquitetura vale a pena quando o projeto tem: multiplas_integracoes_externas,
+dominio_com_regras_complexas, troca_provavel_de_infra, vida_util_longa. Para um CRUD sem regras de
+negócio, package-by-feature faz o mesmo com menos arquivos.
+
+Nada foi gravado. Se o projeto tem um desses motivos, declare-o em contexto.caracteristicas no
+shisho.yaml: a decisão fica registrada, e o shisho analyze passa a usá-la. Para gerar mesmo assim,
+use --mesmo-assim.
+```
+
+Com o motivo declarado no [`shisho.yaml`](#overengineering), o CRUD sai direto, e o relatório
+diz qual motivo pagou o custo. O `--mesmo-assim` serve para quem só quer ver como a arquitetura
+fica. Num projeto que já é hexagonal, o próximo `crud` segue sem perguntar: a decisão já foi
+tomada. Por que assim: [ADR 0006](docs/adr/0006-crud-cost-warning.md).
 
 Um teste aplica cada template a um projeto igual ao do Initializr e exige que o `shisho analyze`
 reconheça a arquitetura e não encontre **nenhuma** lição. O código foi conferido também num

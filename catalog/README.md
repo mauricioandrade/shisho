@@ -190,6 +190,11 @@ teste gera cada template num projeto como o do Spring Initializr e exige que o `
 reconheça a arquitetura e não encontre **nenhuma** lição. Detalhes em
 [`docs/adr/0005-crud-scaffolding.md`](../docs/adr/0005-crud-scaffolding.md).
 
+O template de uma arquitetura com `complexidade` média ou alta ganha, sem código novo, o aviso
+de custo: o `crud` só grava se o `contexto` do projeto tiver uma das chaves de
+`faz_sentido_quando` dela, ou com `--mesmo-assim`. Ver
+[`docs/adr/0006-crud-cost-warning.md`](../docs/adr/0006-crud-cost-warning.md).
+
 ## Famílias e o caminho natural de evolução
 
 ```

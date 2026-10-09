@@ -125,11 +125,24 @@ class MarkdownCatalogRepositoryTest {
         Path catalog;
 
         @Test
-        void readsTheCodeBeforeAndAfterWithTheirExplanation() throws IOException {
+        void readsTheExplanationTheCodeBeforeAndAfterAndTheReferences() throws IOException {
             write("system-out.md", """
                     ---
                     id: system-out
+                    referencias:
+                      - https://openjdk.org/jeps/264
                     ---
+
+                    ## Por quê
+
+                    O console não tem nível
+                    nem formato.
+
+                    Um logger tem.
+
+                    ## Quando é aceitável
+
+                    Numa CLI.
 
                     ## Antes
 
@@ -150,18 +163,36 @@ class MarkdownCatalogRepositoryTest {
                     """);
 
             assertThat(new MarkdownCatalogRepository(catalog).kataGuides()).containsExactly(new KataGuide("system-out",
+                    List.of("O console não tem nível nem formato.", "Um logger tem."),
+                    List.of("Numa CLI."),
                     new Snippet("java", "System.out.println(\"x\");", ""),
-                    new Snippet("java", "log.info(\"x\");\n\nlog.debug(\"y\");", "O logger tem nível e formato.")));
+                    new Snippet("java", "log.info(\"x\");\n\nlog.debug(\"y\");", "O logger tem nível e formato."),
+                    List.of("https://openjdk.org/jeps/264")));
         }
 
         @Test
-        void rejectsAnExampleWithoutBothSectionsOrCode() throws IOException {
-            write("system-out.md", "---\nid: system-out\n---\n\n## Antes\n\n```java\nx();\n```\n");
+        void rejectsAGuideWithoutTheExplanationOrTheReferences() throws IOException {
+            String code = "## Antes\n\n```java\nx();\n```\n\n## Depois\n\n```java\ny();\n```\n";
+            write("system-out.md", "---\nid: system-out\nreferencias: [https://x.dev]\n---\n\n## Quando é aceitável\n\nNunca.\n\n" + code);
+            assertThatThrownBy(() -> new MarkdownCatalogRepository(catalog).kataGuides())
+                    .isInstanceOfSatisfying(CatalogException.class, e ->
+                            assertThat(e.arguments()).containsExactly("system-out.md", "## Por quê"));
+
+            write("system-out.md", "---\nid: system-out\nreferencias: []\n---\n\n## Por quê\n\nX.\n\n## Quando é aceitável\n\nY.\n\n" + code);
+            assertThatThrownBy(() -> new MarkdownCatalogRepository(catalog).kataGuides())
+                    .isInstanceOfSatisfying(CatalogException.class, e ->
+                            assertThat(e.messageKey()).isEqualTo("catalog.error.invalid-value"));
+        }
+
+        @Test
+        void rejectsAGuideWithoutBothCodeSectionsOrCode() throws IOException {
+            String prose = "---\nid: system-out\nreferencias: [https://x.dev]\n---\n\n## Por quê\n\nX.\n\n## Quando é aceitável\n\nY.\n\n";
+            write("system-out.md", prose + "## Antes\n\n```java\nx();\n```\n");
             assertThatThrownBy(() -> new MarkdownCatalogRepository(catalog).kataGuides())
                     .isInstanceOfSatisfying(CatalogException.class, e ->
                             assertThat(e.arguments()).containsExactly("system-out.md", "## Depois"));
 
-            write("system-out.md", "---\nid: system-out\n---\n\n## Antes\n\nsó texto\n\n## Depois\n\n```java\nx();\n```\n");
+            write("system-out.md", prose + "## Antes\n\nsó texto\n\n## Depois\n\n```java\nx();\n```\n");
             assertThatThrownBy(() -> new MarkdownCatalogRepository(catalog).kataGuides())
                     .isInstanceOfSatisfying(CatalogException.class, e -> {
                         assertThat(e.messageKey()).isEqualTo("catalog.error.missing-code");

@@ -44,6 +44,12 @@ class KataGuidesTest {
     }
 
     @Test
+    void everyGuideCitesItsSourcesByUrl() {
+        assertThat(guides.values()).allSatisfy(guide ->
+                assertThat(guide.references()).as(guide.kataId()).isNotEmpty().allMatch(url -> url.startsWith("https://")));
+    }
+
+    @Test
     void buildExamplesAreXml() {
         assertThat(List.of("missing-actuator", "missing-springdoc")).allSatisfy(id ->
                 assertThat(guides.get(id).after().code()).startsWith("<dependencies>"));

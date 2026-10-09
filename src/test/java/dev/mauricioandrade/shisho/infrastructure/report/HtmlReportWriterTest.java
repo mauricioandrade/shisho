@@ -80,8 +80,11 @@ class HtmlReportWriterTest {
     @Test
     void linksEachLessonToItsExampleShownOnce() {
         KataGuide guide = new KataGuide("field-injection",
+                List.of("O objeto nasce `completo`.", "E o teste não precisa de Spring."),
+                List.of("Em testes."),
                 new Snippet("java", "@Autowired\nprivate Service service;", ""),
-                new Snippet("java", "private final Service service;", "Use o `construtor` & final."));
+                new Snippet("java", "private final Service service;", "Use o `construtor` & final."),
+                List.of("https://docs.spring.io/a", "https://example.com/b"));
         ByteArrayOutputStream buffer = new ByteArrayOutputStream();
         new HtmlReportWriter(new PrintStream(buffer, true, StandardCharsets.UTF_8), new Messages(Messages.DEFAULT_LOCALE),
                 List.of(guide), "1.2.3").write(analysis(List.of(

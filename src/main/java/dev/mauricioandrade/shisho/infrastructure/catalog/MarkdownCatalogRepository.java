@@ -48,10 +48,13 @@ public final class MarkdownCatalogRepository implements CatalogRepository {
     private static final Pattern CLASS_RANGE = Pattern.compile("(\\d+)-(\\d+)");
     private static final String BUNDLED_CATALOG = "/catalog";
 
+    private static final String WHY = "Por quê";
+    private static final String ACCEPTABLE_WHEN = "Quando é aceitável";
     private static final String BEFORE = "Antes";
     private static final String AFTER = "Depois";
     private static final Pattern SECTION = Pattern.compile("(?m)^## (.+)$");
     private static final Pattern CODE_BLOCK = Pattern.compile("(?ms)^```(\\w+)\\n(.*?)^```$");
+    private static final Pattern BLANK_LINES = Pattern.compile("\\n\\s*\\n");
 
     private final Path catalogRoot;
 
@@ -172,7 +175,25 @@ public final class MarkdownCatalogRepository implements CatalogRepository {
             int end = i + 1 < headings.size() ? headings.get(i + 1).start() : document.markdown().length();
             sections.put(headings.get(i).group(1).strip(), document.markdown().substring(headings.get(i).end(), end));
         }
-        return new KataGuide(id, snippet(document.fileName(), sections, BEFORE), snippet(document.fileName(), sections, AFTER));
+        List<String> references = document.fields().textList("referencias");
+        if (references.isEmpty()) {
+            throw document.fields().invalid("referencias", references);
+        }
+        return new KataGuide(id,
+                paragraphs(document.fileName(), sections, WHY),
+                paragraphs(document.fileName(), sections, ACCEPTABLE_WHEN),
+                snippet(document.fileName(), sections, BEFORE),
+                snippet(document.fileName(), sections, AFTER),
+                references);
+    }
+
+    /** The section's prose, one string per paragraph, with its line breaks turned into spaces. */
+    private static List<String> paragraphs(String fileName, Map<String, String> sections, String section) {
+        String text = sections.getOrDefault(section, "").strip();
+        if (text.isEmpty()) {
+            throw new CatalogException("catalog.error.missing-field", fileName, "## " + section);
+        }
+        return BLANK_LINES.splitAsStream(text).map(paragraph -> paragraph.strip().replaceAll("\\s*\\n\\s*", " ")).toList();
     }
 
     private static Snippet snippet(String fileName, Map<String, String> sections, String section) {

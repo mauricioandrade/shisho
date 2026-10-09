@@ -80,15 +80,29 @@ Num projeto abaixo do `desde`, a kata ainda roda, mas cada lição vira **INFO**
 para o Java 25: …"), sem tirar nota. Recursos em **preview nunca** são sugeridos: nenhuma kata
 pode apontar para um.
 
-## Exemplos das katas (`katas/`)
+## Guias das katas (`katas/`)
 
-Cada arquivo em `katas/` mostra como corrigir uma kata: o código **antes** e **depois**. É o
-que o modo sensei (`--sensei`), o relatório HTML e a ajuda das regras no SARIF mostram.
+Cada arquivo em `katas/` ensina uma kata: **por que** ela existe, **quando** o código que ela
+acusa é uma escolha razoável, como corrigir (o código **antes** e **depois**) e as **fontes**.
+É o que o modo sensei (`--sensei`), o relatório HTML e a ajuda das regras no SARIF mostram.
+
+Uma kata aponta um custo, não um pecado. O guia explica a troca: o que se ganha seguindo a
+prática, e em que contexto o ganho não compensa.
 
 ```markdown
 ---
 id: field-injection        # igual ao nome do arquivo e ao id da kata
+referencias:               # fontes primárias: documentação oficial, JEPs, mantenedores
+  - https://docs.spring.io/...
 ---
+
+## Por quê
+
+Um ou mais parágrafos. Sem listas: cada parágrafo vira um bloco de texto no relatório.
+
+## Quando é aceitável
+
+Os contextos em que o código acusado faz sentido.
 
 ## Antes
 
@@ -105,9 +119,9 @@ Texto opcional explicando a correção.
 ```
 ```
 
-As duas seções e um bloco de código em cada uma são obrigatórios. Um teste roda cada kata sobre
-o próprio exemplo: o "Antes" precisa gerar a lição e o "Depois" não pode gerar nenhuma. Toda
-kata precisa de um exemplo.
+As quatro seções e `referencias` (URLs `https://`) são obrigatórias, assim como um bloco de
+código em "Antes" e em "Depois". Um teste roda cada kata sobre o próprio exemplo: o "Antes"
+precisa gerar a lição e o "Depois" não pode gerar nenhuma. Toda kata precisa de um guia.
 
 ## Famílias e o caminho natural de evolução
 

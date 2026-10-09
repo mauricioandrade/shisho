@@ -125,8 +125,11 @@ class TerminalReportWriterTest {
                 lesson("field-injection", Severity.GRAVE, 14, "a"),
                 lesson("field-injection", Severity.GRAVE, 20, "b")), List.of());
         KataGuide guide = new KataGuide("field-injection",
+                List.of("O objeto nasce `completo`.", "E o teste não precisa de Spring."),
+                List.of("Em testes."),
                 new Snippet("java", "@Autowired\nprivate Service service;", ""),
-                new Snippet("java", "private final Service service;\n\nApp(Service service) {}", "O construtor declara a `dependência`."));
+                new Snippet("java", "private final Service service;\n\nApp(Service service) {}", "O construtor declara a `dependência`."),
+                List.of("https://docs.spring.io/a", "https://example.com/b"));
 
         assertThat(render(analysis, PORTUGUESE, List.of(guide))).contains("""
 

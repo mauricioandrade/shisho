@@ -206,8 +206,9 @@ class SarifReportWriterTest {
 
     @Test
     void givesEachRuleTheExampleAsHelp() {
-        KataGuide guide = new KataGuide("system-out",
-                new Snippet("java", "System.out.println(x);", ""), new Snippet("java", "log.info(\"{}\", x);", "Use um logger."));
+        KataGuide guide = new KataGuide("system-out", List.of("O console não tem nível."), List.of("Numa CLI."),
+                new Snippet("java", "System.out.println(x);", ""), new Snippet("java", "log.info(\"{}\", x);", "Use um logger."),
+                List.of("https://openjdk.org/jeps/264"));
         ByteArrayOutputStream buffer = new ByteArrayOutputStream();
         new SarifReportWriter(new PrintStream(buffer, true, StandardCharsets.UTF_8), new Messages(Messages.DEFAULT_LOCALE),
                 List.of(guide), "1.2.3", WORKSPACE).write(analysis(WORKSPACE, List.of(

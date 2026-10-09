@@ -28,4 +28,17 @@ class PackagePatternTest {
         assertThat(pattern.bindings("controller")).isEmpty();
         assertThat(pattern.bindings("com.shop.order.service")).isEmpty();
     }
+
+    @Test
+    void matchesAClassSegmentBySuffixOnlyAtTheEndOfAQualifiedClassName() {
+        PackagePattern pattern = PackagePattern.parse("<feature>/*Controller");
+
+        assertThat(pattern.isClassPattern()).isTrue();
+        assertThat(pattern.bindings("com.shop.order.OrderController")).contains(List.of("order"));
+        assertThat(pattern.bindings("com.shop.order.controller.OrderController")).contains(List.of("controller"));
+        assertThat(pattern.bindings("com.shop.order.OrderService")).isEmpty();
+        assertThat(pattern.bindings("com.shop.order.Controller")).isEmpty();
+        assertThat(pattern.bindings("com.shop.OrderController.inner")).isEmpty();
+        assertThat(PackagePattern.parse("domain/model").isClassPattern()).isFalse();
+    }
 }

@@ -40,8 +40,11 @@ public final class ClassifyArchitectureService implements ClassifyArchitecture {
     @Override
     public Optional<ArchitectureMatch> classify(ProjectModel project, Optional<ProjectContext> context) {
         Set<String> packages = project.classes().stream().map(ClassUnit::packageName).collect(Collectors.toSet());
+        Set<String> classNames = project.classes().stream()
+                .map(unit -> unit.packageName().isEmpty() ? unit.name() : unit.packageName() + "." + unit.name())
+                .collect(Collectors.toSet());
         return catalog.architectures().stream()
-                .map(architecture -> new Candidate(architecture, signals(architecture.signature(), packages, project)))
+                .map(architecture -> new Candidate(architecture, signals(architecture.signature(), packages, classNames, project)))
                 .filter(candidate -> candidate.signals().size() >= candidate.architecture().signature().minimumSignals())
                 .min(Comparator.comparingInt((Candidate candidate) -> -candidate.confidence())
                         .thenComparingInt(candidate -> -candidate.signals().size())
@@ -51,9 +54,11 @@ public final class ClassifyArchitectureService implements ClassifyArchitecture {
                         judge.judge(candidate.architecture(), project, context)));
     }
 
-    private static List<String> signals(Signature signature, Set<String> packages, ProjectModel project) {
+    private static List<String> signals(Signature signature, Set<String> packages, Set<String> classNames, ProjectModel project) {
         return Stream.concat(
-                        signature.packages().stream().filter(pattern -> occurs(PackagePattern.parse(pattern), packages)),
+                        signature.packages().stream().map(PackagePattern::parse)
+                                .filter(pattern -> occurs(pattern, pattern.isClassPattern() ? classNames : packages))
+                                .map(pattern -> String.join("/", pattern.segments())),
                         signature.annotations().stream().filter(marker -> occurs(marker, project)))
                 .toList();
     }
@@ -67,11 +72,12 @@ public final class ClassifyArchitectureService implements ClassifyArchitecture {
         }
     }
 
-    private static boolean occurs(PackagePattern pattern, Set<String> packages) {
+    /** {@code names}: the project's packages, or its qualified class names for a class pattern. */
+    private static boolean occurs(PackagePattern pattern, Set<String> names) {
         if (!pattern.hasPlaceholder()) {
-            return packages.stream().anyMatch(pattern::matches);
+            return names.stream().anyMatch(pattern::matches);
         }
-        long distinctBindings = packages.stream().flatMap(name -> pattern.bindings(name).stream()).distinct().count();
+        long distinctBindings = names.stream().flatMap(name -> pattern.bindings(name).stream()).distinct().count();
         return distinctBindings >= MINIMUM_PLACEHOLDER_BINDINGS;
     }
 

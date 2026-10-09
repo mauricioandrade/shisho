@@ -30,7 +30,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 class ClassifyArchitectureServiceTest {
 
     private static final ArchitectureProfile LAYERED = architecture("layered", 3, List.of("controller", "service", "repository", "dto"), List.of());
-    private static final ArchitectureProfile BY_FEATURE = architecture("by-feature", 2, List.of("<feature>/controller", "<feature>/service"), List.of());
+    private static final ArchitectureProfile BY_FEATURE = architecture("by-feature", 2,
+            List.of("<feature>/*Controller", "<feature>/*Service", "<feature>/controller", "<feature>/service"), List.of());
     private static final ArchitectureProfile EVENTS = architecture("events", 2, List.of("events"),
             List.of("@KafkaListener", "spring-kafka", "org.axonframework", "broker_externo_no_mesmo_servico"));
 
@@ -77,7 +78,24 @@ class ClassifyArchitectureServiceTest {
         ArchitectureMatch match = classify(project(
                 "shop.order.controller", "shop.order.service", "shop.user.controller", "shop.user.service")).orElseThrow();
         assertThat(match.architecture()).isEqualTo(BY_FEATURE);
-        assertThat(match.confidence()).isEqualTo(100);
+        assertThat(match.signals()).containsExactly("<feature>/controller", "<feature>/service");
+    }
+
+    @Test
+    void recognizesFlatFeaturePackagesByTheirClassNames() {
+        assertThat(classify(classes("shop.order.OrderController", "shop.order.OrderService"))).isEmpty();
+
+        ArchitectureMatch match = classify(classes("shop.order.OrderController", "shop.order.OrderService",
+                "shop.user.UserController", "shop.user.UserService")).orElseThrow();
+        assertThat(match.architecture()).isEqualTo(BY_FEATURE);
+        assertThat(match.signals()).containsExactly("<feature>/*Controller", "<feature>/*Service");
+    }
+
+    @Test
+    void classPatternsDoNotMistakeLayersForFeatures() {
+        assertThat(classify(classes("shop.controller.OrderController", "shop.controller.UserController",
+                "shop.service.OrderService", "shop.service.UserService", "shop.repository.OrderRepository")))
+                .hasValueSatisfying(match -> assertThat(match.architecture()).isEqualTo(LAYERED));
     }
 
     @Test
@@ -105,6 +123,15 @@ class ClassifyArchitectureServiceTest {
     private static ProjectModel project(String... packages) {
         List<ClassUnit> classes = Arrays.stream(packages)
                 .map(name -> new ClassUnit(Path.of(name + "/C.java"), name, "C", ClassUnit.Kind.CLASS, 1,
+                        List.of(), List.of(), List.of(), List.of(), List.of(), List.of()))
+                .toList();
+        return new ProjectModel(new JavaVersion(21), Optional.empty(), classes);
+    }
+
+    private static ProjectModel classes(String... qualifiedNames) {
+        List<ClassUnit> classes = Arrays.stream(qualifiedNames)
+                .map(name -> new ClassUnit(Path.of(name.replace('.', '/') + ".java"), name.substring(0, name.lastIndexOf('.')),
+                        name.substring(name.lastIndexOf('.') + 1), ClassUnit.Kind.CLASS, 1,
                         List.of(), List.of(), List.of(), List.of(), List.of(), List.of()))
                 .toList();
         return new ProjectModel(new JavaVersion(21), Optional.empty(), classes);

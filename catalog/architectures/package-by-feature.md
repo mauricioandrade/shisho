@@ -3,10 +3,11 @@ id: package-by-feature
 nome: Pacotes por funcionalidade (Package by Feature)
 familia: simples
 assinatura:
-  pacotes: ["<feature>/controller", "<feature>/service", "<feature>/repository"]
+  # Plano (usuario/UsuarioController) ou com subpacotes (usuario/controller/...):
+  # pacotes com nomes de domínio contendo classes de papéis técnicos diferentes.
+  pacotes: ["<feature>/*Controller", "<feature>/*Service", "<feature>/*Repository",
+            "<feature>/controller", "<feature>/service", "<feature>/repository"]
   minimo_sinais: 2
-  # Detecção: pacotes de primeiro nível com nomes de domínio (usuario, pedido...)
-  # contendo classes de papéis técnicos diferentes.
 regras_dependencia:
   - de: "<feature>"
     nao_pode_depender_de: ["<outra-feature>/repository", "<outra-feature>/entity"]

@@ -32,6 +32,10 @@ Detalhes e motivos em [`docs/adr/0002-architecture-classification.md`](../docs/a
 
 - **Padrão de pacote** (`pacotes`, `de`, `nao_pode_depender_de`): segmentos separados por `/`
   que aparecem consecutivos no nome do pacote. `domain/model` casa com `dev.app.domain.model`.
+- **Sufixo de classe** (`*Controller`, só como último segmento): o padrão é aplicado ao nome
+  qualificado das classes, e não ao pacote. `<feature>/*Controller` casa com
+  `com.loja.usuario.UsuarioController`: a classe termina em `Controller` e está direto no
+  pacote `usuario`.
 - **Placeholder** (`<feature>`, `<modulo>`): qualquer segmento. Na assinatura, só conta com
   pelo menos dois valores diferentes (duas features, dois módulos). Regras com placeholder ou
   qualificador (`banco:`, `codigo:`, `ciclo:`) ainda não são checadas.

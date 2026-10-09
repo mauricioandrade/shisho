@@ -7,7 +7,9 @@ import java.util.Optional;
 /**
  * A package pattern from the catalog, such as {@code domain/model} or {@code <feature>/controller}:
  * segments separated by {@code /} that must appear consecutively in a package name, where a
- * {@code <placeholder>} stands for any one segment.
+ * {@code <placeholder>} stands for any one segment. A pattern ending in a class segment, such as
+ * {@code <feature>/*Controller}, is matched against qualified class names instead and must end at
+ * the class: {@code *Controller} stands for a class name ending in {@code Controller}.
  */
 public record PackagePattern(List<String> segments) {
 
@@ -19,6 +21,11 @@ public record PackagePattern(List<String> segments) {
         return new PackagePattern(List.of(pattern.split("/")));
     }
 
+    /** Whether the pattern ends in a class segment ({@code *Controller}), matched against qualified class names. */
+    public boolean isClassPattern() {
+        return isClassSegment(segments.getLast());
+    }
+
     public boolean hasPlaceholder() {
         return segments.stream().anyMatch(PackagePattern::isPlaceholder);
     }
@@ -27,10 +34,14 @@ public record PackagePattern(List<String> segments) {
         return bindings(packageName).isPresent();
     }
 
-    /** The segments bound to the placeholders where the pattern first occurs, or empty if it does not occur. */
-    public Optional<List<String>> bindings(String packageName) {
-        List<String> names = List.of(packageName.split("\\."));
-        for (int start = 0; start + segments.size() <= names.size(); start++) {
+    /**
+     * The segments bound to the placeholders where the pattern first occurs, or empty if it does
+     * not occur. {@code name} is a package name, or a qualified class name for a class pattern.
+     */
+    public Optional<List<String>> bindings(String name) {
+        List<String> names = List.of(name.split("\\."));
+        int first = isClassPattern() ? Math.max(0, names.size() - segments.size()) : 0;
+        for (int start = first; start + segments.size() <= names.size(); start++) {
             Optional<List<String>> bound = bindingsAt(names, start);
             if (bound.isPresent()) {
                 return bound;
@@ -46,11 +57,20 @@ public record PackagePattern(List<String> segments) {
             String actual = names.get(start + i);
             if (isPlaceholder(expected)) {
                 bound.add(actual);
+            } else if (isClassSegment(expected)) {
+                String suffix = expected.substring(1);
+                if (!actual.endsWith(suffix) || actual.length() == suffix.length()) {
+                    return Optional.empty();
+                }
             } else if (!expected.equals(actual)) {
                 return Optional.empty();
             }
         }
         return Optional.of(bound);
+    }
+
+    private static boolean isClassSegment(String segment) {
+        return segment.startsWith("*");
     }
 
     private static boolean isPlaceholder(String segment) {

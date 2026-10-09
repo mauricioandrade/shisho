@@ -21,7 +21,7 @@ import java.util.List;
  */
 public final class TerminalReportWriter implements ReportWriter {
 
-    private static final int WIDTH = 100;
+    public static final int WIDTH = 100;
     private static final String EVIDENCE_BULLET = "  · ";
     private static final String EVIDENCE_INDENT = "    ";
     private static final String EXAMPLE_LABEL_INDENT = "  ";
@@ -131,7 +131,8 @@ public final class TerminalReportWriter implements ReportWriter {
         return text + " ".repeat(Math.max(0, width - text.length()));
     }
 
-    private static List<String> wrap(String text, int width) {
+    /** Splits {@code text} into lines of at most {@code width} characters, breaking only between words. */
+    public static List<String> wrap(String text, int width) {
         List<String> lines = new ArrayList<>();
         StringBuilder line = new StringBuilder();
         for (String word : text.split(" ")) {

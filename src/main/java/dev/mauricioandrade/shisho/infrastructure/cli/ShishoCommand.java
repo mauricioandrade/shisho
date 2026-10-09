@@ -17,13 +17,17 @@ public final class ShishoCommand implements Runnable {
         spec.commandLine().usage(spec.commandLine().getOut());
     }
 
-    /** {@code Implementation-Version} from the jar manifest; absent when running from classes. */
+    /** {@code Implementation-Version} from the jar manifest; {@code dev} when running from classes. */
+    public static String version() {
+        String version = ShishoCommand.class.getPackage().getImplementationVersion();
+        return version == null ? "dev" : version;
+    }
+
     static final class ManifestVersion implements IVersionProvider {
 
         @Override
         public String[] getVersion() {
-            String version = ShishoCommand.class.getPackage().getImplementationVersion();
-            return new String[] {"Shishō " + (version == null ? "dev" : version)};
+            return new String[] {"Shishō " + version()};
         }
     }
 }

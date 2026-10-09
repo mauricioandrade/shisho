@@ -102,6 +102,7 @@ public final class AnalyzeProjectService implements AnalyzeProject {
 
         int score = rankCalculator.score(lessons);
         return new Analysis(
+                projectRoot,
                 projectName(projectRoot), javaVersion, declaredVersion.isPresent(), architecture, lessons, unparseable, score, Rank.forScore(score));
     }
 

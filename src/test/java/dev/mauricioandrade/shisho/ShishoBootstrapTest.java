@@ -94,6 +94,29 @@ class ShishoBootstrapTest {
     }
 
     @Test
+    void writesSarifToAFileAndKeepsTheExitCode(@TempDir Path directory) throws IOException {
+        Path sarif = directory.resolve("shisho.sarif");
+
+        assertThat(run("analyze", "--format", "SARIF", "--output", sarif.toString(), FIXTURES + "aluno-baguncado")).isEqualTo(1);
+        assertThat(out()).isEmpty();
+        assertThat(Files.readString(sarif))
+                .startsWith("{\n  \"$schema\": \"https://json.schemastore.org/sarif-2.1.0.json\"")
+                .contains("\"uri\": \"src/test/resources/fixtures/aluno-baguncado/src/main/java/com/exemplo/loja/controller/UsuarioController.java\"")
+                .contains("\"ruleId\": \"dependency-rule\"");
+    }
+
+    @Test
+    void exitsWithTwoForAnUnknownFormatOrAnUnwritableOutput(@TempDir Path directory) {
+        assertThat(run("analyze", "--format", "pdf", FIXTURES + "aluno-exemplar")).isEqualTo(2);
+        assertThat(err()).contains("--format");
+
+        err.reset();
+        Path unwritable = directory.resolve("nao/existe/shisho.sarif");
+        assertThat(run("analyze", "--output", unwritable.toString(), FIXTURES + "aluno-exemplar")).isEqualTo(2);
+        assertThat(err()).isEqualTo("Não foi possível gravar o relatório em " + unwritable + ".\n");
+    }
+
+    @Test
     void showsUsageInPortugueseWithoutArguments() {
         assertThat(run()).isZero();
         assertThat(out()).startsWith("Uso: shisho").contains("Comandos:", "analyze");

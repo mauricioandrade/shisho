@@ -8,11 +8,13 @@ import dev.mauricioandrade.shisho.infrastructure.build.MavenBuildFileReader;
 import dev.mauricioandrade.shisho.infrastructure.catalog.MarkdownCatalogRepository;
 import dev.mauricioandrade.shisho.infrastructure.detector.Detectors;
 import dev.mauricioandrade.shisho.infrastructure.cli.AnalyzeCommand;
+import dev.mauricioandrade.shisho.infrastructure.cli.ReportWriterFactory;
 import dev.mauricioandrade.shisho.infrastructure.cli.ShishoCommand;
 import dev.mauricioandrade.shisho.infrastructure.config.YamlProjectConfigReader;
 import dev.mauricioandrade.shisho.infrastructure.i18n.Messages;
 import dev.mauricioandrade.shisho.infrastructure.kata.Katas;
 import dev.mauricioandrade.shisho.infrastructure.parser.JavaParserSourceParser;
+import dev.mauricioandrade.shisho.infrastructure.report.SarifReportWriter;
 import dev.mauricioandrade.shisho.infrastructure.report.TerminalReportWriter;
 import picocli.CommandLine;
 
@@ -22,6 +24,7 @@ import java.io.OutputStream;
 import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
 
 /** Composition root: builds the object graph by hand and runs the command line. */
 public final class ShishoBootstrap {
@@ -47,9 +50,15 @@ public final class ShishoBootstrap {
                 new ClassifyArchitectureService(MarkdownCatalogRepository.bundled(), Detectors.all()),
                 new RankCalculator());
 
+        ReportWriterFactory reportWriters = (format, destination) -> switch (format) {
+            case TERMINAL -> new TerminalReportWriter(destination, messages);
+            case SARIF -> new SarifReportWriter(destination, messages, ShishoCommand.version(), Path.of(""));
+        };
+
         CommandLine commandLine = new CommandLine(new ShishoCommand())
-                .addSubcommand(new AnalyzeCommand(analyzeProject, new TerminalReportWriter(out, messages), messages, err));
+                .addSubcommand(new AnalyzeCommand(analyzeProject, reportWriters, messages, out, err));
         commandLine.setResourceBundle(messages.bundle());
+        commandLine.setCaseInsensitiveEnumValuesAllowed(true);
         commandLine.setOut(new PrintWriter(out, true));
         commandLine.setErr(new PrintWriter(err, true));
         return commandLine.execute(args);

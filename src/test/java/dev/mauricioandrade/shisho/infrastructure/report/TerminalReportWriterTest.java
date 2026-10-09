@@ -184,7 +184,7 @@ class TerminalReportWriterTest {
 
     private static Analysis analysis(boolean versionDeclared, List<Lesson> lessons, List<SourceFile.Unparseable> unparseable) {
         int score = new RankCalculator().score(lessons);
-        return new Analysis("loja", new JavaVersion(21), versionDeclared, Optional.empty(), lessons, unparseable, score, Rank.forScore(score));
+        return new Analysis(Path.of("loja"), "loja", new JavaVersion(21), versionDeclared, Optional.empty(), lessons, unparseable, score, Rank.forScore(score));
     }
 
     private static Analysis withArchitecture(Verdict verdict) {
@@ -194,7 +194,7 @@ class TerminalReportWriterTest {
                 List.of(), List.of(), List.of(), Optional.of("package-by-feature"), List.of(), "");
         ArchitectureMatch match = new ArchitectureMatch(
                 clean, List.of("domain", "application", "usecase", "domain/model"), 67, List.of(), verdict);
-        return new Analysis("loja", new JavaVersion(21), true, Optional.of(match), List.of(), List.of(), 100, Rank.DAN_1);
+        return new Analysis(Path.of("loja"), "loja", new JavaVersion(21), true, Optional.of(match), List.of(), List.of(), 100, Rank.DAN_1);
     }
 
     private static Lesson lesson(String kata, Severity severity, int line, String argument) {

@@ -55,11 +55,13 @@ class TerminalReportWriterTest {
                 Arquitetura: nenhuma do catálogo reconhecida
 
                 ✗ GRAVE  [field-injection]             UsuarioController.java:14
-                         Injeção em campo em usuarioService. Use construtor explícito com private final: a
-                         dependência fica visível e o objeto, imutável.
+                         usuarioService é injetado direto no campo. Assim, new cria a classe sem a dependência, o
+                         erro só aparece como NullPointerException em uso e o teste precisa de Spring ou reflexão.
+                         Receba a dependência pelo construtor, num campo private final.
                 ! MEDIA  [request-body-without-valid]  UsuarioController.java:1234
-                         @RequestBody CriarUsuarioRequest sem @Valid: as anotações de validação do DTO nunca são
-                         verificadas.
+                         @RequestBody CriarUsuarioRequest sem @Valid: as anotações de validação do DTO são
+                         ignoradas, e dados inválidos chegam ao service como se fossem válidos. Adicione @Valid
+                         antes do @RequestBody.
 
                 Graduação: 1º kyū  (2 lições: 1 grave, 1 média, 0 leves)
                 """);
@@ -191,8 +193,8 @@ class TerminalReportWriterTest {
                 Architecture: none from the catalog recognized
 
                 · MINOR   [dto-not-record]  UsuarioController.java:3
-                          UsuarioRequest looks like a DTO but is not a record. A record is immutable and removes
-                          hand-written getters, equals and hashCode.
+                          UsuarioRequest looks like a DTO but is not a record. As a record it becomes immutable and
+                          drops the hand-written constructor, getters, equals, hashCode and toString.
 
                 Rank: 1st dan  (1 lesson: 0 severe, 0 medium, 1 minor)
                 """);

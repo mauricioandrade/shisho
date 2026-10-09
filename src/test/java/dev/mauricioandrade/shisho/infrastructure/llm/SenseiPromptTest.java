@@ -89,9 +89,9 @@ class SenseiPromptTest {
                 ### GRAVE: 5 lições, cada uma tira 10 pontos
 
                 - [field-injection] Injeção de dependência em campo: 5 lições
-                  - Loja.java:1: Injeção em campo em dependencia1. Use construtor explícito com private final: a dependência fica visível e o objeto, imutável.
-                  - Loja.java:2: Injeção em campo em dependencia2. Use construtor explícito com private final: a dependência fica visível e o objeto, imutável.
-                  - Loja.java:3: Injeção em campo em dependencia3. Use construtor explícito com private final: a dependência fica visível e o objeto, imutável.
+                  - Loja.java:1: dependencia1 é injetado direto no campo. Assim, new cria a classe sem a dependência, o erro só aparece como NullPointerException em uso e o teste precisa de Spring ou reflexão. Receba a dependência pelo construtor, num campo private final.
+                  - Loja.java:2: dependencia2 é injetado direto no campo. Assim, new cria a classe sem a dependência, o erro só aparece como NullPointerException em uso e o teste precisa de Spring ou reflexão. Receba a dependência pelo construtor, num campo private final.
+                  - Loja.java:3: dependencia3 é injetado direto no campo. Assim, new cria a classe sem a dependência, o erro só aparece como NullPointerException em uso e o teste precisa de Spring ou reflexão. Receba a dependência pelo construtor, num campo private final.
                   - e mais 2 lições desta kata.
 
                 ### LEVE: 1 lição, cada uma tira 1 ponto

@@ -48,11 +48,13 @@ $ shisho analyze ./clareza-api
 Arquitetura: Camadas técnicas (Layered)  (83% da assinatura: controller, service, repository, model, dto)
 
 ✗ GRAVE  [field-injection]             UsuarioController.java:14
-         Injeção em campo em usuarioService. Use construtor explícito com private final: a
-         dependência fica visível e o objeto, imutável.
+         usuarioService é injetado direto no campo. Assim, new cria a classe sem a dependência, o
+         erro só aparece como NullPointerException em uso e o teste precisa de Spring ou reflexão.
+         Receba a dependência pelo construtor, num campo private final.
 ! MEDIA  [request-body-without-valid]  PedidoController.java:27
-         @RequestBody CriarPedidoRequest sem @Valid: as anotações de validação do DTO nunca são
-         verificadas.
+         @RequestBody CriarPedidoRequest sem @Valid: as anotações de validação do DTO são ignoradas,
+         e dados inválidos chegam ao service como se fossem válidos. Adicione @Valid antes do
+         @RequestBody.
 ! MEDIA  [entity-in-controller]        PedidoController.java:31
          O endpoint buscar() expõe a entidade JPA Pedido na API. Use records de request/response: o
          esquema do banco deixa de ser o contrato da API, campos internos não vazam e o cliente não
@@ -87,25 +89,28 @@ Cada lição desconta pontos. A nota final vira uma faixa:
 
 ## Katas
 
-| Kata | Severidade | O que aponta |
-|---|---|---|
-| `field-injection` | GRAVE | `@Autowired`/`@Inject` em campo |
-| `lombok-constructor` | MEDIA | `@RequiredArgsConstructor`/`@AllArgsConstructor` escondendo as dependências |
-| `non-final-dependency` | MEDIA | dependência injetada sem `final` |
-| `system-out` | MEDIA | `System.out`, `System.err`, `printStackTrace()` |
-| `request-body-without-valid` | MEDIA | `@RequestBody` sem `@Valid` |
-| `entity-in-controller` | MEDIA | endpoint que recebe ou devolve uma `@Entity` JPA |
-| `missing-controller-advice` | MEDIA | controllers sem nenhum `@RestControllerAdvice` no projeto |
-| `avoided-dependency` | MEDIA | dependência que o próprio projeto declarou abandonada, substituída ou movida (Log4j 1, Springfox, Joda-Time... ver [`catalog/dependencies`](catalog/dependencies)) |
-| `value-outside-constructor` | LEVE | `@Value` fora de parâmetro de construtor |
-| `dto-not-record` | LEVE | DTO (por pacote ou sufixo) que não é record |
-| `transactional-read-only` | LEVE | método de leitura (`find…`, `buscar…`) numa transação de escrita |
-| `configuration-properties-not-record` | LEVE | `@ConfigurationProperties` numa classe com setters |
-| `prefer-configuration-properties` | LEVE | 3 ou mais `@Value` com o mesmo prefixo na mesma classe |
-| `missing-actuator` | LEVE | aplicação web sem `spring-boot-starter-actuator` |
-| `missing-springdoc` | INFO | aplicação web sem springdoc-openapi (só sugestão, não tira nota) |
-| `prefer-virtual-threads` | INFO | `Executors.newFixedThreadPool`/`newCachedThreadPool`: virtual threads para I/O (Java 21) |
-| `prefer-scoped-values` | INFO | campo `ThreadLocal`: `ScopedValue` para contexto (Java 25) |
+| Kata | Severidade | O que aponta | Por que importa |
+|---|---|---|---|
+| `field-injection` | GRAVE | `@Autowired`/`@Inject` em campo | `new` cria o objeto incompleto, e o teste precisa de Spring |
+| `lombok-constructor` | MEDIA | `@RequiredArgsConstructor`/`@AllArgsConstructor` | as dependências somem do código, e a décima entra sem ninguém notar |
+| `non-final-dependency` | MEDIA | dependência injetada sem `final` | qualquer método pode trocá-la depois da construção |
+| `system-out` | MEDIA | `System.out`, `System.err`, `printStackTrace()` | sem nível nem horário, e fora do agregador de logs |
+| `request-body-without-valid` | MEDIA | `@RequestBody` sem `@Valid` | a validação do DTO é ignorada, e dado inválido chega ao service |
+| `entity-in-controller` | MEDIA | endpoint que recebe ou devolve uma `@Entity` JPA | o banco vira o contrato da API, e campos internos vazam |
+| `missing-controller-advice` | MEDIA | controllers sem nenhum `@RestControllerAdvice` | cada endpoint trata (ou esquece) os próprios erros |
+| `avoided-dependency` | MEDIA | dependência abandonada, substituída ou movida (Log4j 1, Springfox, Joda-Time... ver [`catalog/dependencies`](catalog/dependencies)) | sem correções de segurança, ou já substituída pelo próprio projeto |
+| `value-outside-constructor` | LEVE | `@Value` fora de parâmetro de construtor | o valor chega por reflexão, e um teste com `new` fica sem ele |
+| `dto-not-record` | LEVE | DTO (por pacote ou sufixo) que não é record | getters, `equals` e `hashCode` escritos à mão, e mutável |
+| `transactional-read-only` | LEVE | método de leitura (`find…`, `buscar…`) numa transação de escrita | o Hibernate faz dirty checking à toa |
+| `configuration-properties-not-record` | LEVE | `@ConfigurationProperties` numa classe com setters | a configuração pode ser alterada depois de carregada |
+| `prefer-configuration-properties` | LEVE | 3 ou mais `@Value` com o mesmo prefixo na mesma classe | propriedades soltas, sem tipo nem validação num lugar só |
+| `missing-actuator` | LEVE | aplicação web sem `spring-boot-starter-actuator` | sem health check, o orquestrador não sabe se a aplicação está viva |
+| `missing-springdoc` | INFO | aplicação web sem springdoc-openapi | quem consome a API não tem contrato nem Swagger UI |
+| `prefer-virtual-threads` | INFO | `Executors.newFixedThreadPool`/`newCachedThreadPool` (Java 21) | para I/O, virtual threads dispensam dimensionar pool |
+| `prefer-scoped-values` | INFO | campo `ThreadLocal` (Java 25) | `ScopedValue` não vaza entre tarefas e não precisa de `remove()` |
+
+As sugestões (INFO) não tiram nota. Com `--sensei`, cada lição vem com a explicação completa, os
+casos em que o código acusado é aceitável e o exemplo antes/depois.
 
 Cada projeto tem suas razões. Um `shisho.yaml` na raiz do projeto analisado desliga katas ou
 muda a severidade delas:

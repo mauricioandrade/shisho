@@ -132,7 +132,7 @@ class SarifReportWriterTest {
                           "ruleId": "field-injection",
                           "level": "error",
                           "message": {
-                            "text": "Injeção em campo em service. Use construtor explícito com private final: a dependência fica visível e o objeto, imutável."
+                            "text": "service é injetado direto no campo. Assim, new cria a classe sem a dependência, o erro só aparece como NullPointerException em uso e o teste precisa de Spring ou reflexão. Receba a dependência pelo construtor, num campo private final."
                           },
                           "locations": [
                             {
@@ -155,7 +155,7 @@ class SarifReportWriterTest {
                           "ruleId": "field-injection",
                           "level": "error",
                           "message": {
-                            "text": "Injeção em campo em clock. Use construtor explícito com private final: a dependência fica visível e o objeto, imutável."
+                            "text": "clock é injetado direto no campo. Assim, new cria a classe sem a dependência, o erro só aparece como NullPointerException em uso e o teste precisa de Spring ou reflexão. Receba a dependência pelo construtor, num campo private final."
                           },
                           "locations": [
                             {

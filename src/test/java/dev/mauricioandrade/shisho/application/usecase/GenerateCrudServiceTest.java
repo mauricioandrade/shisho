@@ -86,6 +86,34 @@ class GenerateCrudServiceTest {
     }
 
     @Test
+    void checksTheCostOfAnArchitectureBeingChosen(@TempDir Path project) throws IOException {
+        copy("initializr", project);
+
+        assertThat(service.plan(project, request(Optional.of("layered"))).cost()).as("a simple architecture").isEmpty();
+        assertThat(service.plan(project, request(Optional.of("hexagonal"))).cost())
+                .hasValueSatisfying(cost -> assertThat(cost.paid()).as("no context declared").isFalse());
+
+        Files.writeString(project.resolve("shisho.yaml"), """
+                contexto:
+                  tipo: produto
+                  caracteristicas: [dominio_com_regras_complexas]
+                """);
+        assertThat(service.plan(project, request(Optional.of("hexagonal"))).cost())
+                .hasValueSatisfying(cost -> assertThat(cost.paidBy()).containsExactly("dominio_com_regras_complexas"));
+    }
+
+    @Test
+    void aProjectThatAlreadyFollowsTheArchitectureMadeTheDecision(@TempDir Path project) throws IOException {
+        copy("initializr", project);
+        service.plan(project, request("Pedido", Optional.of("hexagonal"))).files().forEach(file -> write(project, file));
+
+        CrudPlan produto = service.plan(project, request("Produto", Optional.empty()));
+
+        assertThat(produto.architecture().id()).isEqualTo("hexagonal");
+        assertThat(produto.cost()).isEmpty();
+    }
+
+    @Test
     void asksForAnArchitectureItCannotRecognize() {
         assertThatExceptionOfType(ScaffoldException.class)
                 .isThrownBy(() -> service.plan(FIXTURES.resolve("initializr"), request(Optional.empty())))

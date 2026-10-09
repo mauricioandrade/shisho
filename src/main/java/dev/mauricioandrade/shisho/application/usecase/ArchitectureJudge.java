@@ -36,9 +36,7 @@ final class ArchitectureJudge {
         if (!under.isEmpty()) {
             return new Verdict.Underengineering(under, architecture.evolvesTo());
         }
-        List<String> justifications = architecture.makesSenseWhen().stream()
-                .filter(key -> context.map(declared -> declared.keys().contains(key)).orElse(false))
-                .toList();
+        List<String> justifications = architecture.justifiedBy(context);
         boolean unjustified = context.isPresent()
                 && architecture.cost().complexity() != Complexity.LOW
                 && justifications.isEmpty();

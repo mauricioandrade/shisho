@@ -31,6 +31,11 @@ public record ArchitectureProfile(
         references = List.copyOf(references);
     }
 
+    /** The declared context keys that pay for this architecture's cost. */
+    public List<String> justifiedBy(Optional<ProjectContext> context) {
+        return makesSenseWhen.stream().filter(key -> context.map(declared -> declared.keys().contains(key)).orElse(false)).toList();
+    }
+
     public enum Family { SIMPLE, MODULAR, DOMAIN_ISOLATION, DISTRIBUTED }
 
     public enum Complexity { LOW, MEDIUM, HIGH }

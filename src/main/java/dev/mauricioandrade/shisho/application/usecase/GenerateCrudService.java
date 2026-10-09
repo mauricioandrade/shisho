@@ -4,11 +4,13 @@ import dev.mauricioandrade.shisho.application.usecase.ProjectLoader.LoadedProjec
 import dev.mauricioandrade.shisho.domain.exception.ScaffoldException;
 import dev.mauricioandrade.shisho.domain.model.ArchitectureMatch;
 import dev.mauricioandrade.shisho.domain.model.ArchitectureProfile;
+import dev.mauricioandrade.shisho.domain.model.ArchitectureProfile.Complexity;
 import dev.mauricioandrade.shisho.domain.model.ClassUnit;
 import dev.mauricioandrade.shisho.domain.model.CrudPlan;
 import dev.mauricioandrade.shisho.domain.model.CrudRequest;
 import dev.mauricioandrade.shisho.domain.model.Dependency;
 import dev.mauricioandrade.shisho.domain.model.GeneratedFile;
+import dev.mauricioandrade.shisho.domain.model.ProjectContext;
 import dev.mauricioandrade.shisho.domain.model.ProjectModel;
 import dev.mauricioandrade.shisho.domain.model.Scaffold;
 import dev.mauricioandrade.shisho.domain.port.in.ClassifyArchitecture;
@@ -56,7 +58,8 @@ public final class GenerateCrudService implements GenerateCrud {
     public CrudPlan plan(Path projectRoot, CrudRequest request) {
         LoadedProject loaded = projectLoader.load(projectRoot, config -> { });
         ProjectModel project = loaded.model();
-        Optional<ArchitectureProfile> detected = classifyArchitecture.classify(project, loaded.config().context())
+        Optional<ProjectContext> context = loaded.config().context();
+        Optional<ArchitectureProfile> detected = classifyArchitecture.classify(project, context)
                 .map(ArchitectureMatch::architecture);
 
         Scaffold scaffold = scaffold(request, detected);
@@ -76,7 +79,17 @@ public final class GenerateCrudService implements GenerateCrud {
         }
         return new CrudPlan(architecture, files, skipped,
                 detected.filter(other -> !other.id().equals(architecture.id())),
-                missingDependencies(scaffold, project));
+                missingDependencies(scaffold, project), cost(architecture, detected, context));
+    }
+
+    /** Checked only when the architecture is being chosen: a project that already follows it made that decision. */
+    private static Optional<CrudPlan.Cost> cost(ArchitectureProfile architecture, Optional<ArchitectureProfile> detected,
+                                                Optional<ProjectContext> context) {
+        boolean followed = detected.filter(project -> project.id().equals(architecture.id())).isPresent();
+        if (followed || architecture.cost().complexity() == Complexity.LOW) {
+            return Optional.empty();
+        }
+        return Optional.of(new CrudPlan.Cost(architecture.justifiedBy(context)));
     }
 
     private Scaffold scaffold(CrudRequest request, Optional<ArchitectureProfile> detected) {

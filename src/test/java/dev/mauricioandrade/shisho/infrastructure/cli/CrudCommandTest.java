@@ -88,7 +88,7 @@ class CrudCommandTest {
         Files.createDirectories(project.resolve(ENTITY.file()).getParent());
         Files.writeString(project.resolve(ENTITY.file()), "// meu código\n");
         GeneratedFile other = new GeneratedFile(Path.of("src/main/java/app/UsuarioService.java"), "class UsuarioService {}\n", "O service.");
-        CrudPlan plan = new CrudPlan(architecture("layered"), List.of(other, ENTITY), List.of(), Optional.empty(), List.of());
+        CrudPlan plan = new CrudPlan(architecture("layered"), List.of(other, ENTITY), List.of(), Optional.empty(), List.of(), Optional.empty());
 
         assertThat(run(plan, project.toString(), "Usuario", "nome:String")).isEqualTo(2);
 
@@ -134,7 +134,7 @@ class CrudCommandTest {
     }
 
     private CrudPlan plan(Optional<ArchitectureProfile> other, List<List<String>> missing) {
-        return new CrudPlan(architecture("package-by-feature"), List.of(ENTITY), List.of(HANDLER), other, missing);
+        return new CrudPlan(architecture("package-by-feature"), List.of(ENTITY), List.of(HANDLER), other, missing, Optional.empty());
     }
 
     private static ArchitectureProfile architecture(String id) {

@@ -60,6 +60,19 @@
     </dependencies>
 
     <build>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+            </resource>
+            <!-- The catalog ships inside the jar; the repository's catalog/ stays the source of truth -->
+            <resource>
+                <directory>catalog</directory>
+                <targetPath>catalog</targetPath>
+                <includes>
+                    <include>architectures/*.md</include>
+                </includes>
+            </resource>
+        </resources>
         <plugins>
             <!-- One self-contained executable jar: java -jar target/shisho.jar analyze <path> -->
             <plugin>

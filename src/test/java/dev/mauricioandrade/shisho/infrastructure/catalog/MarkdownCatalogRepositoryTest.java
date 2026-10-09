@@ -94,6 +94,11 @@ class MarkdownCatalogRepositoryTest {
         }
 
         @Test
+        void theBundledCatalogIsTheRepositoryCatalog() {
+            assertThat(MarkdownCatalogRepository.bundled().architectures()).isEqualTo(architectures);
+        }
+
+        @Test
         void layeredHasNoSimplerAlternative() {
             assertThat(architectures)
                     .filteredOn(architecture -> architecture.id().equals("layered"))

@@ -15,6 +15,12 @@ import org.yaml.snakeyaml.constructor.SafeConstructor;
 import org.yaml.snakeyaml.error.YAMLException;
 
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.nio.file.FileSystem;
+import java.nio.file.FileSystemAlreadyExistsException;
+import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
@@ -32,11 +38,38 @@ public final class MarkdownCatalogRepository implements CatalogRepository {
     private static final String FRONTMATTER_DELIMITER = "---";
     private static final String EXTENSION = ".md";
     private static final Pattern CLASS_RANGE = Pattern.compile("(\\d+)-(\\d+)");
+    private static final String BUNDLED_CATALOG = "/catalog";
 
     private final Path architecturesDirectory;
 
     public MarkdownCatalogRepository(Path catalogRoot) {
         this.architecturesDirectory = catalogRoot.resolve("architectures");
+    }
+
+    /** The catalog packaged with the Shishō: a directory when run from the build, a folder of the jar otherwise. */
+    public static MarkdownCatalogRepository bundled() {
+        URL catalog = MarkdownCatalogRepository.class.getResource(BUNDLED_CATALOG);
+        if (catalog == null) {
+            throw new CatalogException("catalog.error.read", BUNDLED_CATALOG);
+        }
+        try {
+            URI uri = catalog.toURI();
+            if (!uri.getScheme().equals("jar")) {
+                return new MarkdownCatalogRepository(Path.of(uri));
+            }
+            return new MarkdownCatalogRepository(jarFileSystem(uri).getPath(BUNDLED_CATALOG));
+        } catch (URISyntaxException | IOException e) {
+            throw new CatalogException("catalog.error.read", e, catalog.toString());
+        }
+    }
+
+    /** Opened once and kept open for the life of the process, like the jar itself. */
+    private static FileSystem jarFileSystem(URI uri) throws IOException {
+        try {
+            return FileSystems.newFileSystem(uri, Map.of());
+        } catch (FileSystemAlreadyExistsException e) {
+            return FileSystems.getFileSystem(uri);
+        }
     }
 
     @Override

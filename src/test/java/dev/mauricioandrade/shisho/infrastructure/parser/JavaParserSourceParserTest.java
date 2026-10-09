@@ -47,7 +47,7 @@ class JavaParserSourceParserTest {
             assertThat(files).singleElement().isInstanceOfSatisfying(Parsed.class, parsed -> {
                 ClassUnit fixture = parsed.classes().getFirst();
                 assertThat(fixture.name()).isEqualTo("Java25Fixture");
-                assertThat(fixture.imports()).contains(new Import("java.base", false, false, true));
+                assertThat(fixture.imports()).contains(new Import("java.base", false, false, true, 3));
             });
         }
 
@@ -146,9 +146,9 @@ class JavaParserSourceParserTest {
             assertThat(controller.annotations().get(1).name())
                     .isEqualTo("org.springframework.web.bind.annotation.RequestMapping");
             assertThat(controller.imports()).containsExactly(
-                    new Import("java.util.List", false, false, false),
-                    new Import("java.util.Objects.requireNonNull", true, false, false),
-                    new Import("org.springframework.web.bind.annotation", false, true, false));
+                    new Import("java.util.List", false, false, false, 3),
+                    new Import("java.util.Objects.requireNonNull", true, false, false, 4),
+                    new Import("org.springframework.web.bind.annotation", false, true, false, 5));
             assertThat(classes).extracting(ClassUnit::name, ClassUnit::kind).containsExactly(
                     tuple("UserController", Kind.CLASS),
                     tuple("UserResponse", Kind.RECORD),

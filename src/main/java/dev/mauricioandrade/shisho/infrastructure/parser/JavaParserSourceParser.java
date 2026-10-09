@@ -144,7 +144,11 @@ public final class JavaParserSourceParser implements SourceParser {
         String packageName = unit.getPackageDeclaration().map(NodeWithName::getNameAsString).orElse("");
         List<Import> imports = unit.getImports().stream()
                 .map(declaration -> new Import(
-                        declaration.getNameAsString(), declaration.isStatic(), declaration.isAsterisk(), declaration.isModule()))
+                        declaration.getNameAsString(),
+                        declaration.isStatic(),
+                        declaration.isAsterisk(),
+                        declaration.isModule(),
+                        line(declaration)))
                 .toList();
         List<ClassUnit> classes = new ArrayList<>();
         for (TypeDeclaration<?> type : unit.findAll(TypeDeclaration.class)) {

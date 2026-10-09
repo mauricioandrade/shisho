@@ -58,7 +58,7 @@ public record ClassUnit(
         }
     }
 
-    public record Import(String name, boolean isStatic, boolean isOnDemand, boolean isModule) {
+    public record Import(String name, boolean isStatic, boolean isOnDemand, boolean isModule, int line) {
     }
 
     /** One per declared variable: {@code int a, b;} yields two fields. */

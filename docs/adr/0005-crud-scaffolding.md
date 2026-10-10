@@ -108,7 +108,9 @@ julga o que ele mesmo gera, e um template que sai do padrão quebra o build.
   - o 400 de validação só dizia "Invalid request content.". O `TratadorDeErros` gerado agora lista
     os campos que falharam.
 - Um projeto package-by-feature plano com duas ou mais features passa a ser reconhecido. Com
-  uma feature só, o segundo `crud` precisa de `--arquitetura` de novo.
+  uma feature só, o classificador não distingue a arquitetura. Para o `crud`, isso não importa:
+  ele reconhece um CRUD que ele mesmo gerou pelos caminhos do template (todos os arquivos de uma
+  entidade onde o template os põe), e o segundo `crud` segue a arquitetura sem `--arquitetura`.
 - O schema de `catalog/scaffolds` fica documentado em `catalog/README.md`.
 
 ## 📚 Estudo — scaffolding que ensina

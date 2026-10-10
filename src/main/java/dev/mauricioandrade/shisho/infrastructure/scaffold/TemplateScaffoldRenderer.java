@@ -54,7 +54,7 @@ public final class TemplateScaffoldRenderer implements ScaffoldRenderer {
     @Override
     public List<GeneratedFile> render(Scaffold scaffold, String basePackage, CrudRequest request) {
         check(basePackage, request);
-        Map<String, String> values = values(basePackage, request);
+        Map<String, String> values = values(basePackage, request.entity(), request.route());
         Map<String, List<Map<String, String>>> lists = Map.of(
                 "campos", request.fields().stream().map(TemplateScaffoldRenderer::field).toList(),
                 "importacoes", request.fields().stream().flatMap(field -> TYPES.get(field.type()).stream())
@@ -67,6 +67,18 @@ public final class TemplateScaffoldRenderer implements ScaffoldRenderer {
                         packageDirectory.resolve(Template.render(file.path(), values, lists)),
                         Template.render(file.content(), values, lists),
                         Template.render(file.explanation(), values, lists)))
+                .toList();
+    }
+
+    @Override
+    public List<Path> paths(Scaffold scaffold, String basePackage, String entity) {
+        if (!SourceVersion.isName(basePackage) || !ENTITY.matcher(entity).matches() || !SourceVersion.isName(entity)) {
+            return List.of();
+        }
+        Map<String, String> values = values(basePackage, entity, Optional.empty());
+        Path packageDirectory = SOURCES.resolve(basePackage.replace('.', '/'));
+        return scaffold.files().stream()
+                .map(file -> packageDirectory.resolve(Template.render(file.path(), values, Map.of())))
                 .toList();
     }
 
@@ -97,14 +109,13 @@ public final class TemplateScaffoldRenderer implements ScaffoldRenderer {
         });
     }
 
-    private static Map<String, String> values(String basePackage, CrudRequest request) {
-        String entity = request.entity();
+    private static Map<String, String> values(String basePackage, String entity, Optional<String> route) {
         return Map.of(
                 "pacote", basePackage,
                 "Entidade", entity,
                 "entidade", Character.toLowerCase(entity.charAt(0)) + entity.substring(1),
                 "feature", entity.toLowerCase(Locale.ROOT),
-                "rota", request.route().orElseGet(() -> plural(words(entity, "-"))),
+                "rota", route.orElseGet(() -> plural(words(entity, "-"))),
                 "tabela", plural(words(entity, "_")));
     }
 

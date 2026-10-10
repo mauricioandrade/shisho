@@ -47,10 +47,9 @@ class CrudOracleTest {
 
     @ParameterizedTest
     @MethodSource("scaffolds")
-    void theNextCrudFollowsTheArchitectureWithoutBeingTold(String architectureId, @TempDir Path project) throws IOException {
+    void theSecondCrudFollowsTheArchitectureWithoutBeingTold(String architectureId, @TempDir Path project) throws IOException {
         copyInitializr(project);
         run("crud", "--arquitetura", architectureId, "--mesmo-assim", project.toString(), "Produto", "nome:String");
-        run("crud", "--arquitetura", architectureId, project.toString(), "Cliente", "nome:String");
 
         assertThat(run("crud", project.toString(), "Fornecedor", "nome:String")).isZero();
         assertThat(lastOut).startsWith("師匠 Shishō — CRUD de Fornecedor em " + name(architectureId) + "\n");

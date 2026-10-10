@@ -42,6 +42,14 @@ class TemplateScaffoldRendererTest {
     }
 
     @Test
+    void knowsThePathsWithoutTheFields() {
+        assertThat(renderer.paths(LAYERED, "com.loja", "ItemPedido"))
+                .isEqualTo(renderer.render(LAYERED, "com.loja", request("ItemPedido", "descricao:String")).stream()
+                        .map(GeneratedFile::file).toList());
+        assertThat(renderer.paths(LAYERED, "com.loja", "itemPedido")).as("not an entity name").isEmpty();
+    }
+
+    @Test
     void writesTheFieldsTheirImportsAndTheirValidation() {
         List<GeneratedFile> files = renderer.render(LAYERED, "com.loja",
                 request("Produto", "nome:String", "preco:BigDecimal", "lancamento:LocalDate"));

@@ -59,16 +59,14 @@ public final class GenerateCrudService implements GenerateCrud {
         LoadedProject loaded = projectLoader.load(projectRoot, config -> { });
         ProjectModel project = loaded.model();
         Optional<ProjectContext> context = loaded.config().context();
+        Optional<String> knownBasePackage = request.basePackage().or(() -> basePackage(project));
         Optional<ArchitectureProfile> detected = classifyArchitecture.classify(project, context)
-                .map(ArchitectureMatch::architecture);
+                .map(ArchitectureMatch::architecture)
+                .or(() -> knownBasePackage.flatMap(base -> generatedBefore(project, base)));
 
         Scaffold scaffold = scaffold(request, detected);
-        ArchitectureProfile architecture = catalog.architectures().stream()
-                .filter(profile -> profile.id().equals(scaffold.architectureId()))
-                .findFirst()
-                .orElseThrow();
-        String basePackage = request.basePackage().or(() -> basePackage(project))
-                .orElseThrow(() -> new ScaffoldException("crud.error.no-package"));
+        ArchitectureProfile architecture = architecture(scaffold.architectureId());
+        String basePackage = knownBasePackage.orElseThrow(() -> new ScaffoldException("crud.error.no-package"));
 
         List<GeneratedFile> rendered = renderer.render(scaffold, basePackage, request);
         List<GeneratedFile> files = new ArrayList<>();
@@ -80,6 +78,41 @@ public final class GenerateCrudService implements GenerateCrud {
         return new CrudPlan(architecture, files, skipped,
                 detected.filter(other -> !other.id().equals(architecture.id())),
                 missingDependencies(scaffold, project), cost(architecture, detected, context));
+    }
+
+    /**
+     * The architecture of a CRUD this command generated before, recognized by its template's
+     * paths: every file of one entity is where the template puts it. The classifier needs two
+     * features to tell package-by-feature from any package, and the second crud only has one.
+     */
+    private Optional<ArchitectureProfile> generatedBefore(ProjectModel project, String basePackage) {
+        Set<Path> files = project.classes().stream().map(ClassUnit::file).collect(Collectors.toSet());
+        List<String> names = project.classes().stream().map(ClassUnit::name).distinct().sorted().toList();
+        for (Scaffold scaffold : catalog.scaffolds()) {
+            for (String name : names) {
+                if (generated(scaffold, basePackage, name, files)) {
+                    return Optional.of(architecture(scaffold.architectureId()));
+                }
+            }
+        }
+        return Optional.empty();
+    }
+
+    private boolean generated(Scaffold scaffold, String basePackage, String entity, Set<Path> files) {
+        List<Path> paths = renderer.paths(scaffold, basePackage, entity);
+        if (paths.isEmpty()) {
+            return false;
+        }
+        for (int i = 0; i < paths.size(); i++) {
+            if (scaffold.files().get(i).onceUnless().isEmpty() && !files.contains(paths.get(i))) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private ArchitectureProfile architecture(String id) {
+        return catalog.architectures().stream().filter(profile -> profile.id().equals(id)).findFirst().orElseThrow();
     }
 
     /** Checked only when the architecture is being chosen: a project that already follows it made that decision. */

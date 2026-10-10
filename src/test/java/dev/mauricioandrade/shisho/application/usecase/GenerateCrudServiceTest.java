@@ -86,6 +86,17 @@ class GenerateCrudServiceTest {
     }
 
     @Test
+    void recognizesTheCrudItGeneratedEvenWithASingleFeature(@TempDir Path project) throws IOException {
+        copy("initializr", project);
+        service.plan(project, request("Pedido", Optional.of("package-by-feature"))).files().forEach(file -> write(project, file));
+
+        CrudPlan produto = service.plan(project, request("Produto", Optional.empty()));
+
+        assertThat(produto.architecture().id()).as("one feature is not enough for the classifier").isEqualTo("package-by-feature");
+        assertThat(produto.otherArchitecture()).isEmpty();
+    }
+
+    @Test
     void checksTheCostOfAnArchitectureBeingChosen(@TempDir Path project) throws IOException {
         copy("initializr", project);
 

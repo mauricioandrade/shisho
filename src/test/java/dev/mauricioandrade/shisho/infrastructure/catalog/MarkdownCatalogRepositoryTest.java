@@ -397,7 +397,7 @@ class MarkdownCatalogRepositoryTest {
 
         @Test
         void theRepositoryCatalogIsTranslatedWholeAndOnlyThere() throws IOException {
-            for (String folder : List.of("architectures", "katas", "java-features", "dependencies", "scaffolds")) {
+            for (String folder : List.of("architectures", "katas", "java-features", "dependencies", "scaffolds", "concepts")) {
                 assertThat(fileNames(Path.of("catalog", "en", folder))).as(folder).isEqualTo(fileNames(Path.of("catalog", folder)));
             }
             MarkdownCatalogRepository english = MarkdownCatalogRepository.bundled(Optional.of("en"));

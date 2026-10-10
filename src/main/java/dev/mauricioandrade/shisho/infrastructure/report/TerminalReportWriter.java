@@ -43,16 +43,7 @@ public final class TerminalReportWriter implements ReportWriter {
         out.println(texts.architecture(analysis));
         out.println();
 
-        int severityWidth = Arrays.stream(Severity.values()).mapToInt(severity -> texts.severity(severity).length()).max().orElse(0);
-        int kataWidth = analysis.lessons().stream().mapToInt(lesson -> lesson.kataId().length() + 2).max().orElse(0);
-        String indent = " ".repeat(severityWidth + 4); // explanation starts under the kata column
-        for (Lesson lesson : analysis.lessons()) {
-            out.println(symbol(lesson.severity()) + " "
-                    + pad(texts.severity(lesson.severity()), severityWidth) + "  "
-                    + pad("[" + lesson.kataId() + "]", kataWidth) + "  "
-                    + ReportTexts.location(lesson));
-            wrap(texts.explanation(lesson), WIDTH - indent.length()).forEach(line -> out.println(indent + line));
-        }
+        writeLessons(analysis.lessons());
         for (SourceFile.Unparseable file : analysis.unparseableFiles()) {
             out.println(texts.unparseable(file));
         }
@@ -116,6 +107,20 @@ public final class TerminalReportWriter implements ReportWriter {
                     .forEach(line -> lines.add(EXAMPLE_TEXT_INDENT + line));
         }
         snippet.code().lines().forEach(line -> lines.add(line.isEmpty() ? "" : EXAMPLE_CODE_INDENT + line));
+    }
+
+    /** One line per lesson (severity, kata, file and line), with its explanation below. */
+    public void writeLessons(List<Lesson> lessons) {
+        int severityWidth = Arrays.stream(Severity.values()).mapToInt(severity -> texts.severity(severity).length()).max().orElse(0);
+        int kataWidth = lessons.stream().mapToInt(lesson -> lesson.kataId().length() + 2).max().orElse(0);
+        String indent = " ".repeat(severityWidth + 4); // explanation starts under the kata column
+        for (Lesson lesson : lessons) {
+            out.println(symbol(lesson.severity()) + " "
+                    + pad(texts.severity(lesson.severity()), severityWidth) + "  "
+                    + pad("[" + lesson.kataId() + "]", kataWidth) + "  "
+                    + ReportTexts.location(lesson));
+            wrap(texts.explanation(lesson), WIDTH - indent.length()).forEach(line -> out.println(indent + line));
+        }
     }
 
     private static String symbol(Severity severity) {

@@ -14,6 +14,7 @@ import dev.mauricioandrade.shisho.infrastructure.catalog.MarkdownCatalogReposito
 import dev.mauricioandrade.shisho.infrastructure.detector.Detectors;
 import dev.mauricioandrade.shisho.infrastructure.fix.JavaParserSourceFixer;
 import dev.mauricioandrade.shisho.infrastructure.cli.AnalyzeCommand;
+import dev.mauricioandrade.shisho.infrastructure.cli.ClaudeHookCommand;
 import dev.mauricioandrade.shisho.infrastructure.cli.AskCommand;
 import dev.mauricioandrade.shisho.infrastructure.cli.CrudCommand;
 import dev.mauricioandrade.shisho.infrastructure.cli.FixCommand;
@@ -34,6 +35,7 @@ import picocli.CommandLine;
 
 import java.io.FileDescriptor;
 import java.io.FileOutputStream;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.io.PrintWriter;
@@ -49,17 +51,22 @@ public final class ShishoBootstrap {
     }
 
     public static void main(String[] args) {
-        System.exit(run(args, System.getenv(Language.VARIABLE), new FileOutputStream(FileDescriptor.out),
+        System.exit(run(args, System.getenv(Language.VARIABLE), System.in, new FileOutputStream(FileDescriptor.out),
                 new FileOutputStream(FileDescriptor.err)));
     }
 
     /** In Portuguese, whatever the environment says: what the tests need. */
     static int run(String[] args, OutputStream stdout, OutputStream stderr) {
-        return run(args, null, stdout, stderr);
+        return run(args, null, InputStream.nullInputStream(), stdout, stderr);
+    }
+
+    /** In {@code languageCode}, with nothing on standard input. */
+    static int run(String[] args, String languageCode, OutputStream stdout, OutputStream stderr) {
+        return run(args, languageCode, InputStream.nullInputStream(), stdout, stderr);
     }
 
     /** Output is always UTF-8: the report has 師匠, accents and box symbols. {@code languageCode}: {@code SHISHO_IDIOMA}. */
-    static int run(String[] args, String languageCode, OutputStream stdout, OutputStream stderr) {
+    static int run(String[] args, String languageCode, InputStream stdin, OutputStream stdout, OutputStream stderr) {
         PrintStream out = new PrintStream(stdout, true, StandardCharsets.UTF_8);
         PrintStream err = new PrintStream(stderr, true, StandardCharsets.UTF_8);
         Optional<Language> language = Language.of(languageCode);
@@ -94,7 +101,8 @@ public final class ShishoBootstrap {
                 .addSubcommand(new FixCommand(fixProject, messages, out, err))
                 .addSubcommand(new AskCommand(analyzeProject, new SenseiPrompt(messages, catalog.architectures()),
                         OllamaLlmProvider::new, messages, out, err))
-                .addSubcommand(new CrudCommand(generateCrud, messages, out, err));
+                .addSubcommand(new CrudCommand(generateCrud, messages, out, err))
+                .addSubcommand(new ClaudeHookCommand(analyzeProject, messages, stdin, err));
         commandLine.setResourceBundle(messages.bundle());
         commandLine.setCaseInsensitiveEnumValuesAllowed(true);
         commandLine.setOut(new PrintWriter(out, true));

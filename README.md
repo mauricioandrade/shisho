@@ -30,7 +30,7 @@ Linters dizem **o que** está errado. O Shishō é opinativo e didático: diz o 
 *Você lendo 300 warnings de linter sem nenhuma explicação.*
 
 - 🥋 **Katas** — regras de boas práticas Java/Spring Boot. Cada violação vira uma **lição**
-  com explicação em português.
+  com explicação, em português ou em inglês.
 - 🏯 **Classificação de arquitetura** — reconhece se o projeto é layered, package-by-feature,
   monolito modular, hexagonal, clean, CQRS, event-driven ou microsserviços.
 - ⚖️ **Veredito de overengineering** — cruza o que está no código com o contexto do projeto e
@@ -61,9 +61,18 @@ esta pasta).
 ```bash
 git clone https://github.com/mauricioandrade/shiso.git
 cd shiso
-mvn verify                                        # roda os testes e gera target/shisho.jar
-alias shisho="java -jar $PWD/target/shisho.jar"   # coloque no seu ~/.bashrc ou ~/.zshrc
+./install.sh        # compila, pergunta o idioma e adiciona o comando shisho ao seu shell
 ```
+
+O instalador pergunta `pt` ou `en` e, se você deixar, adiciona o alias `shisho` e a variável
+`SHISHO_IDIOMA` ao seu `~/.bashrc` ou `~/.zshrc`; rodar de novo substitui os dois. Em português
+ou em inglês, o idioma vale para tudo: relatórios, guias do modo sensei e o código que o
+`shisho crud` gera. Para trocar só num comando: `SHISHO_IDIOMA=en shisho analyze .`. Prefere
+fazer à mão? `mvn verify` gera o `target/shisho.jar`, e
+`alias shisho="java -jar $PWD/target/shisho.jar"` faz o resto.
+
+O código analisado pode estar em português ou em inglês: o Shishō reconhece pacotes como
+`dominio`, `servico` e `porta/entrada` tanto quanto `domain`, `service` e `port/in`.
 
 ## Uso rápido
 
@@ -287,8 +296,10 @@ Recursos em preview nunca são recomendados. O que o Shishō sabe sobre cada ver
 - [x] **Fase 6** — LLM local opcional (`shisho ask`)
 - [x] **Fase 7** — gerador de CRUD (`shisho crud`): layered, package-by-feature e hexagonal,
   com aviso de overengineering antes de gerar
-- [ ] **Depois** — template de CRUD para clean; outras stacks, reaproveitando o catálogo de
-  arquiteturas
+- [x] **Fase 8** — português e inglês, tanto nos relatórios quanto no código analisado
+  (`SHISHO_IDIOMA`, `install.sh`)
+- [ ] **Depois** — plugin para o Claude Code, com o Shishō conferindo o código enquanto o Claude
+  escreve; template de CRUD para clean; outras stacks, reaproveitando o catálogo de arquiteturas
 - [ ] **Ideias** — modo `--shoshin` (初心, "mente de principiante"), que explica cada conceito
   que aparece no código (o que é um record, uma sealed interface…) e os design patterns
 
@@ -329,7 +340,7 @@ O código de saída foi pensado para CI e não depende do formato:
 |---|---|
 | 0 | nenhuma lição grave |
 | 1 | há pelo menos uma lição **GRAVE** |
-| 2 | entrada inválida (caminho inexistente, argumento faltando, `--output` que não pode ser gravado; no `crud`, uma arquitetura que nada no contexto paga) |
+| 2 | entrada inválida (caminho inexistente, argumento faltando, `--output` que não pode ser gravado, `SHISHO_IDIOMA` desconhecido; no `crud`, uma arquitetura que nada no contexto paga) |
 | 3 | o projeto não pôde ser analisado (ex.: Java abaixo do 21, `shisho.yaml` inválido); no `fix --apply`, um arquivo que não pôde ser gravado; no `ask`, o Ollama fora do ar ou o modelo não instalado |
 
 O mise é usado só para conveniência de desenvolvimento. Ele não é dependência do Shishō, e

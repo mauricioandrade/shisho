@@ -20,9 +20,9 @@ Starting with Java and Spring Boot.
 
 ---
 
-> **Language note.** The Shishō speaks Brazilian Portuguese today: the reports, the catalog, the
-> generated code and the ADRs in `docs/adr` are in pt-BR. The terminal samples below are real
-> output, shown as is. The commands, options and exit codes work the same in any language.
+> **Language.** The Shishō speaks Brazilian Portuguese by default and English with
+> `SHISHO_IDIOMA=en`, which the installer sets for you. Reports, sensei guides and the code
+> `shisho crud` generates all follow it. The ADRs in `docs/adr` are in Portuguese.
 
 ## What it is
 
@@ -63,9 +63,17 @@ and **Maven 3.9** (or [mise](#running-from-source), which installs both for this
 ```bash
 git clone https://github.com/mauricioandrade/shiso.git
 cd shiso
-mvn verify                                        # runs the tests and builds target/shisho.jar
-alias shisho="java -jar $PWD/target/shisho.jar"   # add it to your ~/.bashrc or ~/.zshrc
+./install.sh        # builds the jar, asks the language and adds the shisho command to your shell
 ```
+
+The installer asks `pt` or `en` and, if you allow it, adds the `shisho` alias and
+`SHISHO_IDIOMA` to your `~/.bashrc` or `~/.zshrc`; running it again replaces them. To switch
+language for a single command: `SHISHO_IDIOMA=pt shisho analyze .`. Prefer doing it by hand?
+`mvn verify` builds `target/shisho.jar`, and `alias shisho="java -jar $PWD/target/shisho.jar"`
+does the rest.
+
+The analyzed code may be written in English or in Portuguese: the Shishō recognizes packages such
+as `dominio`, `servico` and `porta/entrada` just as well as `domain`, `service` and `port/in`.
 
 ## Quick start
 
@@ -85,35 +93,32 @@ Point it at the root of a Maven project on Java 21 or later:
 ## Demo
 
 ```
-$ shisho analyze ./clareza-api
+$ shisho analyze ./clarity-api
 
-師匠 Shishō — análise de clareza-api  (Java 21)
-Arquitetura: Camadas técnicas (Layered)  (83% da assinatura: controller, service, repository, model, dto)
+師匠 Shishō — analysis of clarity-api  (Java 21)
+Architecture: Technical layers (Layered)  (83% of the signature: controller, service, repository, model, dto)
 
-✗ GRAVE  [field-injection]             UsuarioController.java:14
-         usuarioService é injetado direto no campo. Assim, new cria a classe sem a dependência, o
-         erro só aparece como NullPointerException em uso e o teste precisa de Spring ou reflexão.
-         Receba a dependência pelo construtor, num campo private final.
-! MEDIA  [request-body-without-valid]  PedidoController.java:27
-         @RequestBody CriarPedidoRequest sem @Valid: as anotações de validação do DTO são ignoradas,
-         e dados inválidos chegam ao service como se fossem válidos. Adicione @Valid antes do
-         @RequestBody.
-! MEDIA  [entity-in-controller]        PedidoController.java:31
-         O endpoint buscar() expõe a entidade JPA Pedido na API. Use records de request/response: o
-         esquema do banco deixa de ser o contrato da API, campos internos não vazam e o cliente não
-         consegue sobrescrevê-los.
+✗ SEVERE  [field-injection]             UserController.java:14
+          userService is injected straight into the field. So new creates the class without the
+          dependency, the error only shows up as a NullPointerException in use, and a test needs
+          Spring or reflection. Receive it through the constructor, in a private final field.
+! MEDIUM  [request-body-without-valid]  OrderController.java:27
+          @RequestBody CreateOrderRequest without @Valid: the DTO validation annotations are
+          ignored, and invalid data reaches the service as if it were valid. Add @Valid before
+          @RequestBody.
+! MEDIUM  [entity-in-controller]        OrderController.java:31
+          Endpoint find() exposes the JPA entity Order in the API. Use request/response records: the
+          database schema stops being the API contract, internal fields do not leak and clients
+          cannot overwrite them.
 
-Veredito: subengenharia. O projeto já não cabe na arquitetura Camadas técnicas (Layered):
-  · PedidoService tem 31 métodos e 9 dependências no construtor.
-Próximo passo natural: package-by-feature.
+Verdict: underengineering. The project outgrew Technical layers (Layered):
+  · OrderService has 31 methods and 9 constructor dependencies.
+Natural next step: package-by-feature.
 
-Graduação: 3º kyū  (8 lições: 1 grave, 4 médias, 3 leves)
+Rank: 3rd kyū  (8 lessons: 1 severe, 4 medium, 3 minor)
 ```
 
-Each lesson says what is wrong, what goes wrong because of it and how to fix it. In the sample:
-a field-injected dependency, a request body whose validation never runs and a JPA entity
-exposed by the API. The verdict says the layered architecture no longer fits: one service has 31
-methods and 9 dependencies, and the next step is package-by-feature.
+Each lesson says what is wrong, what goes wrong because of it and how to fix it.
 
 ## The rank
 
@@ -201,22 +206,21 @@ First the Shishō recognizes the architecture from the package structure and che
 dependency rules (a `domain` package importing Spring becomes a lesson). Then comes the verdict:
 
 ```
-Arquitetura: Clean Architecture  (100% da assinatura: domain, application, infrastructure, usecase, domain/model, domain/port)
+Architecture: Clean Architecture  (100% of the signature: domain, application, infrastructure, usecase, domain/model, domain/port)
 
-Veredito: overengineering. A arquitetura Clean Architecture custa de 7 a 12 classes por
-funcionalidade, e nada no contexto declarado paga esse custo. Ela vale a pena quando:
-dominio_com_regras_complexas, vida_util_longa, troca_provavel_de_infra, time_grande.
-  · Um mapper converte UsuarioJpaEntity em Usuario, que têm exatamente os mesmos campos.
-  · Usuario e a entidade JPA UsuarioJpaEntity têm exatamente os mesmos campos: duas cópias da mesma
-    estrutura, mais o mapeamento entre elas.
-  · 4 use cases só para operações CRUD de Usuario: um use case por método, sem regra de negócio que
-    justifique cada um.
-Considere package-by-feature.
+Verdict: overengineering. Clean Architecture costs 7 to 12 classes per feature, and nothing in the
+declared context pays for it. It is worth it when: dominio_com_regras_complexas, vida_util_longa,
+troca_provavel_de_infra, time_grande.
+  · A mapper converts UsuarioJpaEntity into Usuario, which have exactly the same fields.
+  · Usuario and the JPA entity UsuarioJpaEntity have exactly the same fields: two copies of one
+    structure, plus the mapping between them.
+  · 4 use cases just for CRUD operations on Usuario: one use case per method, with no business rule
+    to justify each one.
+Consider package-by-feature.
 ```
 
-In short: Clean Architecture costs 7 to 12 classes per feature, nothing in the declared context
-pays for it, and the code shows the classic signs (a mapper between identical structures, a JPA
-entity mirroring the domain, one use case per CRUD method). Consider package-by-feature.
+The context keys (`dominio_com_regras_complexas`, `vida_util_longa`…) are the ones you write in
+`shisho.yaml`, so they stay as they are in any language.
 
 It works the other way too: a layered project with a 30-method service, or services that depend
 on each other, gets an **underengineering** verdict and the next step up.
@@ -237,18 +241,18 @@ talks to it. The model receives the facts and the verdict already computed, plus
 text about the detected and the suggested architecture, and only writes the explanation:
 
 ```
-$ shisho ask ./loja-api "por que não Clean Architecture aqui?"
-Perguntando ao gemma3:4b em http://localhost:11434...
-Aluno, a análise indica que o projeto apresenta um overengineering significativo, utilizando a
-Clean Architecture de forma excessiva. [...]
+$ shisho ask ./shop-api "why not Clean Architecture here?"
+Asking gemma3:4b at http://localhost:11434...
+Alright, student. Let's examine this analysis. The core finding is that the current architecture
+– Clean Architecture – is being applied in a way that's currently overengineered for this
+project. [...]
 
-Observe que o mapper converte `UsuarioJpaEntity` em `Usuario` com exatamente os mesmos campos.
-[...] Os quatro use cases para operações CRUD de `Usuario` também são um exemplo de excesso, com
-um use case por método, sem necessidade de regras de negócio que justifiquem essa separação.
-[...]
+Specifically, the analysis points to the mapper converting `UsuarioJpaEntity` to `Usuario`, which
+duplicates the field structure. Furthermore, the four use cases, each handling a single CRUD
+operation on `Usuario`, contribute to this redundancy. [...]
 
-Explicação escrita por gemma3:4b, que pode errar. O veredito, a graduação e as lições vêm da
-análise determinística: shisho analyze.
+Explanation written by gemma3:4b, which may be wrong. The verdict, the rank and the lessons come
+from the deterministic analysis: shisho analyze.
 ```
 
 Without a question, it explains the verdict, the rank and where to start. To use it:
@@ -275,8 +279,8 @@ version and **only asks for what that version allows**. Anything that only exist
 version becomes a suggestion that costs no points:
 
 ```
-i INFO   [prefer-scoped-values]  NotificacaoService.java:11
-         Ao migrar para o Java 25: O campo USUARIO_ATUAL é um ThreadLocal. ...
+i INFO    [prefer-scoped-values]  NotificationService.java:11
+          When you move to Java 25: Field CURRENT_USER is a ThreadLocal. ...
 ```
 
 Preview features are never recommended. What the Shishō knows about each version lives in
@@ -298,7 +302,10 @@ Preview features are never recommended. What the Shishō knows about each versio
 - [x] **Phase 6**: optional local LLM (`shisho ask`)
 - [x] **Phase 7**: CRUD generator (`shisho crud`): layered, package-by-feature and hexagonal,
   with an overengineering warning before generating
-- [ ] **Next**: a CRUD template for clean; other stacks, reusing the architecture catalog
+- [x] **Phase 8**: English and Portuguese, both for the reports and for the analyzed code
+  (`SHISHO_IDIOMA`, `install.sh`)
+- [ ] **Next**: a Claude Code plugin, where the Shishō checks the code while Claude writes it; a
+  CRUD template for clean; other stacks, reusing the architecture catalog
 - [ ] **Ideas**: a `--shoshin` mode (初心, "beginner's mind") that explains every concept found
   in the code (what a record is, a sealed interface…) and design patterns
 
@@ -339,7 +346,7 @@ The exit code is designed for CI and does not depend on the format:
 |---|---|
 | 0 | no severe lesson |
 | 1 | at least one **GRAVE** (severe) lesson |
-| 2 | invalid input (missing path or argument, an `--output` that cannot be written; in `crud`, an architecture nothing pays for) |
+| 2 | invalid input (missing path or argument, an `--output` that cannot be written, an unknown `SHISHO_IDIOMA`; in `crud`, an architecture nothing pays for) |
 | 3 | the project could not be analyzed (e.g. Java below 21, invalid `shisho.yaml`); in `fix --apply`, a file that could not be written; in `ask`, Ollama down or the model not installed |
 
 mise is only a development convenience. The Shishō does not depend on it, and nothing in the
@@ -390,19 +397,19 @@ controller and error handling) in the project's architecture, and explains the r
 file:
 
 ```
-$ shisho crud --arquitetura package-by-feature ./loja Produto nome:String preco:BigDecimal
-師匠 Shishō — CRUD de Produto em Pacotes por funcionalidade (Package by Feature)
+$ shisho crud --arquitetura package-by-feature ./shop Product name:String price:BigDecimal
+師匠 Shishō — CRUD of Product in Package by Feature
 
-+ src/main/java/com/exemplo/loja/produto/Produto.java
-  A entidade JPA: a tabela do banco vista como objeto. Como todas as classes de `produto`, ela é
-  package-private (sem `public`): nenhuma outra feature enxerga a entidade, e as features
-  conversam pelo service. [...]
++ src/main/java/com/example/shop/product/Product.java
+  The JPA entity: the database table seen as an object. Like every class in `product`, it is
+  package-private (no `public`): no other feature sees the entity, and features talk to each other
+  through the service. [...]
 
-+ src/main/java/com/exemplo/loja/produto/ProdutoService.java
-  Onde mora a regra de negócio e onde começa a transação. A classe inteira é `readOnly = true`, e
-  só os métodos que escrevem abrem uma transação de escrita. [...]
++ src/main/java/com/example/shop/product/ProductService.java
+  Where the business rules live and where the transaction starts. The whole class is
+  `readOnly = true`, and only the methods that write open a write transaction. [...]
 ...
-Criados 8 arquivos. Rode shisho analyze para conferir: o código gerado passa em todas as katas.
+Created 8 files. Run shisho analyze to check: the generated code passes every kata.
 ```
 
 ![Sasuke, from Naruto, with his Sharingan active and a half smile](docs/anime/crud.gif)
@@ -431,21 +438,17 @@ Hexagonal costs more files than a CRUD usually needs. Before generating it, the 
 the reason, and without one it writes nothing:
 
 ```
-$ shisho crud --arquitetura hexagonal ./loja Produto nome:String preco:BigDecimal
-⚠ Este CRUD em Hexagonal (Ports & Adapters) cria 12 arquivos, e nada no contexto do shisho.yaml paga
-esse custo. A arquitetura vale a pena quando o projeto tem: multiplas_integracoes_externas,
-dominio_com_regras_complexas, troca_provavel_de_infra, vida_util_longa. Para um CRUD sem regras de
-negócio, package-by-feature faz o mesmo com menos arquivos.
+$ shisho crud --arquitetura hexagonal ./shop Product name:String price:BigDecimal
+⚠ This CRUD in Hexagonal (Ports & Adapters) creates 12 files, and nothing in the shisho.yaml context
+pays for that cost. The architecture is worth it when the project has:
+multiplas_integracoes_externas, dominio_com_regras_complexas, troca_provavel_de_infra,
+vida_util_longa. For a CRUD without business rules, package-by-feature does the same with fewer
+files.
 
-Nada foi gravado. Se o projeto tem um desses motivos, declare-o em contexto.caracteristicas no
-shisho.yaml: a decisão fica registrada, e o shisho analyze passa a usá-la. Para gerar mesmo assim,
-use --mesmo-assim.
+Nothing was written. If the project has one of these reasons, declare it under
+contexto.caracteristicas in shisho.yaml: the decision is recorded, and shisho analyze uses it too.
+To generate anyway, use --mesmo-assim.
 ```
-
-In short: this CRUD would create 12 files, and nothing in the `shisho.yaml` context pays for
-that. Hexagonal is worth it with several external integrations, a domain with complex rules,
-infrastructure likely to change or a long lifetime. For a CRUD with no business rules,
-package-by-feature does the same with fewer files.
 
 ![Gintoki, from Gintama, holding a carton of strawberry milk, in disbelief](docs/anime/cost-warning.gif)
 

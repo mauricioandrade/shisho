@@ -6,11 +6,15 @@
 
 Começando por Java e Spring Boot.
 
-**Português** · [English](README.en.md)
+[![CI](https://github.com/mauricioandrade/shiso/actions/workflows/ci.yml/badge.svg)](https://github.com/mauricioandrade/shiso/actions/workflows/ci.yml)
+![Roda em Java 25](https://img.shields.io/badge/roda%20em-Java%2025-orange?logo=openjdk)
+![Analisa Java 21+](https://img.shields.io/badge/analisa-Java%2021%2B-blue?logo=openjdk)
+![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3%20%7C%204-6DB33F?logo=springboot&logoColor=white)
+[![Licença Apache 2.0](https://img.shields.io/badge/licen%C3%A7a-Apache%202.0-green)](LICENSE)
+![Idiomas: pt-BR e en](https://img.shields.io/badge/idiomas-pt--BR%20%7C%20en-informational)
+[![Plugin para o Claude Code](https://img.shields.io/badge/Claude%20Code-plugin-D97757)](#-no-claude-code)
 
-![Java 25](https://img.shields.io/badge/runs%20on-Java%2025-orange)
-![Analisa Java 21+](https://img.shields.io/badge/analisa-Java%2021%2B-blue)
-![License](https://img.shields.io/badge/license-Apache%202.0-green)
+**Português** · [English](README.en.md)
 
 ![Gojo Satoru, de Jujutsu Kaisen, puxando a venda dos olhos](docs/anime/hero.gif)
 
@@ -20,7 +24,15 @@ Começando por Java e Spring Boot.
 
 ---
 
-## O que é
+**Começando:** [O que é](#-o-que-é) · [Por que existe](#-por-que-existe) · [Instalação](#-instalação) · [Uso rápido](#-uso-rápido) · [Demo](#-demo)
+
+**Guia:** [Katas](#-katas) · [A graduação](#-a-graduação) · [Modo sensei](#-modo-sensei-aprender-e-corrigir) · [Overengineering](#-overengineering) · [`shisho crud`](#-do-zero-shisho-crud) · [LLM local](#-o-llm-explica-não-julga) · [No Claude Code](#-no-claude-code) · [Versões do Java](#-versões-do-java) · [Relatórios](#-relatórios-e-códigos-de-saída) · [No GitHub Actions](#-no-github-actions)
+
+**Projeto:** [Desenvolvimento](#-desenvolvimento) · [Roadmap](#-roadmap) · [Contribuindo](#-contribuindo) · [Licença](#-licença) · [Créditos](#-créditos)
+
+---
+
+## 🏯 O que é
 
 Linters dizem **o que** está errado. O Shishō é opinativo e didático: diz o que está errado,
 **por que** importa e qual seria o caminho, como um sensei faria com um aluno.
@@ -43,7 +55,7 @@ Linters dizem **o que** está errado. O Shishō é opinativo e didático: diz o 
 - 🤖 **Plugin para o Claude Code** — confere cada arquivo que o Claude edita e mostra a ele as
   lições, enquanto ele escreve.
 
-## Por que existe
+## 💡 Por que existe
 
 - **Linters apontam, não ensinam.** Um warning diz que algo está errado, mas quem está
   aprendendo precisa do porquê, do custo e de quando a regra não vale. O Shishō escreve a lição
@@ -54,10 +66,10 @@ Linters dizem **o que** está errado. O Shishō é opinativo e didático: diz o 
 - **Determinístico e local.** Mesma entrada, mesmo resultado: dá para rodar em CI. Seu código não
   sai da máquina, nem quando você usa o LLM, que roda localmente e é opcional.
 
-## Instalação
+## 🚀 Instalação
 
 Ainda não há release com o jar pronto: o Shishō é compilado a partir do código. Você precisa de
-**JDK 25** e **Maven 3.9** (ou do [mise](#rodando-a-partir-do-código), que instala os dois só para
+**JDK 25** e **Maven 3.9** (ou do [mise](#-desenvolvimento), que instala os dois só para
 esta pasta).
 
 ```bash
@@ -80,7 +92,7 @@ O código analisado pode estar em português ou em inglês: o Shishō reconhece 
 
 *Um `./install.sh`, uma pergunta, e o Shishō está pronto.*
 
-## Uso rápido
+## ⚡ Uso rápido
 
 Aponte para a raiz de um projeto Maven com Java 21 ou superior:
 
@@ -96,7 +108,7 @@ Aponte para a raiz de um projeto Maven com Java 21 ou superior:
 
 `shisho <comando> --help` lista todas as opções.
 
-## Demo
+## 🎬 Demo
 
 ```
 $ shisho analyze ./clareza-api
@@ -124,27 +136,7 @@ Próximo passo natural: package-by-feature.
 Graduação: 3º kyū  (8 lições: 1 grave, 4 médias, 3 leves)
 ```
 
-<!-- TODO: substituir por docs/demo.gif gravado com vhs ou asciinema quando a Fase 1 estiver pronta -->
-
-## A graduação
-
-Cada lição desconta pontos. A nota final vira uma faixa:
-
-| Nota | Graduação |
-|---|---|
-| 92–100 | 1º dan |
-| 85–91 | 1º kyū |
-| 75–84 | 2º kyū |
-| 65–74 | 3º kyū |
-| 55–64 | 4º kyū |
-| 40–54 | 5º kyū |
-| 0–39 | 6º kyū |
-
-![Jiraiya, de Naruto, partindo um picolé de palito duplo ao meio e oferecendo metade ao Naruto](docs/anime/graduation.gif)
-
-*Zero lições graves. O mestre divide o picolé.*
-
-## Katas
+## 🥋 Katas
 
 | Kata | Severidade | O que aponta | Por que importa |
 |---|---|---|---|
@@ -191,7 +183,62 @@ Violações das regras de dependência da arquitetura detectada aparecem como a 
 Kata desconhecida ou campo com erro de digitação faz a análise falhar (código de saída 3): é
 melhor do que uma configuração que, em silêncio, não faz nada.
 
-## Overengineering
+## 🏅 A graduação
+
+Cada lição desconta pontos. A nota final vira uma faixa:
+
+| Nota | Graduação |
+|---|---|
+| 92–100 | 1º dan |
+| 85–91 | 1º kyū |
+| 75–84 | 2º kyū |
+| 65–74 | 3º kyū |
+| 55–64 | 4º kyū |
+| 40–54 | 5º kyū |
+| 0–39 | 6º kyū |
+
+![Jiraiya, de Naruto, partindo um picolé de palito duplo ao meio e oferecendo metade ao Naruto](docs/anime/graduation.gif)
+
+*Zero lições graves. O mestre divide o picolé.*
+
+## 📖 Modo sensei: aprender e corrigir
+
+Com `--sensei`, o relatório explica cada kata encontrada: **por que** ela existe, **quando** o
+código acusado é uma escolha razoável, o código **antes e depois** da correção e as **fontes**
+(documentação do Spring, JEPs, OWASP). Uma kata aponta um custo, não um pecado: o sensei mostra
+a troca para você decidir. Os guias ficam em [`catalog/katas`](catalog/katas), e um teste
+garante que o "antes" gera a lição e o "depois" não. O relatório HTML e a ajuda dos alertas no
+GitHub mostram o mesmo conteúdo.
+
+```bash
+java -jar target/shisho.jar analyze --sensei ~/projetos/minha-api
+```
+
+Parte das lições tem uma correção mecânica segura, e o Shishō faz por você:
+
+```bash
+java -jar target/shisho.jar fix ~/projetos/minha-api            # mostra o diff
+java -jar target/shisho.jar fix --apply ~/projetos/minha-api    # grava
+```
+
+![Joseph Joestar, de JoJo's Bizarre Adventure, com o Hermit Purple em punho e o olhar de quem já sabe o que vem](docs/anime/autofix.gif)
+
+*"Sua próxima linha vai ser: `private final UsuarioService service;`" O `fix` mostra o diff antes de gravar.*
+
+| Kata | O que o `fix` faz |
+|---|---|
+| `field-injection` | tira o `@Autowired`, deixa o campo `final` e o recebe pelo construtor |
+| `lombok-constructor` | troca a anotação pelo construtor que o Lombok geraria |
+| `non-final-dependency` | adiciona `final`, se todo construtor atribui o campo e nada mais o altera |
+| `request-body-without-valid` | adiciona `@Valid`, se o build tem Bean Validation |
+| `transactional-read-only` | coloca `readOnly = true` |
+
+Só as linhas da correção mudam: formatação e comentários ficam como estavam. Quando a correção
+não é segura (um `@Qualifier` que teria de mudar de lugar, um `@Builder` que depende do
+construtor do Lombok…), a lição fica para você, com o exemplo do modo sensei. Por quê
+JavaParser e não OpenRewrite: [ADR 0003](docs/adr/0003-autofix.md).
+
+## 📐 Overengineering
 
 A pergunta que o Shishō mais gosta de responder: **essa arquitetura cabe nesse projeto?**
 
@@ -237,169 +284,7 @@ que dependem um do outro recebe **subengenharia** e a sugestão do próximo degr
 O conhecimento sobre cada arquitetura fica em [`catalog/architectures`](catalog/architectures),
 em Markdown, com quando ela vale o custo e quando é exagero.
 
-## O LLM explica, não julga
-
-Tudo que o Shishō decide é determinístico: mesma entrada, mesmo resultado, pronto para CI. O
-LLM local (via [Ollama](https://ollama.com)) é **opcional e vem desligado**: só o `shisho ask`
-fala com ele. O modelo recebe os fatos e o veredito já calculados, mais o texto do catálogo
-sobre a arquitetura detectada e a sugerida, e só escreve a explicação:
-
-```
-$ shisho ask ./loja-api "por que não Clean Architecture aqui?"
-Perguntando ao gemma3:4b em http://localhost:11434...
-Aluno, a análise indica que o projeto apresenta um overengineering significativo, utilizando a
-Clean Architecture de forma excessiva. [...]
-
-Observe que o mapper converte `UsuarioJpaEntity` em `Usuario` com exatamente os mesmos campos.
-[...] Os quatro use cases para operações CRUD de `Usuario` também são um exemplo de excesso, com
-um use case por método, sem necessidade de regras de negócio que justifiquem essa separação.
-[...]
-
-Explicação escrita por gemma3:4b, que pode errar. O veredito, a graduação e as lições vêm da
-análise determinística: shisho analyze.
-```
-
-Sem pergunta, ele explica o veredito, a graduação e por onde começar. Para usar:
-
-```bash
-# instale o Ollama: https://ollama.com/download
-ollama pull gemma3:4b                                  # o modelo padrão, ~3 GB
-java -jar target/shisho.jar ask ~/projetos/minha-api   # explica o veredito
-java -jar target/shisho.jar ask --model qwen2.5:7b ~/projetos/minha-api "qual lição corrijo primeiro?"
-```
-
-O `gemma3:4b` é leve, mas às vezes troca uma severidade ou um detalhe; modelos maiores (7B a
-14B) tendem a se ater melhor aos fatos. `--url` aponta para um Ollama em outra máquina. Por
-que Ollama, sem SDK, e como o prompt é montado: [ADR 0004](docs/adr/0004-local-llm.md).
-
-![Gintoki, de Gintama, de jaleco escrevendo o próprio nome no quadro enquanto a turma chama "Sensei!"](docs/anime/sensei.gif)
-
-*O Ginpachi-sensei dá a aula. A nota, quem dá é o Java.*
-
-## Versões do Java
-
-O Shishō roda em **Java 25** e analisa projetos a partir do **Java 21**. Ele lê a versão do seu
-projeto e **só cobra o que ela permite**. O que só existe numa versão mais nova vira sugestão,
-sem tirar nota:
-
-```
-i INFO   [prefer-scoped-values]  NotificacaoService.java:11
-         Ao migrar para o Java 25: O campo USUARIO_ATUAL é um ThreadLocal. ...
-```
-
-Recursos em preview nunca são recomendados. O que o Shishō sabe sobre cada versão fica em
-[`catalog/java-features`](catalog/java-features).
-
-![Goku Super Saiyajin, de Dragon Ball Z, virando para a câmera com um sorriso e fazendo joinha](docs/anime/java-versions.gif)
-
-*Subiu o projeto para o Java 25? O Shishō desbloqueia as katas novas.*
-
-## Roadmap
-
-- [x] **Fase 1** — CLI, catálogo, 7 katas de AST, relatório no terminal
-- [x] **Fase 2** — katas de projeto (JPA, transações, tratamento de erros, build,
-  configuração) e `shisho.yaml`
-- [x] **Fase 3** — classificação de arquitetura, regras de dependência e veredito de
-  overengineering/subengenharia
-- [x] **Fase 4** — relatório HTML, SARIF e GitHub Action
-- [x] **Fase 5** — modo sensei (exemplos antes/depois), catálogo de recursos do Java,
-  `shisho fix`
-- [x] **Fase 6** — LLM local opcional (`shisho ask`)
-- [x] **Fase 7** — gerador de CRUD (`shisho crud`): layered, package-by-feature e hexagonal,
-  com aviso de overengineering antes de gerar
-- [x] **Fase 8** — português e inglês, tanto nos relatórios quanto no código analisado
-  (`SHISHO_IDIOMA`, `install.sh`)
-- [x] **Fase 9** — plugin para o Claude Code: o Shishō confere cada arquivo que o Claude edita
-- [ ] **Depois** — template de CRUD para clean; outras stacks, reaproveitando o catálogo de
-  arquiteturas
-- [ ] **Ideias** — modo `--shoshin` (初心, "mente de principiante"), que explica cada conceito
-  que aparece no código (o que é um record, uma sealed interface…) e os design patterns
-
-![Sung Jinwoo, de Solo Leveling, atacando com uma adaga em meio a estátuas de pedra](docs/anime/roadmap.gif)
-
-*Nove fases, uma dungeon de cada vez.*
-
-## Rodando a partir do código
-
-Você precisa de **JDK 25** e **Maven 3.9**. Se já tem os dois, pule direto para o `mvn verify`.
-
-Se não tem (ou tem outra versão do Java instalada para outros projetos), o repositório traz um
-[`mise.toml`](mise.toml) com as versões exatas. O [mise](https://mise.jdx.dev) é um gerenciador
-de versões de ferramentas — parecido com SDKMAN, asdf ou nvm, mas para várias linguagens ao
-mesmo tempo. Ele lê o `mise.toml` e, **só dentro desta pasta**, coloca no `PATH` o Java e o
-Maven certos, sem mexer no que você já usa no resto da máquina.
-
-```bash
-# instale o mise: https://mise.jdx.dev/getting-started.html
-mise trust      # autoriza o mise.toml deste repositório (só na primeira vez)
-mise install    # baixa o Temurin 25 e o Maven pinados
-mvn verify      # testes + target/shisho.jar
-```
-
-Depois é só apontar o Shishō para a raiz de um projeto Maven:
-
-```bash
-java -jar target/shisho.jar analyze ~/projetos/minha-api
-```
-
-Além do terminal, o relatório sai em SARIF (para o code scanning do GitHub e outras
-ferramentas) ou em HTML (uma página só, sem dependências, com tema claro e escuro):
-
-```bash
-java -jar target/shisho.jar analyze --format sarif --output shisho.sarif ~/projetos/minha-api
-java -jar target/shisho.jar analyze --format html  --output shisho.html  ~/projetos/minha-api
-```
-
-O código de saída foi pensado para CI e não depende do formato:
-
-| Código | Significado |
-|---|---|
-| 0 | nenhuma lição grave |
-| 1 | há pelo menos uma lição **GRAVE** |
-| 2 | entrada inválida (caminho inexistente, argumento faltando, `--output` que não pode ser gravado, `SHISHO_IDIOMA` desconhecido; no `crud`, uma arquitetura que nada no contexto paga) |
-| 3 | o projeto não pôde ser analisado (ex.: Java abaixo do 21, `shisho.yaml` inválido); no `fix --apply`, um arquivo que não pôde ser gravado; no `ask`, o Ollama fora do ar ou o modelo não instalado |
-
-O mise é usado só para conveniência de desenvolvimento. Ele não é dependência do Shishō, e
-nada no build exige que você o use.
-
-## Modo sensei: aprender e corrigir
-
-Com `--sensei`, o relatório explica cada kata encontrada: **por que** ela existe, **quando** o
-código acusado é uma escolha razoável, o código **antes e depois** da correção e as **fontes**
-(documentação do Spring, JEPs, OWASP). Uma kata aponta um custo, não um pecado: o sensei mostra
-a troca para você decidir. Os guias ficam em [`catalog/katas`](catalog/katas), e um teste
-garante que o "antes" gera a lição e o "depois" não. O relatório HTML e a ajuda dos alertas no
-GitHub mostram o mesmo conteúdo.
-
-```bash
-java -jar target/shisho.jar analyze --sensei ~/projetos/minha-api
-```
-
-Parte das lições tem uma correção mecânica segura, e o Shishō faz por você:
-
-```bash
-java -jar target/shisho.jar fix ~/projetos/minha-api            # mostra o diff
-java -jar target/shisho.jar fix --apply ~/projetos/minha-api    # grava
-```
-
-![Joseph Joestar, de JoJo's Bizarre Adventure, com o Hermit Purple em punho e o olhar de quem já sabe o que vem](docs/anime/autofix.gif)
-
-*"Sua próxima linha vai ser: `private final UsuarioService service;`" O `fix` mostra o diff antes de gravar.*
-
-| Kata | O que o `fix` faz |
-|---|---|
-| `field-injection` | tira o `@Autowired`, deixa o campo `final` e o recebe pelo construtor |
-| `lombok-constructor` | troca a anotação pelo construtor que o Lombok geraria |
-| `non-final-dependency` | adiciona `final`, se todo construtor atribui o campo e nada mais o altera |
-| `request-body-without-valid` | adiciona `@Valid`, se o build tem Bean Validation |
-| `transactional-read-only` | coloca `readOnly = true` |
-
-Só as linhas da correção mudam: formatação e comentários ficam como estavam. Quando a correção
-não é segura (um `@Qualifier` que teria de mudar de lugar, um `@Builder` que depende do
-construtor do Lombok…), a lição fica para você, com o exemplo do modo sensei. Por quê
-JavaParser e não OpenRewrite: [ADR 0003](docs/adr/0003-autofix.md).
-
-## Do zero: `shisho crud`
+## 🧱 Do zero: `shisho crud`
 
 O Spring Initializr resolve o build e as dependências, mas não diz onde cada classe vai nem por
 quê. O `shisho crud` cria um CRUD REST completo (entidade, repositório, DTOs, service,
@@ -462,7 +347,7 @@ use --mesmo-assim.
 
 *Hexagonal. Para um CRUD de dois campos. Sério?*
 
-Com o motivo declarado no [`shisho.yaml`](#overengineering), o CRUD sai direto, e o relatório
+Com o motivo declarado no [`shisho.yaml`](#-overengineering), o CRUD sai direto, e o relatório
 diz qual motivo pagou o custo. O `--mesmo-assim` serve para quem só quer ver como a arquitetura
 fica. Num projeto que já é hexagonal, o próximo `crud` segue sem perguntar: a decisão já foi
 tomada. Por que assim: [ADR 0006](docs/adr/0006-crud-cost-warning.md).
@@ -476,7 +361,46 @@ reconheça a arquitetura e não encontre **nenhuma** lição. O código foi conf
 projeto real do Initializr (Spring Boot 4.1): compila, sobe e responde. Os templates ficam em
 [`catalog/scaffolds`](catalog/scaffolds), em Markdown. Por que assim: [ADR 0005](docs/adr/0005-crud-scaffolding.md).
 
-## No Claude Code
+## 🧠 O LLM explica, não julga
+
+Tudo que o Shishō decide é determinístico: mesma entrada, mesmo resultado, pronto para CI. O
+LLM local (via [Ollama](https://ollama.com)) é **opcional e vem desligado**: só o `shisho ask`
+fala com ele. O modelo recebe os fatos e o veredito já calculados, mais o texto do catálogo
+sobre a arquitetura detectada e a sugerida, e só escreve a explicação:
+
+```
+$ shisho ask ./loja-api "por que não Clean Architecture aqui?"
+Perguntando ao gemma3:4b em http://localhost:11434...
+Aluno, a análise indica que o projeto apresenta um overengineering significativo, utilizando a
+Clean Architecture de forma excessiva. [...]
+
+Observe que o mapper converte `UsuarioJpaEntity` em `Usuario` com exatamente os mesmos campos.
+[...] Os quatro use cases para operações CRUD de `Usuario` também são um exemplo de excesso, com
+um use case por método, sem necessidade de regras de negócio que justifiquem essa separação.
+[...]
+
+Explicação escrita por gemma3:4b, que pode errar. O veredito, a graduação e as lições vêm da
+análise determinística: shisho analyze.
+```
+
+Sem pergunta, ele explica o veredito, a graduação e por onde começar. Para usar:
+
+```bash
+# instale o Ollama: https://ollama.com/download
+ollama pull gemma3:4b                                  # o modelo padrão, ~3 GB
+java -jar target/shisho.jar ask ~/projetos/minha-api   # explica o veredito
+java -jar target/shisho.jar ask --model qwen2.5:7b ~/projetos/minha-api "qual lição corrijo primeiro?"
+```
+
+O `gemma3:4b` é leve, mas às vezes troca uma severidade ou um detalhe; modelos maiores (7B a
+14B) tendem a se ater melhor aos fatos. `--url` aponta para um Ollama em outra máquina. Por
+que Ollama, sem SDK, e como o prompt é montado: [ADR 0004](docs/adr/0004-local-llm.md).
+
+![Gintoki, de Gintama, de jaleco escrevendo o próprio nome no quadro enquanto a turma chama "Sensei!"](docs/anime/sensei.gif)
+
+*O Ginpachi-sensei dá a aula. A nota, quem dá é o Java.*
+
+## 🤖 No Claude Code
 
 Com o plugin do Shishō, o Claude Code passa a ser conferido enquanto escreve. Depois de cada
 edição num `.java`, o Shishō analisa o projeto e mostra ao Claude as lições daquele arquivo, e ele
@@ -499,7 +423,44 @@ O Shishō só aponta. Quando uma lição não se aplica, o plugin pede ao Claude
 você, em vez de reescrever o código só para calar a kata. Por que assim:
 [ADR 0008](docs/adr/0008-claude-code-plugin.md).
 
-## No GitHub Actions
+## ☕ Versões do Java
+
+O Shishō roda em **Java 25** e analisa projetos a partir do **Java 21**. Ele lê a versão do seu
+projeto e **só cobra o que ela permite**. O que só existe numa versão mais nova vira sugestão,
+sem tirar nota:
+
+```
+i INFO   [prefer-scoped-values]  NotificacaoService.java:11
+         Ao migrar para o Java 25: O campo USUARIO_ATUAL é um ThreadLocal. ...
+```
+
+Recursos em preview nunca são recomendados. O que o Shishō sabe sobre cada versão fica em
+[`catalog/java-features`](catalog/java-features).
+
+![Goku Super Saiyajin, de Dragon Ball Z, virando para a câmera com um sorriso e fazendo joinha](docs/anime/java-versions.gif)
+
+*Subiu o projeto para o Java 25? O Shishō desbloqueia as katas novas.*
+
+## 📊 Relatórios e códigos de saída
+
+Além do terminal, o relatório sai em SARIF (para o code scanning do GitHub e outras ferramentas)
+ou em HTML (uma página só, sem dependências, com tema claro e escuro):
+
+```bash
+shisho analyze --format sarif --output shisho.sarif ~/projetos/minha-api
+shisho analyze --format html  --output shisho.html  ~/projetos/minha-api
+```
+
+O código de saída foi pensado para CI e não depende do formato:
+
+| Código | Significado |
+|---|---|
+| 0 | nenhuma lição grave |
+| 1 | há pelo menos uma lição **GRAVE** |
+| 2 | entrada inválida (caminho inexistente, argumento faltando, `--output` que não pode ser gravado, `SHISHO_IDIOMA` desconhecido; no `crud`, uma arquitetura que nada no contexto paga) |
+| 3 | o projeto não pôde ser analisado (ex.: Java abaixo do 21, `shisho.yaml` inválido); no `fix --apply`, um arquivo que não pôde ser gravado; no `ask`, o Ollama fora do ar ou o modelo não instalado |
+
+## 🚦 No GitHub Actions
 
 ```yaml
 jobs:
@@ -527,7 +488,57 @@ projeto.
 
 *Alguém gritando no canal porque o build quebrou. O Shishō, calmo, já tinha avisado no PR.*
 
-## Contribuindo
+## 🧰 Desenvolvimento
+
+Para mexer no código do Shishō, você precisa de **JDK 25** e **Maven 3.9**. Se já tem os dois,
+pule direto para o `mvn verify`.
+
+Se não tem (ou tem outra versão do Java instalada para outros projetos), o repositório traz um
+[`mise.toml`](mise.toml) com as versões exatas. O [mise](https://mise.jdx.dev) é um gerenciador
+de versões de ferramentas — parecido com SDKMAN, asdf ou nvm, mas para várias linguagens ao
+mesmo tempo. Ele lê o `mise.toml` e, **só dentro desta pasta**, coloca no `PATH` o Java e o
+Maven certos, sem mexer no que você já usa no resto da máquina.
+
+```bash
+# instale o mise: https://mise.jdx.dev/getting-started.html
+mise trust      # autoriza o mise.toml deste repositório (só na primeira vez)
+mise install    # baixa o Temurin 25 e o Maven pinados
+mvn verify      # testes + target/shisho.jar
+```
+
+O `target/shisho.jar` é a versão que você acabou de compilar: `java -jar target/shisho.jar
+analyze <projeto>`. Antes de abrir um PR, rode o `mvn verify` e o Shishō nele mesmo (`java -jar
+target/shisho.jar analyze .`): o código do Shishō precisa passar nas próprias katas.
+
+O mise é usado só para conveniência de desenvolvimento. Ele não é dependência do Shishō, e
+nada no build exige que você o use.
+
+## 📍 Roadmap
+
+- [x] **Fase 1** — CLI, catálogo, 7 katas de AST, relatório no terminal
+- [x] **Fase 2** — katas de projeto (JPA, transações, tratamento de erros, build,
+  configuração) e `shisho.yaml`
+- [x] **Fase 3** — classificação de arquitetura, regras de dependência e veredito de
+  overengineering/subengenharia
+- [x] **Fase 4** — relatório HTML, SARIF e GitHub Action
+- [x] **Fase 5** — modo sensei (exemplos antes/depois), catálogo de recursos do Java,
+  `shisho fix`
+- [x] **Fase 6** — LLM local opcional (`shisho ask`)
+- [x] **Fase 7** — gerador de CRUD (`shisho crud`): layered, package-by-feature e hexagonal,
+  com aviso de overengineering antes de gerar
+- [x] **Fase 8** — português e inglês, tanto nos relatórios quanto no código analisado
+  (`SHISHO_IDIOMA`, `install.sh`)
+- [x] **Fase 9** — plugin para o Claude Code: o Shishō confere cada arquivo que o Claude edita
+- [ ] **Depois** — template de CRUD para clean; outras stacks, reaproveitando o catálogo de
+  arquiteturas
+- [ ] **Ideias** — modo `--shoshin` (初心, "mente de principiante"), que explica cada conceito
+  que aparece no código (o que é um record, uma sealed interface…) e os design patterns
+
+![Sung Jinwoo, de Solo Leveling, atacando com uma adaga em meio a estátuas de pedra](docs/anime/roadmap.gif)
+
+*Nove fases, uma dungeon de cada vez.*
+
+## 🤝 Contribuindo
 
 O jeito mais fácil de contribuir não exige escrever Java: **o catálogo é Markdown**. Uma
 arquitetura nova, um sinal de overengineering que faltou, uma explicação mais clara, um template
@@ -541,12 +552,12 @@ dos dois, abra o PR assim mesmo: o teste mostra o que falta, e alguém completa.
 
 Issues marcadas com `good first issue` são um bom ponto de partida.
 
-## Licença
+## 📄 Licença
 
 Código sob [Apache 2.0](LICENSE). Os GIFs de anime pertencem aos seus criadores e estúdios
 e são usados apenas como ilustração.
 
-## Créditos
+## 🙏 Créditos
 
 - [mise](https://github.com/jdx/mise), de Jeff Dickey e contribuidores (MIT) — gerenciamento
   das versões de Java e Maven no desenvolvimento.

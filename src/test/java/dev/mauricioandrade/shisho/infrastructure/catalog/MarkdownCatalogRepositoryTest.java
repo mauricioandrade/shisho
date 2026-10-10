@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -345,6 +346,25 @@ class MarkdownCatalogRepositoryTest {
 
             assertThat(new MarkdownCatalogRepository(catalog, Optional.of("en")).avoidedDependencies().getFirst().name())
                     .isEqualTo("Biblioteca X");
+        }
+
+        @Test
+        void theRepositoryCatalogIsTranslatedWholeAndOnlyThere() throws IOException {
+            for (String folder : List.of("architectures", "katas", "java-features", "dependencies", "scaffolds")) {
+                assertThat(fileNames(Path.of("catalog", "en", folder))).as(folder).isEqualTo(fileNames(Path.of("catalog", folder)));
+            }
+            MarkdownCatalogRepository english = MarkdownCatalogRepository.bundled(Optional.of("en"));
+            assertThat(english.architectures()).extracting(ArchitectureProfile::name).contains("Technical layers (Layered)");
+            assertThat(english.javaFeatures()).isNotEmpty();
+            assertThat(english.avoidedDependencies()).isNotEmpty();
+            assertThat(english.scaffolds()).allSatisfy(scaffold -> assertThat(scaffold.files())
+                    .anySatisfy(file -> assertThat(file.path()).endsWith("ErrorHandler.java")));
+        }
+
+        private static List<String> fileNames(Path directory) throws IOException {
+            try (Stream<Path> files = Files.list(directory)) {
+                return files.map(file -> file.getFileName().toString()).sorted().toList();
+            }
         }
 
         private void write(String file, String content) throws IOException {

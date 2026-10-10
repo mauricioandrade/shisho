@@ -1,10 +1,10 @@
 package dev.mauricioandrade.shisho;
 
 import dev.mauricioandrade.shisho.domain.model.ArchitectureProfile;
-import dev.mauricioandrade.shisho.domain.model.Scaffold;
 import dev.mauricioandrade.shisho.infrastructure.catalog.MarkdownCatalogRepository;
 import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
 import java.io.ByteArrayOutputStream;
@@ -12,6 +12,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Optional;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -22,47 +23,68 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 class CrudOracleTest {
 
-    private static final MarkdownCatalogRepository CATALOG = MarkdownCatalogRepository.bundled();
     private static final Path INITIALIZR = Path.of("src/test/resources/fixtures/initializr");
 
-    static Stream<String> scaffolds() {
-        return CATALOG.scaffolds().stream().map(Scaffold::architectureId);
+    /** What the report says in each language: the architecture line, the clean rank and the crud header. */
+    private record Language(String code, Optional<String> translation, String architecture, String cleanRank, String crudHeader) {
+
+        String name(String architectureId) {
+            return MarkdownCatalogRepository.bundled(translation).architectures().stream()
+                    .filter(profile -> profile.id().equals(architectureId))
+                    .map(ArchitectureProfile::name).findFirst().orElseThrow();
+        }
+
+        @Override
+        public String toString() {
+            return code;
+        }
     }
 
-    @ParameterizedTest
+    private static final Language PORTUGUESE = new Language("pt", Optional.empty(),
+            "\nArquitetura: ", "Graduação: 1º dan  (nenhuma lição)\n", "師匠 Shishō — CRUD de %s em %s\n");
+    private static final Language ENGLISH = new Language("en", Optional.of("en"),
+            "\nArchitecture: ", "Rank: 1st dan  (no lessons)\n", "師匠 Shishō — CRUD of %s in %s\n");
+
+    static Stream<Arguments> scaffolds() {
+        return Stream.of(PORTUGUESE, ENGLISH).flatMap(language -> MarkdownCatalogRepository.bundled().scaffolds().stream()
+                .map(scaffold -> Arguments.of(language, scaffold.architectureId())));
+    }
+
+    @ParameterizedTest(name = "{1} ({0})")
     @MethodSource("scaffolds")
-    void theGeneratedCrudPassesEveryKata(String architectureId, @TempDir Path project) throws IOException {
+    void theGeneratedCrudPassesEveryKata(Language language, String architectureId, @TempDir Path project) throws IOException {
         copyInitializr(project);
 
-        assertThat(run("crud", "--arquitetura", architectureId, "--mesmo-assim", project.toString(), "Produto",
+        assertThat(run(language, "crud", "--arquitetura", architectureId, "--mesmo-assim", project.toString(), "Produto",
                 "nome:String", "estoque:Integer", "codigoBarras:Long", "peso:Double", "ativo:Boolean", "preco:BigDecimal",
                 "lancamento:LocalDate", "atualizadoEm:LocalDateTime", "criadoEm:Instant", "codigo:UUID")).isZero();
-        assertThat(run("crud", "--arquitetura", architectureId, project.toString(), "ItemPedido", "quantidade:Integer")).isZero();
+        assertThat(run(language, "crud", "--arquitetura", architectureId, project.toString(), "ItemPedido", "quantidade:Integer")).isZero();
 
-        String report = text(run("analyze", project.toString()), "analyze");
+        String report = text(run(language, "analyze", project.toString()), "analyze");
         assertThat(report)
-                .contains("\nArquitetura: " + name(architectureId) + "  (")
-                .endsWith("Graduação: 1º dan  (nenhuma lição)\n");
+                .contains(language.architecture() + language.name(architectureId) + "  (")
+                .endsWith(language.cleanRank());
     }
 
-    @ParameterizedTest
+    @ParameterizedTest(name = "{1} ({0})")
     @MethodSource("scaffolds")
-    void theSecondCrudFollowsTheArchitectureWithoutBeingTold(String architectureId, @TempDir Path project) throws IOException {
+    void theSecondCrudFollowsTheArchitectureWithoutBeingTold(Language language, String architectureId, @TempDir Path project)
+            throws IOException {
         copyInitializr(project);
-        run("crud", "--arquitetura", architectureId, "--mesmo-assim", project.toString(), "Produto", "nome:String");
+        run(language, "crud", "--arquitetura", architectureId, "--mesmo-assim", project.toString(), "Produto", "nome:String");
 
-        assertThat(run("crud", project.toString(), "Fornecedor", "nome:String")).isZero();
-        assertThat(lastOut).startsWith("師匠 Shishō — CRUD de Fornecedor em " + name(architectureId) + "\n");
+        assertThat(run(language, "crud", project.toString(), "Fornecedor", "nome:String")).isZero();
+        assertThat(lastOut).startsWith(language.crudHeader().formatted("Fornecedor", language.name(architectureId)));
     }
 
     private final ByteArrayOutputStream out = new ByteArrayOutputStream();
     private final ByteArrayOutputStream err = new ByteArrayOutputStream();
     private String lastOut = "";
 
-    private int run(String... arguments) {
+    private int run(Language language, String... arguments) {
         out.reset();
         err.reset();
-        int exitCode = ShishoBootstrap.run(arguments, out, err);
+        int exitCode = ShishoBootstrap.run(arguments, language.code(), out, err);
         lastOut = out.toString(StandardCharsets.UTF_8).replace(System.lineSeparator(), "\n");
         assertThat(err.toString(StandardCharsets.UTF_8)).as(String.join(" ", arguments)).isEmpty();
         return exitCode;
@@ -71,11 +93,6 @@ class CrudOracleTest {
     private String text(int exitCode, String command) {
         assertThat(exitCode).as(command).isZero();
         return lastOut;
-    }
-
-    private static String name(String architectureId) {
-        return CATALOG.architectures().stream().filter(profile -> profile.id().equals(architectureId))
-                .map(ArchitectureProfile::name).findFirst().orElseThrow();
     }
 
     private static void copyInitializr(Path project) throws IOException {

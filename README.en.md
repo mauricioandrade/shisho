@@ -77,6 +77,10 @@ does the rest.
 The analyzed code may be written in English or in Portuguese: the Shishō recognizes packages such
 as `dominio`, `servico` and `porta/entrada` just as well as `domain`, `service` and `port/in`.
 
+![Gojo Satoru, from Jujutsu Kaisen, in chibi form, skipping happily through a field of flowers](docs/anime/install.gif)
+
+*One `./install.sh`, one question, and the Shishō is ready.*
+
 ## Quick start
 
 Point it at the root of a Maven project on Java 21 or later:
@@ -166,6 +170,10 @@ Every lesson takes points off. The final score becomes a rank:
 The severities are GRAVE (severe), MEDIA (medium), LEVE (minor) and INFO. Suggestions (INFO)
 cost no points. With `--sensei`, every lesson comes with the full explanation, the cases where
 the flagged code is acceptable and a before/after example.
+
+![Sung Jinwoo, from Solo Leveling, with one eye glowing blue and a half smile](docs/anime/katas.gif)
+
+*Nobody starts at S-rank. Every lesson you fix is experience.*
 
 Every project has its reasons. A `shisho.yaml` at the root of the analyzed project turns katas
 off or changes their severity:
@@ -311,6 +319,10 @@ Preview features are never recommended. What the Shishō knows about each versio
 - [ ] **Next**: a CRUD template for clean; other stacks, reusing the architecture catalog
 - [ ] **Ideas**: a `--shoshin` mode (初心, "beginner's mind") that explains every concept found
   in the code (what a record is, a sealed interface…) and design patterns
+
+![Sung Jinwoo, from Solo Leveling, striking with a dagger among stone statues](docs/anime/roadmap.gif)
+
+*Nine phases, one dungeon at a time.*
 
 ## Running from source
 
@@ -488,6 +500,10 @@ When you enable the plugin, Claude Code asks for the path to `shisho.jar`, which
 prints at the end. In a real run, Claude wrote a field `@Autowired`, got the GRAVE lesson and
 switched to constructor injection without anyone asking.
 
+![Gojo, Yuji and Nobara, from Jujutsu Kaisen, jumping and high-fiving to celebrate](docs/anime/claude-code.gif)
+
+*Claude writes, the Shishō points, Claude fixes. High five.*
+
 The Shishō only points things out. When a lesson does not apply, the plugin asks Claude to
 explain that to you instead of rewriting the code just to silence the kata. Why it works this
 way: [ADR 0008](docs/adr/0008-claude-code-plugin.md).
@@ -514,6 +530,10 @@ jobs:
 Lessons show up as code scanning alerts and pull request annotations; the terminal report goes
 to the job summary. The action installs Java 25 and builds the Shishō from its own source. Since
 that changes the job's Java, **run it in a job separate** from your project's build.
+
+![Anime scene: a blond character, eyes closed and unmoved, while another one shouts behind him](docs/anime/github-actions.gif)
+
+*Someone yelling in the channel because the build broke. The Shishō, calmly, had already said so in the PR.*
 
 ## Contributing
 

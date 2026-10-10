@@ -76,6 +76,10 @@ fazer à mão? `mvn verify` gera o `target/shisho.jar`, e
 O código analisado pode estar em português ou em inglês: o Shishō reconhece pacotes como
 `dominio`, `servico` e `porta/entrada` tanto quanto `domain`, `service` e `port/in`.
 
+![Gojo Satoru, de Jujutsu Kaisen, em versão chibi, saltitando feliz num campo de flores](docs/anime/install.gif)
+
+*Um `./install.sh`, uma pergunta, e o Shishō está pronto.*
+
 ## Uso rápido
 
 Aponte para a raiz de um projeto Maven com Java 21 ou superior:
@@ -164,6 +168,10 @@ Cada lição desconta pontos. A nota final vira uma faixa:
 
 As sugestões (INFO) não tiram nota. Com `--sensei`, cada lição vem com a explicação completa, os
 casos em que o código acusado é aceitável e o exemplo antes/depois.
+
+![Sung Jinwoo, de Solo Leveling, com um olho brilhando em azul e um meio sorriso](docs/anime/katas.gif)
+
+*Ninguém começa no rank S. Cada lição corrigida é experiência.*
 
 Cada projeto tem suas razões. Um `shisho.yaml` na raiz do projeto analisado desliga katas ou
 muda a severidade delas:
@@ -306,6 +314,10 @@ Recursos em preview nunca são recomendados. O que o Shishō sabe sobre cada ver
   arquiteturas
 - [ ] **Ideias** — modo `--shoshin` (初心, "mente de principiante"), que explica cada conceito
   que aparece no código (o que é um record, uma sealed interface…) e os design patterns
+
+![Sung Jinwoo, de Solo Leveling, atacando com uma adaga em meio a estátuas de pedra](docs/anime/roadmap.gif)
+
+*Nove fases, uma dungeon de cada vez.*
 
 ## Rodando a partir do código
 
@@ -479,6 +491,10 @@ Ao habilitar o plugin, o Claude Code pede o caminho do `shisho.jar`, que o `inst
 fim. Num teste real, o Claude escreveu um `@Autowired` em campo, recebeu a lição GRAVE e trocou
 pela injeção por construtor sem ninguém pedir.
 
+![Gojo, Yuji e Nobara, de Jujutsu Kaisen, pulando e batendo as mãos para comemorar](docs/anime/claude-code.gif)
+
+*O Claude escreve, o Shishō aponta, o Claude corrige. Toca aqui.*
+
 O Shishō só aponta. Quando uma lição não se aplica, o plugin pede ao Claude que explique isso a
 você, em vez de reescrever o código só para calar a kata. Por que assim:
 [ADR 0008](docs/adr/0008-claude-code-plugin.md).
@@ -506,6 +522,10 @@ As lições aparecem como alertas no code scanning e anotações no pull request
 terminal vai para o resumo do job. A action instala o Java 25 e compila o Shishō a partir do
 código dela mesma. Como isso troca o Java do job, **rode-a num job separado** do build do seu
 projeto.
+
+![Cena de anime: um personagem loiro, de olhos fechados e impassível, enquanto outro grita atrás dele](docs/anime/github-actions.gif)
+
+*Alguém gritando no canal porque o build quebrou. O Shishō, calmo, já tinha avisado no PR.*
 
 ## Contribuindo
 

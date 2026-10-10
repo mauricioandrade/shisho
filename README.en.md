@@ -498,7 +498,9 @@ that changes the job's Java, **run it in a job separate** from your project's bu
 The easiest way to contribute requires no Java at all: **the catalog is Markdown**. A new
 architecture, a missing overengineering signal, a clearer explanation, a CRUD template for
 another architecture: each one is a PR in `catalog/`. The schema is in
-[`catalog/README.md`](catalog/README.md).
+[`catalog/README.md`](catalog/README.md). Every text has a Portuguese and an English version
+(`catalog/en/`). If you only write one of them, open the PR anyway: the test shows what is
+missing, and someone fills it in.
 
 ![Naruto making the Shadow Clone Jutsu hand sign](docs/anime/contributing.gif)
 

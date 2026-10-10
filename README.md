@@ -489,6 +489,8 @@ projeto.
 O jeito mais fácil de contribuir não exige escrever Java: **o catálogo é Markdown**. Uma
 arquitetura nova, um sinal de overengineering que faltou, uma explicação mais clara, um template
 de CRUD para outra arquitetura — tudo é um PR em `catalog/`. O schema está em [`catalog/README.md`](catalog/README.md).
+Cada texto tem uma versão em português e outra em inglês (`catalog/en/`). Se você só escreve num
+dos dois, abra o PR assim mesmo: o teste mostra o que falta, e alguém completa.
 
 ![Naruto fazendo o selo de mão do Kage Bunshin no Jutsu](docs/anime/contributing.gif)
 

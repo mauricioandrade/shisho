@@ -199,6 +199,23 @@ de custo: o `crud` só grava se o `contexto` do projeto tiver uma das chaves de
 `faz_sentido_quando` dela, ou com `--mesmo-assim`. Ver
 [`docs/adr/0006-crud-cost-warning.md`](../docs/adr/0006-crud-cost-warning.md).
 
+## Traduções (`en/`)
+
+O catálogo é escrito em português, e é aqui que ficam os dados: assinaturas, regras, custos,
+coordenadas, referências. A versão em inglês, usada com `SHISHO_IDIOMA=en`, fica em
+`en/<pasta>/<id>.md`, com o mesmo `id`, e traz **só o texto**:
+
+- o corpo em Markdown (nos guias das katas, as seções são `## Why`, `## Acceptable when`,
+  `## Before` e `## After`);
+- os campos de texto do frontmatter: `nome`, `resumo` e `alternativa`;
+- nos templates de CRUD, também `uma_vez_por_projeto`, porque o código em inglês muda os nomes
+  dos arquivos (`ErrorHandler.java`).
+
+Qualquer outro campo numa tradução é erro: um dado que muda num idioma e não no outro deixaria
+o resultado da análise depender do idioma. Um teste exige que todo documento tenha tradução, e
+que nenhuma tradução fique sem original. Detalhes em
+[`docs/adr/0007-languages.md`](../docs/adr/0007-languages.md).
+
 ## Famílias e o caminho natural de evolução
 
 ```

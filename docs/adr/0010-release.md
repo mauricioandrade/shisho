@@ -42,7 +42,7 @@ no `~/.zshrc` passa a ter só o `PATH` e o `SHISHO_IDIOMA`.
 O instalador também funciona sem clonar nada:
 
 ```bash
-bash -c "$(curl -fsSL https://raw.githubusercontent.com/mauricioandrade/shiso/main/install.sh)"
+bash -c "$(curl -fsSL https://raw.githubusercontent.com/mauricioandrade/shisho/main/install.sh)"
 ```
 
 ### 3. O plugin acha o jar sozinho

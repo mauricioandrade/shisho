@@ -22,7 +22,7 @@ O repositório passa a ser também um marketplace de plugins: `.claude-plugin/ma
 raiz aponta para `claude-plugin/`. Quem usa instala com:
 
 ```
-/plugin marketplace add mauricioandrade/shiso
+/plugin marketplace add mauricioandrade/shisho
 /plugin install shisho@shisho
 ```
 

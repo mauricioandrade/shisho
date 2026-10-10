@@ -4,10 +4,10 @@
 #   ./install.sh --from-source    builds it from this clone instead (needs Maven)
 #   ./install.sh en               English, no questions (pt for Portuguese)
 # Without cloning:
-#   bash -c "$(curl -fsSL https://raw.githubusercontent.com/mauricioandrade/shiso/main/install.sh)"
+#   bash -c "$(curl -fsSL https://raw.githubusercontent.com/mauricioandrade/shisho/main/install.sh)"
 set -euo pipefail
 
-release_url="${SHISHO_RELEASE_URL:-https://github.com/mauricioandrade/shiso/releases/latest/download}"
+release_url="${SHISHO_RELEASE_URL:-https://github.com/mauricioandrade/shisho/releases/latest/download}"
 home_dir="${SHISHO_HOME:-$HOME/.local/share/shisho}"
 bin_dir="$HOME/.local/bin"
 begin="# >>> shisho >>>"
@@ -110,5 +110,5 @@ esac
 echo
 say "Pronto: $("$bin_dir/shisho" --version). Abra um terminal novo (ou rode: source $rc) e experimente: shisho analyze <projeto>" \
     "Done: $("$bin_dir/shisho" --version). Open a new terminal (or run: source $rc) and try: shisho analyze <project>"
-say "No Claude Code: /plugin install shisho --marketplace mauricioandrade/shiso" \
-    "In Claude Code: /plugin install shisho --marketplace mauricioandrade/shiso"
+say "No Claude Code: /plugin install shisho --marketplace mauricioandrade/shisho" \
+    "In Claude Code: /plugin install shisho --marketplace mauricioandrade/shisho"

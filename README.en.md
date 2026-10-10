@@ -6,8 +6,8 @@
 
 Starting with Java and Spring Boot.
 
-[![CI](https://github.com/mauricioandrade/shiso/actions/workflows/ci.yml/badge.svg)](https://github.com/mauricioandrade/shiso/actions/workflows/ci.yml)
-[![Release](https://img.shields.io/github/v/release/mauricioandrade/shiso?label=release)](https://github.com/mauricioandrade/shiso/releases)
+[![CI](https://github.com/mauricioandrade/shisho/actions/workflows/ci.yml/badge.svg)](https://github.com/mauricioandrade/shisho/actions/workflows/ci.yml)
+[![Release](https://img.shields.io/github/v/release/mauricioandrade/shisho?label=release)](https://github.com/mauricioandrade/shisho/releases)
 ![Runs on Java 25](https://img.shields.io/badge/runs%20on-Java%2025-orange?logo=openjdk)
 ![Analyzes Java 21+](https://img.shields.io/badge/analyzes-Java%2021%2B-blue?logo=openjdk)
 ![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3%20%7C%204-6DB33F?logo=springboot&logoColor=white)
@@ -74,11 +74,11 @@ wrong, **why** it matters and which way to go, the way a sensei would teach a st
 ## 🚀 Installation
 
 All you need is **Java 25** ([Temurin](https://adoptium.net), for example). The installer
-downloads `shisho.jar` from the latest [release](https://github.com/mauricioandrade/shiso/releases),
+downloads `shisho.jar` from the latest [release](https://github.com/mauricioandrade/shisho/releases),
 checks its checksum and asks for the language:
 
 ```bash
-bash -c "$(curl -fsSL https://raw.githubusercontent.com/mauricioandrade/shiso/main/install.sh)"
+bash -c "$(curl -fsSL https://raw.githubusercontent.com/mauricioandrade/shisho/main/install.sh)"
 ```
 
 The jar goes to `~/.local/share/shisho/` and the `shisho` command to `~/.local/bin/`. If you allow
@@ -109,7 +109,7 @@ Point it at the root of a Maven project on Java 21 or later:
 | `shisho fix ./my-project` | shows the automatic fixes; `--apply` writes them |
 | `shisho crud --arquitetura layered ./my-project Product name:String` | creates a CRUD that explains every file |
 | `shisho ask ./my-project "where do I start?"` | a local LLM explains the verdict (needs Ollama) |
-| `/plugin install shisho --marketplace mauricioandrade/shiso` | in Claude Code: the Shishō checks every file Claude edits |
+| `/plugin install shisho --marketplace mauricioandrade/shisho` | in Claude Code: the Shishō checks every file Claude edits |
 
 `shisho <command> --help` lists every option.
 
@@ -486,7 +486,7 @@ before moving on. A skill teaches Claude to use the CLI when you ask about archi
 overengineering or for a CRUD.
 
 ```
-/plugin install shisho --marketplace mauricioandrade/shiso
+/plugin install shisho --marketplace mauricioandrade/shisho
 ```
 
 If you installed with `install.sh`, the plugin finds the jar by itself; if not, it asks where
@@ -549,7 +549,7 @@ jobs:
       security-events: write   # to upload the SARIF to code scanning
     steps:
       - uses: actions/checkout@v4
-      - uses: mauricioandrade/shiso@main
+      - uses: mauricioandrade/shisho@main
         with:
           path: .                # project to analyze (default: repository root)
           fail-on-grave: true    # fails the job on a GRAVE lesson (default: true)

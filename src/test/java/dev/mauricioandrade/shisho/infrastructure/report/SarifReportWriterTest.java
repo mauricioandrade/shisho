@@ -55,7 +55,7 @@ class SarifReportWriterTest {
                       "tool": {
                         "driver": {
                           "name": "Shishō",
-                          "informationUri": "https://github.com/mauricioandrade/shiso",
+                          "informationUri": "https://github.com/mauricioandrade/shisho",
                           "version": "1.2.3",
                           "rules": [
                             {
@@ -63,7 +63,7 @@ class SarifReportWriterTest {
                               "shortDescription": {
                                 "text": "Aplicação web sem actuator"
                               },
-                              "helpUri": "https://github.com/mauricioandrade/shiso#katas",
+                              "helpUri": "https://github.com/mauricioandrade/shisho#katas",
                               "defaultConfiguration": {
                                 "level": "note"
                               }
@@ -73,7 +73,7 @@ class SarifReportWriterTest {
                               "shortDescription": {
                                 "text": "Injeção de dependência em campo"
                               },
-                              "helpUri": "https://github.com/mauricioandrade/shiso#katas",
+                              "helpUri": "https://github.com/mauricioandrade/shisho#katas",
                               "defaultConfiguration": {
                                 "level": "error"
                               }
@@ -215,7 +215,7 @@ class SarifReportWriterTest {
                 new Lesson("system-out", Severity.MEDIA, Path.of("A.java"), 2, "kata.system-out.lesson", List.of("System.out.println")))));
 
         assertThat(buffer.toString(StandardCharsets.UTF_8)).contains("""
-                              "helpUri": "https://github.com/mauricioandrade/shiso#katas",
+                              "helpUri": "https://github.com/mauricioandrade/shisho#katas",
                               "help": {
                                 "text": "Por quê:\\nO console não tem nível.\\n\\nQuando é aceitável:\\nNuma CLI.\\n\\nAntes:\\nSystem.out.println(x);\\n\\nDepois:\\nlog.info(\\"{}\\", x);\\n\\nReferências:\\nhttps://openjdk.org/jeps/264",
                                 "markdown": "**Por quê**\\n\\nO console não tem nível.\\n\\n**Quando é aceitável**\\n\\nNuma CLI.\\n\\n**Antes**\\n\\n```java\\nSystem.out.println(x);\\n```\\n\\n**Depois**\\n\\nUse um logger.\\n\\n```java\\nlog.info(\\"{}\\", x);\\n```\\n\\n**Referências**\\n\\n- https://openjdk.org/jeps/264"

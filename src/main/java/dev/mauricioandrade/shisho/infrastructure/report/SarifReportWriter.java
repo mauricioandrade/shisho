@@ -30,7 +30,7 @@ import java.util.stream.StreamSupport;
  */
 public final class SarifReportWriter implements ReportWriter {
 
-    static final String INFORMATION_URI = "https://github.com/mauricioandrade/shiso";
+    static final String INFORMATION_URI = "https://github.com/mauricioandrade/shisho";
     private static final String SCHEMA = "https://json.schemastore.org/sarif-2.1.0.json";
     private static final String SOURCE_ROOT = "%SRCROOT%";
 

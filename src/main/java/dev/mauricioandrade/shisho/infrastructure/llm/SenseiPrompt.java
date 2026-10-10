@@ -122,7 +122,7 @@ public final class SenseiPrompt {
 
     private static Stream<String> suggested(Verdict verdict) {
         return switch (verdict) {
-            case Verdict.Overengineering over -> over.simplerAlternative().stream();
+            case Verdict.Overengineering over -> over.justifiedBy().isEmpty() ? over.simplerAlternative().stream() : Stream.empty();
             case Verdict.Underengineering under -> under.evolvesTo().stream();
             case Verdict.Adequate adequate -> Stream.empty();
         };

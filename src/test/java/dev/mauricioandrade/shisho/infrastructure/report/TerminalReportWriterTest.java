@@ -83,6 +83,19 @@ class TerminalReportWriterTest {
     }
 
     @Test
+    void doesNotSuggestASimplerArchitectureWhenTheContextJustifiesIt() {
+        Verdict verdict = new Verdict.Overengineering(List.of(
+                new Evidence("entidade_de_dominio_identica_a_entidade_jpa", List.of("Usuario", "UsuarioJpaEntity"))),
+                false, Optional.of("package-by-feature"), List.of("dominio_com_regras_complexas"));
+
+        assertThat(render(withArchitecture(verdict), PORTUGUESE)).contains("""
+                Veredito: overengineering, por enquanto. O contexto declarado justifica a arquitetura Clean
+                Architecture (dominio_com_regras_complexas), mas o código ainda não usa o que ela oferece:
+                """).contains("Esses sinais somem quando o domínio ganhar regras próprias.")
+                .doesNotContain("Considere package-by-feature");
+    }
+
+    @Test
     void explainsAnOverengineeringVerdict() {
         Verdict verdict = new Verdict.Overengineering(List.of(
                 new Evidence("um_use_case_por_metodo_crud", List.of("Usuario", 4)),

@@ -85,6 +85,10 @@ public final class ReportTexts {
     public VerdictText verdict(ArchitectureMatch match) {
         ArchitectureProfile architecture = match.architecture();
         return switch (match.verdict()) {
+            case Verdict.Overengineering over when !over.justifiedBy().isEmpty() -> new VerdictText(
+                    text("verdict.overengineering.justified", architecture.name(), String.join(", ", over.justifiedBy())),
+                    evidence(over.evidence()),
+                    Optional.of(text("verdict.overengineering.justified.next")));
             case Verdict.Overengineering over -> new VerdictText(
                     over.unjustified()
                             ? text("verdict.overengineering.unjustified", architecture.name(),

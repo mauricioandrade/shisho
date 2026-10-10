@@ -90,7 +90,7 @@ public final class TerminalReportWriter implements ReportWriter {
             lines.add(EVIDENCE_BULLET + wrapped.getFirst());
             wrapped.stream().skip(1).forEach(line -> lines.add(EVIDENCE_INDENT + line));
         }
-        verdict.next().ifPresent(lines::add);
+        verdict.next().ifPresent(next -> lines.addAll(wrap(next, WIDTH)));
         return lines;
     }
 

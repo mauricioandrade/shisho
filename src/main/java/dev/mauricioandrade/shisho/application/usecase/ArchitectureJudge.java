@@ -42,7 +42,7 @@ final class ArchitectureJudge {
                 && justifications.isEmpty();
         List<Evidence> over = measure(architecture.overengineeringSignals(), project);
         if (!over.isEmpty() || unjustified) {
-            return new Verdict.Overengineering(over, unjustified, architecture.simplerAlternative());
+            return new Verdict.Overengineering(over, unjustified, architecture.simplerAlternative(), justifications);
         }
         return new Verdict.Adequate(context.isPresent(), justifications);
     }

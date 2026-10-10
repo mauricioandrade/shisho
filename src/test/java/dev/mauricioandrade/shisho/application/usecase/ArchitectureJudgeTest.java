@@ -37,10 +37,12 @@ class ArchitectureJudgeTest {
     }
 
     @Test
-    void measuredOverengineeringSkipsSignalsWithoutDetector() {
+    void measuredOverengineeringSkipsSignalsWithoutDetectorAndSaysWhatPaysForTheArchitecture() {
         ArchitectureJudge judge = new ArchitectureJudge(List.of(firing("dominio_anemico")));
 
         assertThat(judge.judge(CLEAN, PROJECT, context("vida_util_longa"))).isEqualTo(new Verdict.Overengineering(
+                List.of(new Evidence("dominio_anemico", List.of())), false, Optional.of("package-by-feature"), List.of("vida_util_longa")));
+        assertThat(judge.judge(CLEAN, PROJECT, Optional.empty())).isEqualTo(new Verdict.Overengineering(
                 List.of(new Evidence("dominio_anemico", List.of())), false, Optional.of("package-by-feature")));
     }
 

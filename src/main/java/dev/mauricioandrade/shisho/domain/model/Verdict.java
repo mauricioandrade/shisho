@@ -9,11 +9,21 @@ import java.util.Optional;
  */
 public sealed interface Verdict {
 
-    /** More architecture than the project needs. {@code unjustified}: nothing in the declared context pays for its cost. */
-    record Overengineering(List<Evidence> evidence, boolean unjustified, Optional<String> simplerAlternative) implements Verdict {
+    /**
+     * More architecture than the project needs. {@code unjustified}: nothing in the declared context
+     * pays for its cost. {@code justifiedBy}: the declared context keys that do pay for it, when
+     * the code still shows the signals; the architecture fits the project, the code does not use it yet.
+     */
+    record Overengineering(List<Evidence> evidence, boolean unjustified, Optional<String> simplerAlternative,
+                           List<String> justifiedBy) implements Verdict {
 
         public Overengineering {
             evidence = List.copyOf(evidence);
+            justifiedBy = List.copyOf(justifiedBy);
+        }
+
+        public Overengineering(List<Evidence> evidence, boolean unjustified, Optional<String> simplerAlternative) {
+            this(evidence, unjustified, simplerAlternative, List.of());
         }
     }
 

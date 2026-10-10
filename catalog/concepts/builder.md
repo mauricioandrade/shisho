@@ -2,6 +2,7 @@
 id: builder
 nome: Builder
 grupo: padrao
+ordem: 40
 aparece_em:
   - detector: builder
   - anotacao: Builder

@@ -2,6 +2,7 @@
 id: enum
 nome: Enum
 grupo: java
+ordem: 20
 aparece_em:
   - tipo: enum
 referencias:

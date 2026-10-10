@@ -2,6 +2,7 @@
 id: controller-rest
 nome: Controller REST
 grupo: spring
+ordem: 30
 aparece_em:
   - anotacao: RestController
 referencias:

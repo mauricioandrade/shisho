@@ -2,6 +2,7 @@
 id: optional
 nome: Optional
 grupo: java
+ordem: 40
 aparece_em:
   - import: java.util.Optional
   - chamada: orElseThrow

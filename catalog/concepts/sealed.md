@@ -2,6 +2,7 @@
 id: sealed
 nome: Tipos selados (sealed)
 grupo: java
+ordem: 30
 aparece_em:
   - modificador: sealed
 referencias:

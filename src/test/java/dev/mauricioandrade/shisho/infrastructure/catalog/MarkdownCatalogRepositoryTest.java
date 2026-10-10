@@ -294,6 +294,8 @@ class MarkdownCatalogRepositoryTest {
 
             assertThat(concepts).extracting(Concept::id).contains("record", "transacoes", "strategy").doesNotHaveDuplicates();
             assertThat(concepts).extracting(Concept::group).contains(Concept.Group.JAVA, Concept.Group.SPRING, Concept.Group.PATTERN);
+            assertThat(concepts).extracting(Concept::id).as("by group, then in the order a beginner meets them")
+                    .startsWith("record", "enum").containsSubsequence("beans", "injecao-de-dependencia", "transacoes", "bean-validation");
             assertThat(concepts).allSatisfy(concept -> {
                 assertThat(concept.explanation()).as(concept.id()).isNotEmpty();
                 assertThat(concept.references()).as(concept.id()).allMatch(url -> url.startsWith("https://"));
@@ -307,6 +309,7 @@ class MarkdownCatalogRepositoryTest {
                     id: x
                     nome: X
                     grupo: java
+                    ordem: 10
                     aparece_em:
                       - anotaçao: Service
                     referencias: [https://x.dev]

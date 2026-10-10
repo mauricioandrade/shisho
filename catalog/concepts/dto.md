@@ -2,6 +2,7 @@
 id: dto
 nome: DTO (Data Transfer Object)
 grupo: padrao
+ordem: 20
 aparece_em:
   - sufixo: Request
   - sufixo: Response

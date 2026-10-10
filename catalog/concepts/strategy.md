@@ -2,6 +2,7 @@
 id: strategy
 nome: Strategy
 grupo: padrao
+ordem: 30
 aparece_em:
   - detector: estrategia
 referencias:

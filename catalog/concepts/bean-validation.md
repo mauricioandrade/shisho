@@ -2,6 +2,7 @@
 id: bean-validation
 nome: Bean Validation
 grupo: spring
+ordem: 60
 aparece_em:
   - anotacao: Valid
   - anotacao: NotBlank

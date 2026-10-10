@@ -1,6 +1,8 @@
 package dev.mauricioandrade.shisho.infrastructure.report;
 
 import dev.mauricioandrade.shisho.domain.model.Analysis;
+import dev.mauricioandrade.shisho.domain.model.Concept;
+import dev.mauricioandrade.shisho.domain.model.ConceptFinding;
 import dev.mauricioandrade.shisho.domain.model.KataGuide;
 import dev.mauricioandrade.shisho.domain.model.KataGuide.Snippet;
 import dev.mauricioandrade.shisho.domain.model.Lesson;
@@ -14,6 +16,9 @@ import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * The report for people at a terminal: aligned columns, wrapped at {@value #WIDTH} characters.
@@ -22,6 +27,8 @@ import java.util.List;
 public final class TerminalReportWriter implements ReportWriter {
 
     public static final int WIDTH = 100;
+    private static final String SHOSHIN_INDENT = "  ";
+    private static final int SHOSHIN_PLACES = 3;
     private static final String EVIDENCE_BULLET = "  · ";
     private static final String EVIDENCE_INDENT = "    ";
     private static final String EXAMPLE_LABEL_INDENT = "  ";
@@ -30,11 +37,18 @@ public final class TerminalReportWriter implements ReportWriter {
 
     private final PrintStream out;
     private final ReportTexts texts;
+    private final List<Concept> concepts;
 
     /** @param guides the catalog's guides for the sensei mode; empty for the plain report */
     public TerminalReportWriter(PrintStream out, Messages messages, List<KataGuide> guides) {
+        this(out, messages, guides, List.of());
+    }
+
+    /** @param concepts the catalog's concepts for the shoshin mode; empty for the plain report */
+    public TerminalReportWriter(PrintStream out, Messages messages, List<KataGuide> guides, List<Concept> concepts) {
         this.out = out;
         this.texts = new ReportTexts(messages, guides);
+        this.concepts = List.copyOf(concepts);
     }
 
     @Override
@@ -58,6 +72,9 @@ public final class TerminalReportWriter implements ReportWriter {
                 guide(guide).forEach(out::println);
                 out.println();
             });
+        }
+        if (!concepts.isEmpty()) {
+            shoshin(analysis.concepts());
         }
         analysis.architecture().ifPresent(match -> {
             verdict(texts.verdict(match)).forEach(out::println);
@@ -107,6 +124,46 @@ public final class TerminalReportWriter implements ReportWriter {
                     .forEach(line -> lines.add(EXAMPLE_TEXT_INDENT + line));
         }
         snippet.code().lines().forEach(line -> lines.add(line.isEmpty() ? "" : EXAMPLE_CODE_INDENT + line));
+    }
+
+    /** The concepts found, by group, each with where it appears, what it is and where to read more. See docs/adr/0009-shoshin.md. */
+    private void shoshin(List<ConceptFinding> findings) {
+        out.println(texts.text("report.shoshin.title"));
+        out.println();
+        if (findings.isEmpty()) {
+            out.println(texts.text("report.shoshin.none"));
+            out.println();
+            return;
+        }
+        Map<String, Concept> byId = concepts.stream().collect(Collectors.toMap(Concept::id, Function.identity()));
+        for (Concept.Group group : Concept.Group.values()) {
+            List<ConceptFinding> inGroup = findings.stream()
+                    .filter(finding -> byId.containsKey(finding.conceptId()) && byId.get(finding.conceptId()).group() == group)
+                    .toList();
+            if (inGroup.isEmpty()) {
+                continue;
+            }
+            out.println(texts.text("report.shoshin.group." + group.name()));
+            for (ConceptFinding finding : inGroup) {
+                Concept concept = byId.get(finding.conceptId());
+                out.println(SHOSHIN_INDENT + concept.name() + "  " + where(finding.occurrences()));
+                String indent = SHOSHIN_INDENT.repeat(2);
+                concept.explanation().forEach(paragraph -> {
+                    wrap(paragraph, WIDTH - indent.length()).forEach(line -> out.println(indent + line));
+                    out.println();
+                });
+                out.println(indent + texts.text("report.shoshin.more-info", concept.references().getFirst()));
+                out.println();
+            }
+        }
+    }
+
+    private String where(List<ConceptFinding.Occurrence> occurrences) {
+        String shown = occurrences.stream().limit(SHOSHIN_PLACES)
+                .map(occurrence -> occurrence.file().getFileName() + ":" + occurrence.line())
+                .collect(Collectors.joining(", "));
+        int rest = occurrences.size() - SHOSHIN_PLACES;
+        return texts.text("report.shoshin.where", occurrences.size(), rest > 0 ? shown + " " + texts.text("report.shoshin.and-more", rest) : shown);
     }
 
     /** One line per lesson (severity, kata, file and line), with its explanation below. */

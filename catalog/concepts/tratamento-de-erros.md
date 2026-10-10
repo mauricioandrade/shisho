@@ -2,6 +2,7 @@
 id: tratamento-de-erros
 nome: Tratamento centralizado de erros
 grupo: spring
+ordem: 70
 aparece_em:
   - anotacao: RestControllerAdvice
   - anotacao: ExceptionHandler

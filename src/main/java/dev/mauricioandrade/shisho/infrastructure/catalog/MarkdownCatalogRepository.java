@@ -34,6 +34,7 @@ import java.nio.file.FileSystemAlreadyExistsException;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -148,7 +149,10 @@ public final class MarkdownCatalogRepository implements CatalogRepository {
 
     @Override
     public List<Concept> concepts() {
-        return documents("concepts").stream().map(MarkdownCatalogRepository::toConcept).toList();
+        return documents("concepts").stream()
+                .map(MarkdownCatalogRepository::toConcept)
+                .sorted(Comparator.comparing(Concept::group).thenComparingInt(Concept::order).thenComparing(Concept::id))
+                .toList();
     }
 
     private static Concept toConcept(Document document) {
@@ -162,7 +166,7 @@ public final class MarkdownCatalogRepository implements CatalogRepository {
             throw fields.invalid("referencias", references);
         }
         Map<String, String> sections = sections(document.markdown());
-        return new Concept(document.id(), fields.text("nome"), group(fields), signals, references,
+        return new Concept(document.id(), fields.text("nome"), group(fields), fields.integer("ordem"), signals, references,
                 paragraphs(document.fileName(), sections, heading(sections, WHAT_IT_IS)),
                 snippet(document.fileName(), sections, heading(sections, EXAMPLE)));
     }

@@ -2,6 +2,7 @@
 id: configuration-properties
 nome: Configuração tipada (@ConfigurationProperties)
 grupo: spring
+ordem: 80
 aparece_em:
   - anotacao: ConfigurationProperties
 referencias:

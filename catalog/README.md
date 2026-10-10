@@ -209,6 +209,7 @@ Java, conceitos do Spring e padrões de projeto. Um arquivo por conceito:
 id: transacoes
 nome: Transações (@Transactional)
 grupo: spring                 # java | spring | padrao
+ordem: 50                     # posição no grupo: o que um iniciante deveria ver primeiro vem antes
 aparece_em:                   # basta um sinal; num sinal, todas as condições valem para a mesma classe
   - anotacao: Transactional
 referencias:

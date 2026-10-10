@@ -2,6 +2,7 @@
 id: observer
 nome: Observer (eventos)
 grupo: padrao
+ordem: 50
 aparece_em:
   - anotacao: EventListener
   - anotacao: TransactionalEventListener

@@ -2,6 +2,7 @@
 id: injecao-de-dependencia
 nome: Injeção de dependência pelo construtor
 grupo: spring
+ordem: 20
 aparece_em:
   - detector: injecao_por_construtor
 referencias:

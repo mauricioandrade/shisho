@@ -2,6 +2,7 @@
 id: transacoes
 nome: Transações (@Transactional)
 grupo: spring
+ordem: 50
 aparece_em:
   - anotacao: Transactional
 referencias:
@@ -15,7 +16,7 @@ nenhuma. Com `@Transactional`, o Spring abre a transação antes do método e fa
 rollback se uma exceção escapar.
 
 `readOnly = true` avisa que o método só lê, e o Hibernate economiza trabalho. Atenção: a anotação
-só vale quando o método é chamado de **fora** da classe, porque é um proxy do Spring que a
+só vale quando o método é chamado de fora da classe, porque é um proxy do Spring que a
 aplica.
 
 ## Exemplo

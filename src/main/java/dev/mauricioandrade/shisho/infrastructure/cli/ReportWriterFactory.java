@@ -8,6 +8,9 @@ import java.io.PrintStream;
 @FunctionalInterface
 public interface ReportWriterFactory {
 
-    /** @param sensei show how to fix each kata found (the HTML and SARIF reports always do) */
-    ReportWriter create(ReportFormat format, PrintStream destination, boolean sensei);
+    /**
+     * @param sensei  show how to fix each kata found (the HTML and SARIF reports always do)
+     * @param shoshin explain the concepts found in the code (terminal report only)
+     */
+    ReportWriter create(ReportFormat format, PrintStream destination, boolean sensei, boolean shoshin);
 }

@@ -89,8 +89,9 @@ public final class ShishoBootstrap {
                 catalog.concepts(),
                 ConceptDetectors.all());
 
-        ReportWriterFactory reportWriters = (format, destination, sensei) -> switch (format) {
-            case TERMINAL -> new TerminalReportWriter(destination, messages, sensei ? catalog.kataGuides() : List.of());
+        ReportWriterFactory reportWriters = (format, destination, sensei, shoshin) -> switch (format) {
+            case TERMINAL -> new TerminalReportWriter(destination, messages, sensei ? catalog.kataGuides() : List.of(),
+                    shoshin ? catalog.concepts() : List.of());
             case SARIF -> new SarifReportWriter(destination, messages, catalog.kataGuides(), ShishoCommand.version(), Path.of(""));
             case HTML -> new HtmlReportWriter(destination, messages, catalog.kataGuides(), ShishoCommand.version());
         };

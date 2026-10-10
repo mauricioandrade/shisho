@@ -2,6 +2,7 @@
 id: repository
 nome: Repository
 grupo: padrao
+ordem: 10
 aparece_em:
   - estende: JpaRepository
   - estende: CrudRepository

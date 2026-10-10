@@ -112,7 +112,7 @@ class ConceptFinderTest {
     }
 
     private static Concept concept(Signal signal) {
-        return new Concept("x", "X", Group.JAVA, List.of(signal), List.of("https://x.dev"), List.of("X."),
+        return new Concept("x", "X", Group.JAVA, 10, List.of(signal), List.of("https://x.dev"), List.of("X."),
                 new Snippet("java", "class X {}", ""));
     }
 }

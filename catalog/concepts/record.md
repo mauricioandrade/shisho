@@ -2,6 +2,7 @@
 id: record
 nome: Record
 grupo: java
+ordem: 10
 aparece_em:
   - tipo: record
 referencias:

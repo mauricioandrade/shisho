@@ -4,6 +4,9 @@ import dev.mauricioandrade.shisho.application.usecase.AnalyzeProjectService;
 import dev.mauricioandrade.shisho.application.usecase.ClassifyArchitectureService;
 import dev.mauricioandrade.shisho.application.usecase.RankCalculator;
 import dev.mauricioandrade.shisho.domain.model.Analysis;
+import dev.mauricioandrade.shisho.domain.model.Concept;
+import dev.mauricioandrade.shisho.domain.model.ConceptFinding;
+import dev.mauricioandrade.shisho.domain.model.ConceptFinding.Occurrence;
 import dev.mauricioandrade.shisho.domain.model.ArchitectureMatch;
 import dev.mauricioandrade.shisho.domain.model.ArchitectureProfile;
 import dev.mauricioandrade.shisho.domain.model.ArchitectureProfile.ClassRange;
@@ -215,6 +218,60 @@ class TerminalReportWriterTest {
 
                         · LEVE   [missing-actuator]""")
                 .endsWith("\nGraduação: 5º kyū  (19 lições: 1 grave, 9 médias, 6 leves, 3 sugestões)\n");
+    }
+
+    @Test
+    void explainsTheConceptsFoundInTheShoshinMode() {
+        Concept record = new Concept("record", "Record", Concept.Group.JAVA, 10,
+                List.of(), List.of("https://openjdk.org/jeps/395"), List.of("Uma classe feita só para carregar dados.", "Desde o Java 16."),
+                new Snippet("java", "record R() {}", ""));
+        Concept strategy = new Concept("strategy", "Strategy", Concept.Group.PATTERN, 30,
+                List.of(), List.of("https://refactoring.guru/design-patterns/strategy"), List.of("Várias formas de fazer a mesma coisa."),
+                new Snippet("java", "interface S {}", ""));
+        Path dto = Path.of("src/main/java/app/dto");
+        Analysis analysis = new Analysis(Path.of("loja"), "loja", new JavaVersion(21), true, Optional.empty(), Optional.empty(),
+                List.of(), List.of(), 100, Rank.DAN_1, List.of(
+                new ConceptFinding("record", List.of(new Occurrence(dto.resolve("A.java"), 3), new Occurrence(dto.resolve("B.java"), 3),
+                        new Occurrence(dto.resolve("C.java"), 3), new Occurrence(dto.resolve("D.java"), 3))),
+                new ConceptFinding("strategy", List.of(new Occurrence(Path.of("src/main/java/app/Frete.java"), 5)))));
+
+        ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+        new TerminalReportWriter(new PrintStream(buffer, true, StandardCharsets.UTF_8), PORTUGUESE, List.of(), List.of(record, strategy))
+                .write(analysis);
+
+        assertThat(buffer.toString(StandardCharsets.UTF_8).replace(System.lineSeparator(), "\n")).isEqualTo("""
+                師匠 Shishō — análise de loja  (Java 21)
+                Arquitetura: nenhuma do catálogo reconhecida
+
+                初心 Conceitos neste código (modo shoshin)
+
+                Java
+                  Record  (4 lugares: A.java:3, B.java:3, C.java:3 e mais 1)
+                    Uma classe feita só para carregar dados.
+
+                    Desde o Java 16.
+
+                    Para ler mais: https://openjdk.org/jeps/395
+
+                Padrões de projeto
+                  Strategy  (1 lugar: Frete.java:5)
+                    Várias formas de fazer a mesma coisa.
+
+                    Para ler mais: https://refactoring.guru/design-patterns/strategy
+
+                Graduação: 1º dan  (nenhuma lição)
+                """);
+    }
+
+    @Test
+    void saysSoWhenNoConceptShowsUp() {
+        Concept record = new Concept("record", "Record", Concept.Group.JAVA, 10, List.of(), List.of("https://x.dev"),
+                List.of("X."), new Snippet("java", "record R() {}", ""));
+        ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+        new TerminalReportWriter(new PrintStream(buffer, true, StandardCharsets.UTF_8), PORTUGUESE, List.of(), List.of(record))
+                .write(analysis(true, List.of(), List.of()));
+
+        assertThat(buffer.toString(StandardCharsets.UTF_8)).contains("Nenhum conceito do catálogo apareceu neste código.");
     }
 
     private static String render(Analysis analysis, Messages messages) {

@@ -174,6 +174,13 @@ class ShishoBootstrapTest {
     }
 
     @Test
+    void namesTheConceptsInTheCodeInTheShoshinMode() {
+        assertThat(run("analyze", "--shoshin", FIXTURES + "aluno-astronauta")).isZero();
+        assertThat(out()).contains("初心 Conceitos neste código (modo shoshin)", "\nPadrões de projeto\n", "  Repository  (")
+                .endsWith("Graduação: 1º dan  (nenhuma lição)\n");
+    }
+
+    @Test
     void speaksTheLanguageOfShishoIdioma() {
         assertThat(ShishoBootstrap.run(new String[] {"analyze", FIXTURES + "aluno-astronauta"}, "EN", out, err)).isZero();
         assertThat(out()).startsWith("師匠 Shishō — analysis of aluno-astronauta").contains("\nVerdict: overengineering.");

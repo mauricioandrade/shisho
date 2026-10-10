@@ -2,6 +2,7 @@
 id: stream
 nome: Streams
 grupo: java
+ordem: 50
 aparece_em:
   - chamada: stream
 referencias:
@@ -10,7 +11,7 @@ referencias:
 
 ## O que é
 
-Uma forma de processar coleções descrevendo **o que** fazer, e não **como** percorrer: filtrar
+Uma forma de processar coleções descrevendo o que fazer, e não como percorrer: filtrar
 (`filter`), transformar (`map`), juntar (`toList`, `collect`). Cada passo recebe uma função, em
 geral uma lambda (`pedido -> pedido.total()`) ou uma referência de método (`Pedido::total`).
 

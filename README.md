@@ -523,7 +523,7 @@ terminal vai para o resumo do job. A action instala o Java 25 e compila o Shish�
 código dela mesma. Como isso troca o Java do job, **rode-a num job separado** do build do seu
 projeto.
 
-![Cena de anime: um personagem loiro, de olhos fechados e impassível, enquanto outro grita atrás dele](docs/anime/github-actions.gif)
+![Naoya Zen'in, de Jujutsu Kaisen, de olhos fechados e impassível, enquanto Choso grita atrás dele](docs/anime/github-actions.gif)
 
 *Alguém gritando no canal porque o build quebrou. O Shishō, calmo, já tinha avisado no PR.*
 

@@ -531,7 +531,7 @@ Lessons show up as code scanning alerts and pull request annotations; the termin
 to the job summary. The action installs Java 25 and builds the Shishō from its own source. Since
 that changes the job's Java, **run it in a job separate** from your project's build.
 
-![Anime scene: a blond character, eyes closed and unmoved, while another one shouts behind him](docs/anime/github-actions.gif)
+![Naoya Zen'in, from Jujutsu Kaisen, eyes closed and unmoved, while Choso shouts behind him](docs/anime/github-actions.gif)
 
 *Someone yelling in the channel because the build broke. The Shishō, calmly, had already said so in the PR.*
 

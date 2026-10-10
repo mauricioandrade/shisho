@@ -13,6 +13,7 @@ import org.junit.jupiter.api.TestFactory;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -24,8 +25,8 @@ class KataGuidesTest {
 
     private static final List<Kata> KATAS = Katas.all(MarkdownCatalogRepository.bundled().avoidedDependencies());
 
-    private final Map<String, KataGuide> guides = MarkdownCatalogRepository.bundled().kataGuides().stream()
-            .collect(Collectors.toMap(KataGuide::kataId, Function.identity()));
+    private final Map<String, KataGuide> guides = guides(Optional.empty());
+    private final Map<String, KataGuide> englishGuides = guides(Optional.of("en"));
 
     @Test
     void everyKataAndTheDependencyRuleHaveAnExample() {
@@ -35,14 +36,28 @@ class KataGuidesTest {
 
     @TestFactory
     Stream<DynamicTest> theKataFlagsTheCodeBeforeAndAcceptsTheCodeAfter() {
-        return KATAS.stream()
-                .filter(kata -> guides.get(kata.id()).before().language().equals("java"))
-                .map(kata -> DynamicTest.dynamicTest(kata.id(), () -> {
-                    KataGuide guide = guides.get(kata.id());
+        return Stream.of(guides, englishGuides).flatMap(language -> KATAS.stream()
+                .filter(kata -> language.get(kata.id()).before().language().equals("java"))
+                .map(kata -> DynamicTest.dynamicTest(kata.id() + (language == guides ? "" : " (en)"), () -> {
+                    KataGuide guide = language.get(kata.id());
                     assertThat(lessons(kata, guide.before().code())).as("Antes").isNotEmpty()
                             .allSatisfy(lesson -> assertThat(lesson.kataId()).isEqualTo(kata.id()));
                     assertThat(lessons(kata, guide.after().code())).as("Depois").isEmpty();
-                }));
+                })));
+    }
+
+    @Test
+    void theEnglishGuidesTranslateTheTextAndKeepTheSources() {
+        assertThat(englishGuides.keySet()).isEqualTo(guides.keySet());
+        assertThat(englishGuides.values()).allSatisfy(guide -> {
+            assertThat(guide.why()).as(guide.kataId()).isNotEqualTo(guides.get(guide.kataId()).why());
+            assertThat(guide.references()).as(guide.kataId()).isEqualTo(guides.get(guide.kataId()).references());
+        });
+    }
+
+    private static Map<String, KataGuide> guides(Optional<String> translation) {
+        return MarkdownCatalogRepository.bundled(translation).kataGuides().stream()
+                .collect(Collectors.toMap(KataGuide::kataId, Function.identity()));
     }
 
     @Test

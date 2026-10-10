@@ -1,0 +1,15 @@
+{
+  "name": "shisho",
+  "description": "The Shishō, a Java/Spring Boot sensei that checks the code while Claude writes it",
+  "owner": {
+    "name": "Mauricio Andrade",
+    "url": "https://github.com/mauricioandrade"
+  },
+  "plugins": [
+    {
+      "name": "shisho",
+      "source": "./claude-plugin",
+      "description": "Checks every Java file Claude edits against the Shishō's katas and teaches Claude to use the Shishō CLI"
+    }
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "name": "shisho",
+  "displayName": "Shishō (師匠)",
+  "version": "0.1.0",
+  "description": "After every edit, the Shishō checks the Java file Claude changed and shows Claude its lessons. A skill teaches Claude to use the Shishō CLI: analyze, sensei mode, fix and crud.",
+  "author": {
+    "name": "Mauricio Andrade",
+    "url": "https://github.com/mauricioandrade"
+  },
+  "homepage": "https://github.com/mauricioandrade/shiso",
+  "repository": "https://github.com/mauricioandrade/shiso",
+  "license": "Apache-2.0",
+  "keywords": ["java", "spring-boot", "architecture", "overengineering", "linter"],
+  "userConfig": {
+    "shisho_jar": {
+      "type": "file",
+      "title": "shisho.jar",
+      "description": "Path to the shisho.jar you built (install.sh prints it), such as ~/shiso/target/shisho.jar",
+      "required": true
+    }
+  }
+}

@@ -115,6 +115,14 @@ Point it at the root of a Maven project on Java 21 or later:
 
 ## 🎬 Demo
 
+![Terminal recording: shisho analyze points out four lessons, shisho fix --apply fixes three and the new analysis gives 1st dan](docs/demo/demo-en.gif)
+
+A project with four lessons: the Shishō points out each one and explains why, `fix --apply`
+fixes three by itself, and the rank goes from 2nd kyū to 1st dan.
+
+<details>
+<summary>The text output, on a bigger project</summary>
+
 ```
 $ shisho analyze ./clarity-api
 
@@ -140,6 +148,8 @@ Natural next step: package-by-feature.
 
 Rank: 3rd kyū  (8 lessons: 1 severe, 4 medium, 3 minor)
 ```
+
+</details>
 
 Each lesson says what is wrong, what goes wrong because of it and how to fix it.
 
@@ -582,6 +592,11 @@ the clone.
 
 mise is only a development convenience. The Shishō does not depend on it, and nothing in the
 build requires it.
+
+**The README demo** is recorded by [`docs/demo/record.sh`](docs/demo/record.sh), with
+[VHS](https://github.com/charmbracelet/vhs) in a Docker container, in both languages. Did the
+Shishō's output change? Run the script again. A test makes sure the demo project still tells the
+same story.
 
 **Publishing a version** means creating the tag: `git tag v0.1.0 && git push origin v0.1.0`. The
 [`release.yml`](.github/workflows/release.yml) workflow builds with that version, runs every test

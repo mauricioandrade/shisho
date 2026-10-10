@@ -112,6 +112,14 @@ Aponte para a raiz de um projeto Maven com Java 21 ou superior:
 
 ## 🎬 Demo
 
+![Gravação do terminal: shisho analyze aponta quatro lições, shisho fix --apply corrige três e a nova análise dá 1º dan](docs/demo/demo.gif)
+
+Um projeto com quatro lições: o Shishō aponta cada uma e explica o porquê, o `fix --apply`
+corrige três sozinho, e a graduação sobe de 2º kyū para 1º dan.
+
+<details>
+<summary>A saída em texto, num projeto maior</summary>
+
 ```
 $ shisho analyze ./clareza-api
 
@@ -137,6 +145,8 @@ Próximo passo natural: package-by-feature.
 
 Graduação: 3º kyū  (8 lições: 1 grave, 4 médias, 3 leves)
 ```
+
+</details>
 
 ## 🥋 Katas
 
@@ -566,6 +576,11 @@ Para usar a versão compilada no lugar da instalada, rode `./install.sh --from-s
 
 O mise é usado só para conveniência de desenvolvimento. Ele não é dependência do Shishō, e
 nada no build exige que você o use.
+
+**A demo do README** é gravada pelo [`docs/demo/record.sh`](docs/demo/record.sh), com o
+[VHS](https://github.com/charmbracelet/vhs) num contêiner Docker, nas duas línguas. Mudou a saída
+do Shishō? Rode o script de novo. Um teste garante que o projeto da demo continua contando a
+mesma história.
 
 **Publicar uma versão** é criar a tag: `git tag v0.1.0 && git push origin v0.1.0`. O workflow
 [`release.yml`](.github/workflows/release.yml) compila com essa versão, roda todos os testes e

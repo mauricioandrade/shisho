@@ -35,6 +35,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.regex.MatchResult;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -53,22 +54,38 @@ public final class MarkdownCatalogRepository implements CatalogRepository {
     private static final Pattern COORDINATES = Pattern.compile("([^:\\s]+):([^:\\s]+)");
     private static final String BUNDLED_CATALOG = "/catalog";
 
-    private static final String WHY = "Por quê";
-    private static final String ACCEPTABLE_WHEN = "Quando é aceitável";
-    private static final String BEFORE = "Antes";
-    private static final String AFTER = "Depois";
+    /** A kata guide's sections, by their Portuguese and English headings. */
+    private static final List<String> WHY = List.of("Por quê", "Why");
+    private static final List<String> ACCEPTABLE_WHEN = List.of("Quando é aceitável", "Acceptable when");
+    private static final List<String> BEFORE = List.of("Antes", "Before");
+    private static final List<String> AFTER = List.of("Depois", "After");
+    /** What a translation may change: the text, never the data. See docs/adr/0007-languages.md. */
+    private static final Set<String> TRANSLATABLE = Set.of("id", "nome", "resumo", "alternativa", "uma_vez_por_projeto");
     private static final Pattern SECTION = Pattern.compile("(?m)^## (.+)$");
     private static final Pattern CODE_BLOCK = Pattern.compile("(?ms)^```(\\w+)\\n(.*?)^```$");
     private static final Pattern BLANK_LINES = Pattern.compile("\\n\\s*\\n");
 
     private final Path catalogRoot;
+    private final Optional<String> translation;
 
+    /** The catalog in Portuguese, its source language. */
     public MarkdownCatalogRepository(Path catalogRoot) {
+        this(catalogRoot, Optional.empty());
+    }
+
+    /** {@code translation}: the folder under the catalog root with the translated text, such as {@code en}. */
+    public MarkdownCatalogRepository(Path catalogRoot, Optional<String> translation) {
         this.catalogRoot = catalogRoot;
+        this.translation = translation;
     }
 
     /** The catalog packaged with the Shishō: a directory when run from the build, a folder of the jar otherwise. */
     public static MarkdownCatalogRepository bundled() {
+        return bundled(Optional.empty());
+    }
+
+    /** The packaged catalog, with the text of {@code translation} (such as {@code en}) where it has one. */
+    public static MarkdownCatalogRepository bundled(Optional<String> translation) {
         URL catalog = MarkdownCatalogRepository.class.getResource(BUNDLED_CATALOG);
         if (catalog == null) {
             throw new CatalogException("catalog.error.read", BUNDLED_CATALOG);
@@ -76,9 +93,9 @@ public final class MarkdownCatalogRepository implements CatalogRepository {
         try {
             URI uri = catalog.toURI();
             if (!uri.getScheme().equals("jar")) {
-                return new MarkdownCatalogRepository(Path.of(uri));
+                return new MarkdownCatalogRepository(Path.of(uri), translation);
             }
-            return new MarkdownCatalogRepository(jarFileSystem(uri).getPath(BUNDLED_CATALOG));
+            return new MarkdownCatalogRepository(jarFileSystem(uri).getPath(BUNDLED_CATALOG), translation);
         } catch (URISyntaxException | IOException e) {
             throw new CatalogException("catalog.error.read", e, catalog.toString());
         }
@@ -194,16 +211,30 @@ public final class MarkdownCatalogRepository implements CatalogRepository {
     }
 
     private List<Document> documents(String folder) {
-        Path directory = catalogRoot.resolve(folder);
+        List<Document> originals = markdownFiles(catalogRoot.resolve(folder)).stream().map(MarkdownCatalogRepository::read).toList();
+        return translation
+                .map(language -> catalogRoot.resolve(language).resolve(folder))
+                .map(directory -> originals.stream().map(original -> translated(original, directory.resolve(original.fileName()))).toList())
+                .orElse(originals);
+    }
+
+    private static List<Path> markdownFiles(Path directory) {
         try (Stream<Path> files = Files.list(directory)) {
-            return files
-                    .filter(file -> file.getFileName().toString().endsWith(EXTENSION))
-                    .sorted()
-                    .map(MarkdownCatalogRepository::read)
-                    .toList();
+            return files.filter(file -> file.getFileName().toString().endsWith(EXTENSION)).sorted().toList();
         } catch (IOException e) {
             throw new CatalogException("catalog.error.read", e, directory.toString());
         }
+    }
+
+    /** Without a translation, the original: Portuguese beats no explanation at all. */
+    private static Document translated(Document original, Path file) {
+        if (!Files.isRegularFile(file)) {
+            return original;
+        }
+        Document translation = read(file);
+        translation.id();
+        return new Document(original.fileName(), original.fields().translatedBy(translation.fields(), TRANSLATABLE),
+                translation.markdown());
     }
 
     private static Document read(Path file) {
@@ -235,10 +266,10 @@ public final class MarkdownCatalogRepository implements CatalogRepository {
             throw document.fields().invalid("referencias", references);
         }
         return new KataGuide(id,
-                paragraphs(document.fileName(), sections, WHY),
-                paragraphs(document.fileName(), sections, ACCEPTABLE_WHEN),
-                snippet(document.fileName(), sections, BEFORE),
-                snippet(document.fileName(), sections, AFTER),
+                paragraphs(document.fileName(), sections, heading(sections, WHY)),
+                paragraphs(document.fileName(), sections, heading(sections, ACCEPTABLE_WHEN)),
+                snippet(document.fileName(), sections, heading(sections, BEFORE)),
+                snippet(document.fileName(), sections, heading(sections, AFTER)),
                 references);
     }
 
@@ -251,6 +282,11 @@ public final class MarkdownCatalogRepository implements CatalogRepository {
             sections.put(headings.get(i).group(1).strip(), markdown.substring(headings.get(i).end(), end));
         }
         return sections;
+    }
+
+    /** The heading the document uses, in either language; the Portuguese one when it has neither. */
+    private static String heading(Map<String, String> sections, List<String> headings) {
+        return headings.stream().filter(sections::containsKey).findFirst().orElse(headings.getFirst());
     }
 
     /** The section's prose, one string per paragraph, with its line breaks turned into spaces. */

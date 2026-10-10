@@ -7,6 +7,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * Typed, validating view over a parsed YAML frontmatter. Every error names the file and the
@@ -26,6 +27,21 @@ final class FrontmatterFields {
         this.fileName = fileName;
         this.path = path;
         this.values = values;
+    }
+
+    /**
+     * These fields with the translation's on top. A translation carries only text, so any other
+     * key in it is an error: the data stays in one place, the original.
+     */
+    FrontmatterFields translatedBy(FrontmatterFields translation, Set<String> translatable) {
+        Map<Object, Object> merged = new LinkedHashMap<>(values);
+        for (Map.Entry<?, ?> entry : translation.values.entrySet()) {
+            if (!translatable.contains(String.valueOf(entry.getKey()))) {
+                throw translation.invalid(String.valueOf(entry.getKey()), entry.getValue());
+            }
+            merged.put(entry.getKey(), entry.getValue());
+        }
+        return new FrontmatterFields(fileName, path, merged);
     }
 
     String text(String key) {

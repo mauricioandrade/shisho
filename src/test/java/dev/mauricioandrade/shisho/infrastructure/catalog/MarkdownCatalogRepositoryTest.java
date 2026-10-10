@@ -284,6 +284,77 @@ class MarkdownCatalogRepositoryTest {
     }
 
     @Nested
+    class Translations {
+
+        private static final String ORIGINAL = """
+                ---
+                id: x
+                nome: Biblioteca X
+                coordenadas: ["com.x:x"]
+                resumo: abandonada
+                alternativa: a biblioteca padrão
+                referencias: [https://x.dev]
+                ---
+
+                ## Por quê
+
+                Texto em português.
+                """;
+
+        @TempDir
+        Path catalog;
+
+        @Test
+        void replaceTheTextAndKeepTheData() throws IOException {
+            write("dependencies/x.md", ORIGINAL);
+            write("en/dependencies/x.md", """
+                    ---
+                    id: x
+                    nome: Library X
+                    resumo: abandoned
+                    alternativa: the standard library
+                    ---
+
+                    ## Why
+
+                    English text.
+                    """);
+
+            AvoidedDependency x = new MarkdownCatalogRepository(catalog, Optional.of("en")).avoidedDependencies().getFirst();
+
+            assertThat(x.name()).isEqualTo("Library X");
+            assertThat(x.summary()).isEqualTo("abandoned");
+            assertThat(x.alternative()).isEqualTo("the standard library");
+            assertThat(x.markdown()).isEqualTo("## Why\n\nEnglish text.");
+            assertThat(x.coordinates()).containsExactly(new Dependency("com.x", "x"));
+            assertThat(x.references()).containsExactly("https://x.dev");
+        }
+
+        @Test
+        void neverCarryData() throws IOException {
+            write("dependencies/x.md", ORIGINAL);
+            write("en/dependencies/x.md", "---\nid: x\ncoordenadas: [\"com.y:y\"]\n---\n");
+
+            assertThatThrownBy(() -> new MarkdownCatalogRepository(catalog, Optional.of("en")).avoidedDependencies())
+                    .isInstanceOfSatisfying(CatalogException.class, e -> assertThat(e.arguments()).contains("x.md", "coordenadas"));
+        }
+
+        @Test
+        void fallBackToTheOriginal() throws IOException {
+            write("dependencies/x.md", ORIGINAL);
+
+            assertThat(new MarkdownCatalogRepository(catalog, Optional.of("en")).avoidedDependencies().getFirst().name())
+                    .isEqualTo("Biblioteca X");
+        }
+
+        private void write(String file, String content) throws IOException {
+            Path path = catalog.resolve(file);
+            Files.createDirectories(path.getParent());
+            Files.writeString(path, content);
+        }
+    }
+
+    @Nested
     class Scaffolds {
 
         @Test

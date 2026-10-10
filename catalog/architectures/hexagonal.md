@@ -23,6 +23,7 @@ sinais_overengineering:
   - use_cases_que_so_delegam
   - mappers_entre_estruturas_identicas
   - dominio_anemico
+  - entidade_de_dominio_identica_a_entidade_jpa
 sinais_subengenharia: []
 evolui_para: [modular-monolith]
 alternativa_mais_simples: package-by-feature

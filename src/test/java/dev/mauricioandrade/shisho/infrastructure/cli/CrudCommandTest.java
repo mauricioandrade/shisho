@@ -133,7 +133,8 @@ class CrudCommandTest {
         assertThat(project.resolve(ENTITY.file())).exists();
         assertThat(text(out)).contains("""
                 ✓ Hexagonal (Ports & Adapters) se paga neste projeto, segundo o contexto do shisho.yaml:
-                dominio_com_regras_complexas.
+                dominio_com_regras_complexas. O CRUD gerado ainda não tem regra de negócio: até o domínio ganhar as
+                suas, o shisho analyze vai apontar o custo da arquitetura.
                 """);
     }
 

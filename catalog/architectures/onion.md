@@ -3,13 +3,13 @@ id: onion
 nome: Onion Architecture
 familia: isolamento-de-dominio
 assinatura:
-  pacotes: [core, "domain/model", "domain/services", "application/services", infrastructure]
+  pacotes: ["core|nucleo", "domain|dominio/model|modelo", "domain|dominio/services|servicos", "application|aplicacao/services|servicos", "infrastructure|infraestrutura"]
   minimo_sinais: 3
 regras_dependencia:
-  - de: core
-    nao_pode_depender_de: [infrastructure, "org.springframework", "jakarta.persistence"]
-  - de: "domain/model"
-    nao_pode_depender_de: ["domain/services", "application/services"]
+  - de: "core|nucleo"
+    nao_pode_depender_de: ["infrastructure|infraestrutura", "org.springframework", "jakarta.persistence"]
+  - de: "domain|dominio/model|modelo"
+    nao_pode_depender_de: ["domain|dominio/services|servicos", "application|aplicacao/services|servicos"]
 custo:
   classes_por_feature: 6-10
   complexidade: media

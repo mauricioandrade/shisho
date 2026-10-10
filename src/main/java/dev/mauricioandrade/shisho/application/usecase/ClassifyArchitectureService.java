@@ -58,7 +58,7 @@ public final class ClassifyArchitectureService implements ClassifyArchitecture {
         return Stream.concat(
                         signature.packages().stream().map(PackagePattern::parse)
                                 .filter(pattern -> occurs(pattern, pattern.isClassPattern() ? classNames : packages))
-                                .map(pattern -> String.join("/", pattern.segments())),
+                                .map(PackagePattern::display),
                         signature.annotations().stream().filter(marker -> occurs(marker, project)))
                 .toList();
     }

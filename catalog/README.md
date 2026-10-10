@@ -36,6 +36,10 @@ Detalhes e motivos em [`docs/adr/0002-architecture-classification.md`](../docs/a
   qualificado das classes, e não ao pacote. `<feature>/*Controller` casa com
   `com.loja.usuario.UsuarioController`: a classe termina em `Controller` e está direto no
   pacote `usuario`.
+- **Alternativas** (`domain|dominio`, `*Controller|*Controlador`): um segmento aceita qualquer
+  um dos nomes separados por `|`, para o mesmo padrão reconhecer código escrito em inglês e em
+  português. Continua sendo um sinal só, e o relatório mostra a primeira alternativa. Ver
+  [`docs/adr/0007-languages.md`](../docs/adr/0007-languages.md).
 - **Placeholder** (`<feature>`, `<modulo>`): qualquer segmento. Na assinatura, só conta com
   pelo menos dois valores diferentes (duas features, dois módulos). Regras com placeholder ou
   qualificador (`banco:`, `codigo:`, `ciclo:`) ainda não são checadas.

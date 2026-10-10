@@ -91,12 +91,13 @@ class MarkdownCatalogRepositoryTest {
 
             assertThat(hexagonal.name()).isEqualTo("Hexagonal (Ports & Adapters)");
             assertThat(hexagonal.family()).isEqualTo(Family.DOMAIN_ISOLATION);
-            assertThat(hexagonal.signature().packages()).contains("port/in", "adapter/out");
+            assertThat(hexagonal.signature().packages()).contains("port|porta|portas/in|entrada", "adapter|adaptador|adaptadores/out|saida");
             assertThat(hexagonal.signature().annotations()).isEmpty();
             assertThat(hexagonal.signature().minimumSignals()).isEqualTo(2);
             assertThat(hexagonal.dependencyRules()).containsExactly(
-                    new DependencyRule("domain", List.of("adapter", "infrastructure", "org.springframework", "jakarta.persistence")),
-                    new DependencyRule("application", List.of("adapter")));
+                    new DependencyRule("domain|dominio",
+                            List.of("adapter|adaptador|adaptadores", "infrastructure|infraestrutura", "org.springframework", "jakarta.persistence")),
+                    new DependencyRule("application|aplicacao", List.of("adapter|adaptador|adaptadores")));
             assertThat(hexagonal.cost().classesPerFeature()).isEqualTo(new ClassRange(6, 10));
             assertThat(hexagonal.cost().complexity()).isEqualTo(Complexity.MEDIUM);
             assertThat(hexagonal.simplerAlternative()).contains("package-by-feature");

@@ -15,7 +15,7 @@ import java.util.stream.Collectors;
 final class CrowdedServicePackageDetector implements Detector {
 
     static final int MAXIMUM_CLASSES = 15;
-    private static final Set<String> SERVICE_PACKAGES = Set.of("service", "services");
+    private static final Set<String> SERVICE_PACKAGES = Set.of("service", "services", "servico", "servicos");
 
     @Override
     public String id() {

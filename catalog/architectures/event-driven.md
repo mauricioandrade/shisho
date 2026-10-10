@@ -3,7 +3,7 @@ id: event-driven
 nome: Event-Driven
 familia: distribuida
 assinatura:
-  pacotes: [event, events, listener, consumer, producer, messaging]
+  pacotes: ["event|evento", "events|eventos", listener, "consumer|consumidor", "producer|produtor", "messaging|mensageria"]
   anotacoes: ["@KafkaListener", "@RabbitListener", "@EventListener", "@TransactionalEventListener", "spring-kafka", "spring-amqp", "spring-cloud-stream"]
   minimo_sinais: 2
 regras_dependencia:

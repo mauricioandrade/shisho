@@ -15,8 +15,8 @@ import java.util.Set;
 /** A class that looks like a DTO (by package or by name suffix) but is not a record. */
 final class DtoNotRecordKata implements ClassKata {
 
-    private static final Set<String> DTO_PACKAGES = Set.of("request", "response", "dto", "dtos");
-    private static final List<String> DTO_SUFFIXES = List.of("Request", "Response", "Dto", "DTO");
+    private static final Set<String> DTO_PACKAGES = Set.of("request", "response", "dto", "dtos", "requisicao", "resposta");
+    private static final List<String> DTO_SUFFIXES = List.of("Request", "Response", "Dto", "DTO", "Requisicao", "Resposta");
 
     @Override
     public String id() {

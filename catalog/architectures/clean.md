@@ -3,13 +3,13 @@ id: clean
 nome: Clean Architecture
 familia: isolamento-de-dominio
 assinatura:
-  pacotes: [domain, application, infrastructure, usecase, "domain/model", "domain/port"]
+  pacotes: ["domain|dominio", "application|aplicacao", "infrastructure|infraestrutura", "usecase|usecases|casodeuso|casosdeuso", "domain|dominio/model|modelo", "domain|dominio/port|porta|portas"]
   minimo_sinais: 3
 regras_dependencia:
-  - de: domain
-    nao_pode_depender_de: [application, infrastructure, "org.springframework", "jakarta.persistence"]
-  - de: application
-    nao_pode_depender_de: [infrastructure]
+  - de: "domain|dominio"
+    nao_pode_depender_de: ["application|aplicacao", "infrastructure|infraestrutura", "org.springframework", "jakarta.persistence"]
+  - de: "application|aplicacao"
+    nao_pode_depender_de: ["infrastructure|infraestrutura"]
 custo:
   classes_por_feature: 7-12
   complexidade: alta

@@ -51,7 +51,7 @@ final class DependencyRules {
                                 unit.file(),
                                 declaration.line(),
                                 "architecture.dependency-rule.lesson",
-                                List.of(unit.name(), rule.from(), declaration.name(), forbidden, architecture.name())))
+                                List.of(unit.name(), display(rule.from()), declaration.name(), display(forbidden), architecture.name())))
                         .stream());
     }
 
@@ -60,6 +60,11 @@ final class DependencyRules {
             return declaration.name().equals(forbidden) || declaration.name().startsWith(forbidden + ".");
         }
         return projectPackage(declaration).filter(PackagePattern.parse(forbidden)::matches).isPresent();
+    }
+
+    /** {@code service|servico} is shown as {@code service}; an external package such as {@code org.springframework} as is. */
+    private static String display(String pattern) {
+        return pattern.contains(".") ? pattern : PackagePattern.parse(pattern).display();
     }
 
     /** The project package an import points into: the longest project package it starts with. */

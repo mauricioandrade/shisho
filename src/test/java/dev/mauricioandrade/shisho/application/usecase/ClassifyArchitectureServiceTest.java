@@ -19,6 +19,8 @@ import dev.mauricioandrade.shisho.domain.model.KataGuide;
 import dev.mauricioandrade.shisho.domain.model.ProjectModel;
 import dev.mauricioandrade.shisho.domain.model.Scaffold;
 import dev.mauricioandrade.shisho.domain.port.out.CatalogRepository;
+import dev.mauricioandrade.shisho.infrastructure.catalog.MarkdownCatalogRepository;
+import dev.mauricioandrade.shisho.infrastructure.detector.Detectors;
 import org.junit.jupiter.api.Test;
 
 import java.nio.file.Path;
@@ -120,6 +122,21 @@ class ClassifyArchitectureServiceTest {
         assertThat(match.architecture()).isEqualTo(EVENTS);
         assertThat(match.signals()).containsExactly("events", "@KafkaListener", "spring-kafka", "org.axonframework");
         assertThat(match.confidence()).isEqualTo(80);
+    }
+
+    @Test
+    void theCatalogRecognizesPackagesNamedInPortuguese() {
+        ClassifyArchitectureService bundled = new ClassifyArchitectureService(MarkdownCatalogRepository.bundled(), Detectors.all());
+
+        assertThat(bundled.classify(project("com.loja.dominio", "com.loja.porta.entrada", "com.loja.porta.saida",
+                "com.loja.adaptador.entrada.web", "com.loja.adaptador.saida.persistencia"), Optional.empty()))
+                .hasValueSatisfying(match -> {
+                    assertThat(match.architecture().id()).isEqualTo("hexagonal");
+                    assertThat(match.signals()).as("shown by the first alternative")
+                            .containsExactly("domain", "port", "adapter", "port/in", "port/out", "adapter/in", "adapter/out");
+                });
+        assertThat(bundled.classify(project("com.loja.controlador", "com.loja.servico", "com.loja.repositorio", "com.loja.modelo"),
+                Optional.empty())).hasValueSatisfying(match -> assertThat(match.architecture().id()).isEqualTo("layered"));
     }
 
     private Optional<ArchitectureMatch> classify(ProjectModel project) {

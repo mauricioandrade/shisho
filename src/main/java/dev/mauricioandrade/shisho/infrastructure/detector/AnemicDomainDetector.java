@@ -20,7 +20,7 @@ import java.util.regex.Pattern;
 final class AnemicDomainDetector implements Detector {
 
     static final int MINIMUM_CLASSES = 2;
-    private static final PackagePattern DOMAIN = PackagePattern.parse("domain");
+    private static final PackagePattern DOMAIN = PackagePattern.parse("domain|dominio");
     private static final Pattern ACCESSOR = Pattern.compile("(get|set|is)\\p{Lu}\\w*");
     private static final Set<String> OBJECT_METHODS = Set.of("equals", "hashCode", "toString");
 

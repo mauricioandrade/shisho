@@ -3,13 +3,13 @@ id: hexagonal
 nome: Hexagonal (Ports & Adapters)
 familia: isolamento-de-dominio
 assinatura:
-  pacotes: [domain, port, adapter, "port/in", "port/out", "adapter/in", "adapter/out"]
+  pacotes: ["domain|dominio", "port|porta|portas", "adapter|adaptador|adaptadores", "port|porta|portas/in|entrada", "port|porta|portas/out|saida", "adapter|adaptador|adaptadores/in|entrada", "adapter|adaptador|adaptadores/out|saida"]
   minimo_sinais: 2
 regras_dependencia:
-  - de: domain
-    nao_pode_depender_de: [adapter, infrastructure, "org.springframework", "jakarta.persistence"]
-  - de: application
-    nao_pode_depender_de: [adapter]
+  - de: "domain|dominio"
+    nao_pode_depender_de: ["adapter|adaptador|adaptadores", "infrastructure|infraestrutura", "org.springframework", "jakarta.persistence"]
+  - de: "application|aplicacao"
+    nao_pode_depender_de: ["adapter|adaptador|adaptadores"]
 custo:
   classes_por_feature: 6-10   # porta in/out, use case, adapters, mapper, DTOs
   complexidade: media

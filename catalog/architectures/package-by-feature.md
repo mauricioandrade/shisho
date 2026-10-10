@@ -5,12 +5,12 @@ familia: simples
 assinatura:
   # Plano (usuario/UsuarioController) ou com subpacotes (usuario/controller/...):
   # pacotes com nomes de domínio contendo classes de papéis técnicos diferentes.
-  pacotes: ["<feature>/*Controller", "<feature>/*Service", "<feature>/*Repository",
-            "<feature>/controller", "<feature>/service", "<feature>/repository"]
+  pacotes: ["<feature>/*Controller|*Controlador", "<feature>/*Service|*Servico", "<feature>/*Repository|*Repositorio",
+            "<feature>/controller|controlador", "<feature>/service|servico", "<feature>/repository|repositorio"]
   minimo_sinais: 2
 regras_dependencia:
   - de: "<feature>"
-    nao_pode_depender_de: ["<outra-feature>/repository", "<outra-feature>/entity"]
+    nao_pode_depender_de: ["<outra-feature>/repository|repositorio", "<outra-feature>/entity|entidade"]
     # features conversam pelo service público, não pelo banco umas das outras
 custo:
   classes_por_feature: 4-6

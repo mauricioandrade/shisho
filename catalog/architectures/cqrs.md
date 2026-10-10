@@ -3,14 +3,14 @@ id: cqrs
 nome: CQRS (Command Query Responsibility Segregation)
 familia: isolamento-de-dominio
 assinatura:
-  pacotes: [command, query, commands, queries, "read/model", "write/model"]
+  pacotes: ["command|comando", "query|consulta", "commands|comandos", "queries|consultas", "read|leitura/model|modelo", "write|escrita/model|modelo"]
   anotacoes: ["CommandHandler", "QueryHandler", "org.axonframework"]
   minimo_sinais: 2
 regras_dependencia:
-  - de: query
-    nao_pode_depender_de: [command]
-  - de: command
-    nao_pode_depender_de: ["query/model"]
+  - de: "query|consulta"
+    nao_pode_depender_de: ["command|comando"]
+  - de: "command|comando"
+    nao_pode_depender_de: ["query|consulta/model|modelo"]
 custo:
   classes_por_feature: 8-14
   complexidade: alta

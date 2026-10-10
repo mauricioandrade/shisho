@@ -3,12 +3,12 @@ id: modular-monolith
 nome: Monolito Modular
 familia: modular
 assinatura:
-  pacotes: ["<modulo>/api", "<modulo>/internal", "<modulo>/events"]
+  pacotes: ["<modulo>/api", "<modulo>/internal|interno", "<modulo>/events|eventos"]
   anotacoes: ["org.springframework.modulith", "@ApplicationModule", "package-info.java"]
   minimo_sinais: 2
 regras_dependencia:
   - de: "<modulo>"
-    nao_pode_depender_de: ["<outro-modulo>/internal"]
+    nao_pode_depender_de: ["<outro-modulo>/internal|interno"]
   - de: "<modulo>"
     nao_pode_depender_de: ["ciclo:<outro-modulo>"]   # sem ciclos entre módulos
 custo:

@@ -41,4 +41,20 @@ class PackagePatternTest {
         assertThat(pattern.bindings("com.shop.OrderController.inner")).isEmpty();
         assertThat(PackagePattern.parse("domain/model").isClassPattern()).isFalse();
     }
+
+    @Test
+    void acceptsAlternativesForEachSegmentAndShowsTheFirst() {
+        PackagePattern pattern = PackagePattern.parse("domain|dominio/model|modelo");
+
+        assertThat(pattern.matches("com.loja.dominio.modelo")).isTrue();
+        assertThat(pattern.matches("com.shop.domain.model")).isTrue();
+        assertThat(pattern.matches("com.loja.dominio.model")).isTrue();
+        assertThat(pattern.matches("com.loja.dominio.porta")).isFalse();
+        assertThat(pattern.display()).isEqualTo("domain/model");
+
+        PackagePattern classes = PackagePattern.parse("<feature>/*Controller|*Controlador");
+        assertThat(classes.bindings("com.loja.pedido.PedidoControlador")).contains(List.of("pedido"));
+        assertThat(classes.bindings("com.shop.order.OrderController")).contains(List.of("order"));
+        assertThat(classes.display()).isEqualTo("<feature>/*Controller");
+    }
 }

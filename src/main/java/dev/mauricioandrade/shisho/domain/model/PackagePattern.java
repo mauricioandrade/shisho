@@ -3,13 +3,16 @@ package dev.mauricioandrade.shisho.domain.model;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * A package pattern from the catalog, such as {@code domain/model} or {@code <feature>/controller}:
  * segments separated by {@code /} that must appear consecutively in a package name, where a
  * {@code <placeholder>} stands for any one segment. A pattern ending in a class segment, such as
  * {@code <feature>/*Controller}, is matched against qualified class names instead and must end at
- * the class: {@code *Controller} stands for a class name ending in {@code Controller}.
+ * the class: {@code *Controller} stands for a class name ending in {@code Controller}. A segment
+ * may list alternatives, such as {@code domain|dominio} or {@code *Controller|*Controlador}, so
+ * that one pattern covers code written in English and in Portuguese.
  */
 public record PackagePattern(List<String> segments) {
 
@@ -19,6 +22,11 @@ public record PackagePattern(List<String> segments) {
 
     public static PackagePattern parse(String pattern) {
         return new PackagePattern(List.of(pattern.split("/")));
+    }
+
+    /** The pattern as a report shows it: the first alternative of each segment, such as {@code domain/model}. */
+    public String display() {
+        return segments.stream().map(segment -> alternatives(segment).getFirst()).collect(Collectors.joining("/"));
     }
 
     /** Whether the pattern ends in a class segment ({@code *Controller}), matched against qualified class names. */
@@ -58,15 +66,20 @@ public record PackagePattern(List<String> segments) {
             if (isPlaceholder(expected)) {
                 bound.add(actual);
             } else if (isClassSegment(expected)) {
-                String suffix = expected.substring(1);
-                if (!actual.endsWith(suffix) || actual.length() == suffix.length()) {
+                boolean suffixed = alternatives(expected).stream().map(alternative -> alternative.substring(1))
+                        .anyMatch(suffix -> actual.endsWith(suffix) && actual.length() > suffix.length());
+                if (!suffixed) {
                     return Optional.empty();
                 }
-            } else if (!expected.equals(actual)) {
+            } else if (!alternatives(expected).contains(actual)) {
                 return Optional.empty();
             }
         }
         return Optional.of(bound);
+    }
+
+    private static List<String> alternatives(String segment) {
+        return List.of(segment.split("\\|"));
     }
 
     private static boolean isClassSegment(String segment) {

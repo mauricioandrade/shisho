@@ -6,6 +6,8 @@ import dev.mauricioandrade.shisho.domain.model.Analysis;
 import dev.mauricioandrade.shisho.domain.model.ArchitectureMatch;
 import dev.mauricioandrade.shisho.domain.model.ClassKata;
 import dev.mauricioandrade.shisho.domain.model.ClassUnit;
+import dev.mauricioandrade.shisho.domain.model.Concept;
+import dev.mauricioandrade.shisho.domain.model.ConceptDetector;
 import dev.mauricioandrade.shisho.domain.model.JavaVersion;
 import dev.mauricioandrade.shisho.domain.model.Kata;
 import dev.mauricioandrade.shisho.domain.model.Lesson;
@@ -38,7 +40,9 @@ public final class AnalyzeProjectService implements AnalyzeProject {
     private final List<Kata> katas;
     private final ClassifyArchitecture classifyArchitecture;
     private final RankCalculator rankCalculator;
+    private final ConceptFinder conceptFinder;
 
+    /** Without concepts: the analysis the shoshin mode does not need. */
     public AnalyzeProjectService(
             BuildFileReader buildFileReader,
             ProjectConfigReader configReader,
@@ -46,10 +50,23 @@ public final class AnalyzeProjectService implements AnalyzeProject {
             List<Kata> katas,
             ClassifyArchitecture classifyArchitecture,
             RankCalculator rankCalculator) {
+        this(buildFileReader, configReader, sourceParser, katas, classifyArchitecture, rankCalculator, List.of(), List.of());
+    }
+
+    public AnalyzeProjectService(
+            BuildFileReader buildFileReader,
+            ProjectConfigReader configReader,
+            SourceParser sourceParser,
+            List<Kata> katas,
+            ClassifyArchitecture classifyArchitecture,
+            RankCalculator rankCalculator,
+            List<Concept> concepts,
+            List<ConceptDetector> conceptDetectors) {
         this.projectLoader = new ProjectLoader(buildFileReader, configReader, sourceParser);
         this.katas = List.copyOf(katas);
         this.classifyArchitecture = classifyArchitecture;
         this.rankCalculator = rankCalculator;
+        this.conceptFinder = new ConceptFinder(concepts, conceptDetectors);
     }
 
     @Override
@@ -88,7 +105,7 @@ public final class AnalyzeProjectService implements AnalyzeProject {
         return new Analysis(
                 projectRoot,
                 projectName(projectRoot), javaVersion, loaded.javaVersionDeclared(), project.build(), architecture, lessons,
-                loaded.unparseable(), score, Rank.forScore(score));
+                loaded.unparseable(), score, Rank.forScore(score), conceptFinder.find(project));
     }
 
     /** A typo in a kata id would silently configure nothing, so it is an error. */

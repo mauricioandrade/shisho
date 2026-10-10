@@ -7,6 +7,7 @@ import dev.mauricioandrade.shisho.domain.model.ArchitectureProfile.Complexity;
 import dev.mauricioandrade.shisho.domain.model.ArchitectureProfile.DependencyRule;
 import dev.mauricioandrade.shisho.domain.model.ArchitectureProfile.Family;
 import dev.mauricioandrade.shisho.domain.model.AvoidedDependency;
+import dev.mauricioandrade.shisho.domain.model.Concept;
 import dev.mauricioandrade.shisho.domain.model.Dependency;
 import dev.mauricioandrade.shisho.domain.model.JavaFeature;
 import dev.mauricioandrade.shisho.domain.model.JavaVersion;
@@ -281,6 +282,49 @@ class MarkdownCatalogRepositoryTest {
             assertThatThrownBy(() -> new MarkdownCatalogRepository(catalog).avoidedDependencies())
                     .isInstanceOfSatisfying(CatalogException.class, e ->
                             assertThat(e.arguments()).containsExactly("x.md", "coordenadas", "log4j"));
+        }
+    }
+
+    @Nested
+    class Concepts {
+
+        @Test
+        void readsTheRealCatalog() {
+            List<Concept> concepts = MarkdownCatalogRepository.bundled().concepts();
+
+            assertThat(concepts).extracting(Concept::id).contains("record", "transacoes", "strategy").doesNotHaveDuplicates();
+            assertThat(concepts).extracting(Concept::group).contains(Concept.Group.JAVA, Concept.Group.SPRING, Concept.Group.PATTERN);
+            assertThat(concepts).allSatisfy(concept -> {
+                assertThat(concept.explanation()).as(concept.id()).isNotEmpty();
+                assertThat(concept.references()).as(concept.id()).allMatch(url -> url.startsWith("https://"));
+            });
+        }
+
+        @Test
+        void rejectsAConditionItDoesNotKnow(@TempDir Path catalog) throws IOException {
+            Files.writeString(Files.createDirectories(catalog.resolve("concepts")).resolve("x.md"), """
+                    ---
+                    id: x
+                    nome: X
+                    grupo: java
+                    aparece_em:
+                      - anotaçao: Service
+                    referencias: [https://x.dev]
+                    ---
+
+                    ## O que é
+
+                    X.
+
+                    ## Exemplo
+
+                    ```java
+                    class X {}
+                    ```
+                    """);
+
+            assertThatThrownBy(() -> new MarkdownCatalogRepository(catalog).concepts())
+                    .isInstanceOfSatisfying(CatalogException.class, e -> assertThat(e.arguments()).contains("x.md", "aparece_em[0].anotaçao"));
         }
     }
 

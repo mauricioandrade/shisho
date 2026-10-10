@@ -120,6 +120,11 @@ final class FrontmatterFields {
         return List.copyOf(sections);
     }
 
+    /** The keys present, in file order. */
+    List<String> keys() {
+        return values.keySet().stream().map(String::valueOf).toList();
+    }
+
     CatalogException invalid(String key, Object value) {
         return new CatalogException("catalog.error.invalid-value", fileName, qualified(key), String.valueOf(value));
     }

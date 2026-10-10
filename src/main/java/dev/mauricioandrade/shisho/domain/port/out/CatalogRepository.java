@@ -2,6 +2,7 @@ package dev.mauricioandrade.shisho.domain.port.out;
 
 import dev.mauricioandrade.shisho.domain.model.ArchitectureProfile;
 import dev.mauricioandrade.shisho.domain.model.AvoidedDependency;
+import dev.mauricioandrade.shisho.domain.model.Concept;
 import dev.mauricioandrade.shisho.domain.model.JavaFeature;
 import dev.mauricioandrade.shisho.domain.model.KataGuide;
 import dev.mauricioandrade.shisho.domain.model.Scaffold;
@@ -30,4 +31,7 @@ public interface CatalogRepository {
 
     /** @throws dev.mauricioandrade.shisho.domain.exception.CatalogException if an entry is invalid */
     List<Scaffold> scaffolds();
+
+    /** @throws dev.mauricioandrade.shisho.domain.exception.CatalogException if an entry is invalid */
+    List<Concept> concepts();
 }

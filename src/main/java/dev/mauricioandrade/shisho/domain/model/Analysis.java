@@ -20,11 +20,21 @@ public record Analysis(
         List<Lesson> lessons,
         List<SourceFile.Unparseable> unparseableFiles,
         int score,
-        Rank rank) {
+        Rank rank,
+        List<ConceptFinding> concepts) {
 
     public Analysis {
         lessons = List.copyOf(lessons);
         unparseableFiles = List.copyOf(unparseableFiles);
+        concepts = List.copyOf(concepts);
+    }
+
+    /** Without the concepts the shoshin mode explains: most reports and tests do not need them. */
+    public Analysis(Path projectRoot, String projectName, JavaVersion javaVersion, boolean javaVersionDeclared,
+                    Optional<BuildInfo> build, Optional<ArchitectureMatch> architecture, List<Lesson> lessons,
+                    List<SourceFile.Unparseable> unparseableFiles, int score, Rank rank) {
+        this(projectRoot, projectName, javaVersion, javaVersionDeclared, build, architecture, lessons, unparseableFiles,
+                score, rank, List.of());
     }
 
     public long count(Severity severity) {

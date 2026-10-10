@@ -15,6 +15,7 @@ import dev.mauricioandrade.shisho.infrastructure.detector.Detectors;
 import dev.mauricioandrade.shisho.infrastructure.fix.JavaParserSourceFixer;
 import dev.mauricioandrade.shisho.infrastructure.cli.AnalyzeCommand;
 import dev.mauricioandrade.shisho.infrastructure.cli.ClaudeHookCommand;
+import dev.mauricioandrade.shisho.infrastructure.concept.ConceptDetectors;
 import dev.mauricioandrade.shisho.infrastructure.cli.AskCommand;
 import dev.mauricioandrade.shisho.infrastructure.cli.CrudCommand;
 import dev.mauricioandrade.shisho.infrastructure.cli.FixCommand;
@@ -84,7 +85,9 @@ public final class ShishoBootstrap {
                 new JavaParserSourceParser(),
                 Katas.all(catalog.avoidedDependencies()),
                 classifyArchitecture,
-                new RankCalculator());
+                new RankCalculator(),
+                catalog.concepts(),
+                ConceptDetectors.all());
 
         ReportWriterFactory reportWriters = (format, destination, sensei) -> switch (format) {
             case TERMINAL -> new TerminalReportWriter(destination, messages, sensei ? catalog.kataGuides() : List.of());

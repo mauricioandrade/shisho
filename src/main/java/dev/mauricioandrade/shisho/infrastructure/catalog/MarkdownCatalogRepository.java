@@ -9,6 +9,9 @@ import dev.mauricioandrade.shisho.domain.model.ArchitectureProfile.DependencyRul
 import dev.mauricioandrade.shisho.domain.model.ArchitectureProfile.Family;
 import dev.mauricioandrade.shisho.domain.model.ArchitectureProfile.Signature;
 import dev.mauricioandrade.shisho.domain.model.AvoidedDependency;
+import dev.mauricioandrade.shisho.domain.model.Concept;
+import dev.mauricioandrade.shisho.domain.model.Concept.Group;
+import dev.mauricioandrade.shisho.domain.model.Concept.Signal;
 import dev.mauricioandrade.shisho.domain.model.Dependency;
 import dev.mauricioandrade.shisho.domain.model.JavaFeature;
 import dev.mauricioandrade.shisho.domain.model.JavaFeature.Status;
@@ -59,6 +62,12 @@ public final class MarkdownCatalogRepository implements CatalogRepository {
     private static final List<String> ACCEPTABLE_WHEN = List.of("Quando é aceitável", "Acceptable when");
     private static final List<String> BEFORE = List.of("Antes", "Before");
     private static final List<String> AFTER = List.of("Depois", "After");
+    private static final List<String> WHAT_IT_IS = List.of("O que é", "What it is");
+    private static final List<String> EXAMPLE = List.of("Exemplo", "Example");
+    /** The conditions a concept signal may set. See docs/adr/0009-shoshin.md. */
+    private static final List<String> SIGNAL_KEYS =
+            List.of("anotacao", "tipo", "modificador", "import", "estende", "chamada", "sufixo", "detector");
+    private static final Set<String> KINDS = Set.of("class", "interface", "enum", "record", "annotation");
     /** What a translation may change: the text, never the data. See docs/adr/0007-languages.md. */
     private static final Set<String> TRANSLATABLE = Set.of("id", "nome", "resumo", "alternativa", "uma_vez_por_projeto");
     private static final Pattern SECTION = Pattern.compile("(?m)^## (.+)$");
@@ -135,6 +144,55 @@ public final class MarkdownCatalogRepository implements CatalogRepository {
     @Override
     public List<Scaffold> scaffolds() {
         return documents("scaffolds").stream().map(MarkdownCatalogRepository::toScaffold).toList();
+    }
+
+    @Override
+    public List<Concept> concepts() {
+        return documents("concepts").stream().map(MarkdownCatalogRepository::toConcept).toList();
+    }
+
+    private static Concept toConcept(Document document) {
+        FrontmatterFields fields = document.fields();
+        List<Signal> signals = fields.sectionList("aparece_em").stream().map(MarkdownCatalogRepository::signal).toList();
+        if (signals.isEmpty()) {
+            throw fields.invalid("aparece_em", signals);
+        }
+        List<String> references = fields.textList("referencias");
+        if (references.isEmpty()) {
+            throw fields.invalid("referencias", references);
+        }
+        Map<String, String> sections = sections(document.markdown());
+        return new Concept(document.id(), fields.text("nome"), group(fields), signals, references,
+                paragraphs(document.fileName(), sections, heading(sections, WHAT_IT_IS)),
+                snippet(document.fileName(), sections, heading(sections, EXAMPLE)));
+    }
+
+    /** An unknown key is an error: a misspelled condition would match every type. */
+    private static Signal signal(FrontmatterFields fields) {
+        List<String> keys = fields.keys();
+        keys.stream().filter(key -> !SIGNAL_KEYS.contains(key)).findFirst().ifPresent(key -> {
+            throw fields.invalid(key, String.join(", ", SIGNAL_KEYS));
+        });
+        if (keys.isEmpty() || keys.contains("detector") && keys.size() > 1) {
+            throw fields.invalid("detector", keys);
+        }
+        Optional<String> kind = fields.optionalText("tipo");
+        kind.filter(value -> !KINDS.contains(value)).ifPresent(value -> {
+            throw fields.invalid("tipo", value);
+        });
+        return new Signal(fields.optionalText("anotacao").map(name -> name.startsWith("@") ? name.substring(1) : name),
+                kind, fields.optionalText("modificador"), fields.optionalText("import"), fields.optionalText("estende"),
+                fields.optionalText("chamada"), fields.optionalText("sufixo"), fields.optionalText("detector"));
+    }
+
+    private static Group group(FrontmatterFields fields) {
+        String value = fields.text("grupo");
+        return switch (value) {
+            case "java" -> Group.JAVA;
+            case "spring" -> Group.SPRING;
+            case "padrao" -> Group.PATTERN;
+            default -> throw fields.invalid("grupo", value);
+        };
     }
 
     /** Every {@code ## path} section is a file: the prose before its code block explains it. */

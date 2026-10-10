@@ -199,6 +199,44 @@ de custo: o `crud` só grava se o `contexto` do projeto tiver uma das chaves de
 `faz_sentido_quando` dela, ou com `--mesmo-assim`. Ver
 [`docs/adr/0006-crud-cost-warning.md`](../docs/adr/0006-crud-cost-warning.md).
 
+## Conceitos (`concepts/`)
+
+O que o modo shoshin (`shisho analyze --shoshin`) reconhece e explica no código: recursos do
+Java, conceitos do Spring e padrões de projeto. Um arquivo por conceito:
+
+```markdown
+---
+id: transacoes
+nome: Transações (@Transactional)
+grupo: spring                 # java | spring | padrao
+aparece_em:                   # basta um sinal; num sinal, todas as condições valem para a mesma classe
+  - anotacao: Transactional
+referencias:
+  - https://docs.spring.io/...
+---
+
+## O que é
+
+O texto que o terminal mostra, curto: o que é e o que te dá.
+
+## Exemplo
+
+```java
+@Transactional
+void criar(Pedido pedido) { ... }
+```
+```
+
+As condições de um sinal são `anotacao`, `tipo` (`class`, `interface`, `enum`, `record`),
+`modificador` (`sealed`, `abstract`…), `import` (prefixo), `estende` (supertipo pelo nome
+simples), `chamada` (nome do método chamado) e `sufixo` (fim do nome da classe). `detector`
+aponta um detector em Java, para o que uma classe sozinha não mostra: `estrategia` (interface com
+duas ou mais implementações), `builder` e `injecao_por_construtor`. Uma condição desconhecida é
+erro: um nome errado faria o sinal valer para qualquer classe.
+
+Um teste exige que os sinais de cada conceito reconheçam o próprio `## Exemplo`. Detalhes em
+[`docs/adr/0009-shoshin.md`](../docs/adr/0009-shoshin.md).
+
 ## Traduções (`en/`)
 
 O catálogo é escrito em português, e é aqui que ficam os dados: assinaturas, regras, custos,

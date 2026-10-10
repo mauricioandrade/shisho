@@ -12,6 +12,7 @@ import dev.mauricioandrade.shisho.domain.model.BuildInfo;
 import dev.mauricioandrade.shisho.domain.model.ClassUnit;
 import dev.mauricioandrade.shisho.domain.model.ClassUnit.Annotation;
 import dev.mauricioandrade.shisho.domain.model.ClassUnit.Import;
+import dev.mauricioandrade.shisho.domain.model.Concept;
 import dev.mauricioandrade.shisho.domain.model.Dependency;
 import dev.mauricioandrade.shisho.domain.model.JavaFeature;
 import dev.mauricioandrade.shisho.domain.model.JavaVersion;
@@ -61,6 +62,11 @@ class ClassifyArchitectureServiceTest {
 
         @Override
         public List<Scaffold> scaffolds() {
+            return List.of();
+        }
+
+        @Override
+        public List<Concept> concepts() {
             return List.of();
         }
     }, List.of());

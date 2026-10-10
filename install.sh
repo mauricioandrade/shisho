@@ -1,74 +1,114 @@
 #!/usr/bin/env bash
-# Builds the Shishō and sets up the `shisho` command, asking which language it should speak.
-#   ./install.sh          asks the language
-#   ./install.sh en       English, no questions (pt for Portuguese)
-# See docs/adr/0007-languages.md.
+# Installs the Shishō and asks which language it should speak. See docs/adr/0010-release.md.
+#   ./install.sh                  downloads shisho.jar from the latest GitHub Release
+#   ./install.sh --from-source    builds it from this clone instead (needs Maven)
+#   ./install.sh en               English, no questions (pt for Portuguese)
+# Without cloning:
+#   bash -c "$(curl -fsSL https://raw.githubusercontent.com/mauricioandrade/shiso/main/install.sh)"
 set -euo pipefail
 
-cd "$(dirname "$0")"
-root="$(pwd)"
+release_url="${SHISHO_RELEASE_URL:-https://github.com/mauricioandrade/shiso/releases/latest/download}"
+home_dir="${SHISHO_HOME:-$HOME/.local/share/shisho}"
+bin_dir="$HOME/.local/bin"
 begin="# >>> shisho >>>"
 end="# <<< shisho <<<"
 
-if ! command -v mvn >/dev/null 2>&1; then
-    echo "Maven não encontrado / Maven not found: https://maven.apache.org (ou/or: mise install)" >&2
-    exit 1
-fi
-java_version="$(java -version 2>&1 | sed -n 's/.*version "\([0-9]*\).*/\1/p' | head -1)"
+language=""
+from_source=false
+for argument in "$@"; do
+    case "$argument" in
+        pt | en) language="$argument" ;;
+        --from-source) from_source=true ;;
+        *)
+            echo "Uso / usage: install.sh [pt|en] [--from-source]" >&2
+            exit 2
+            ;;
+    esac
+done
+
+java_version="$(java -version 2>&1 | sed -n 's/.*version "\([0-9]*\).*/\1/p' | head -1 || true)"
 if [ -z "$java_version" ] || [ "$java_version" -lt 25 ]; then
-    echo "O Shishō precisa do JDK 25 / The Shishō needs JDK 25 (ou/or: mise install)" >&2
+    echo "O Shishō precisa do Java 25 / The Shishō needs Java 25: https://adoptium.net" >&2
     exit 1
 fi
 
-language="${1:-}"
 while [ "$language" != "pt" ] && [ "$language" != "en" ]; do
     read -r -p "Idioma / Language [pt/en] (pt): " language
     language="${language:-pt}"
 done
+say() {
+    if [ "$language" = "pt" ]; then echo "$1"; else echo "$2"; fi
+}
 
-if [ "$language" = "pt" ]; then
-    echo "Compilando o Shishō..."
+mkdir -p "$home_dir" "$bin_dir"
+if [ "$from_source" = true ]; then
+    root="$(cd "$(dirname "$0")" && pwd)"
+    if [ ! -f "$root/pom.xml" ] || ! command -v mvn >/dev/null 2>&1; then
+        say "--from-source precisa do clone do repositório e do Maven." "--from-source needs a clone of the repository and Maven." >&2
+        exit 1
+    fi
+    say "Compilando o Shishō..." "Building the Shishō..."
+    (cd "$root" && mvn -q -DskipTests package)
+    cp "$root/target/shisho.jar" "$home_dir/shisho.jar"
 else
-    echo "Building the Shishō..."
+    say "Baixando o Shishō..." "Downloading the Shishō..."
+    download="$(mktemp -d)"
+    trap 'rm -rf "${download:?}"' EXIT
+    curl -fsSL "$release_url/shisho.jar" -o "$download/shisho.jar"
+    curl -fsSL "$release_url/shisho.jar.sha256" -o "$download/shisho.jar.sha256"
+    expected="$(cut -d ' ' -f 1 "$download/shisho.jar.sha256")"
+    if command -v sha256sum >/dev/null 2>&1; then
+        actual="$(sha256sum "$download/shisho.jar" | cut -d ' ' -f 1)"
+    else
+        actual="$(shasum -a 256 "$download/shisho.jar" | cut -d ' ' -f 1)"
+    fi
+    if [ "$expected" != "$actual" ]; then
+        say "O jar baixado não confere com o checksum da release. Nada foi instalado." \
+            "The downloaded jar does not match the release checksum. Nothing was installed." >&2
+        exit 1
+    fi
+    mv "$download/shisho.jar" "$home_dir/shisho.jar"
 fi
-mvn -q -DskipTests package
+
+# An executable, not an alias: scripts, CI and Claude Code's Bash tool see it too.
+cat > "$bin_dir/shisho" <<LAUNCHER
+#!/bin/sh
+exec java -jar "$home_dir/shisho.jar" "\$@"
+LAUNCHER
+chmod +x "$bin_dir/shisho"
 
 case "$(basename "${SHELL:-bash}")" in
     zsh) rc="$HOME/.zshrc" ;;
     *) rc="$HOME/.bashrc" ;;
 esac
 block="$begin
-alias shisho='java -jar \"$root/target/shisho.jar\"'
+export PATH=\"$bin_dir:\$PATH\"
 export SHISHO_IDIOMA=$language
 $end"
 
 if [ "$language" = "pt" ]; then
-    read -r -p "Adicionar o comando shisho ao $rc? [S/n] " answer
+    read -r -p "Adicionar o shisho ao PATH e o idioma ao $rc? [S/n] " answer
 else
-    read -r -p "Add the shisho command to $rc? [Y/n] " answer
+    read -r -p "Add shisho to the PATH and the language to $rc? [Y/n] " answer
 fi
 case "${answer:-y}" in
     [nN]*)
         echo
         echo "$block"
-        exit 0
+        ;;
+    *)
+        touch "$rc"
+        # Replaces a previous installation's block instead of adding a second one.
+        sed -i.bak "/^$begin\$/,/^$end\$/d" "$rc" && rm -f "$rc.bak"
+        if [ -n "$(tail -n 1 "$rc")" ]; then
+            printf '\n' >> "$rc"
+        fi
+        printf '%s\n' "$block" >> "$rc"
         ;;
 esac
 
-touch "$rc"
-# Replaces a previous installation's block instead of adding a second one.
-sed -i.bak "/^$begin\$/,/^$end\$/d" "$rc" && rm -f "$rc.bak"
-if [ -n "$(tail -n 1 "$rc")" ]; then
-    printf '\n' >> "$rc"
-fi
-printf '%s\n' "$block" >> "$rc"
-
-if [ "$language" = "pt" ]; then
-    echo "Pronto. Abra um terminal novo (ou rode: source $rc) e experimente: shisho analyze <projeto>"
-    echo "No Claude Code: /plugin install shisho --marketplace mauricioandrade/shiso"
-    echo "  e, quando ele pedir o shisho.jar: $root/target/shisho.jar"
-else
-    echo "Done. Open a new terminal (or run: source $rc) and try: shisho analyze <project>"
-    echo "In Claude Code: /plugin install shisho --marketplace mauricioandrade/shiso"
-    echo "  and, when it asks for shisho.jar: $root/target/shisho.jar"
-fi
+echo
+say "Pronto: $("$bin_dir/shisho" --version). Abra um terminal novo (ou rode: source $rc) e experimente: shisho analyze <projeto>" \
+    "Done: $("$bin_dir/shisho" --version). Open a new terminal (or run: source $rc) and try: shisho analyze <project>"
+say "No Claude Code: /plugin install shisho --marketplace mauricioandrade/shiso" \
+    "In Claude Code: /plugin install shisho --marketplace mauricioandrade/shiso"

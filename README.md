@@ -41,6 +41,45 @@ Linters dizem **o que** está errado. O Shishō é opinativo e didático: diz o 
 - 🏗️ **Gerador de CRUD** — cria um CRUD REST na arquitetura do projeto, explicando o papel de
   cada arquivo. O código gerado passa em todas as katas.
 
+## Por que existe
+
+- **Linters apontam, não ensinam.** Um warning diz que algo está errado, mas quem está
+  aprendendo precisa do porquê, do custo e de quando a regra não vale. O Shishō escreve a lição
+  inteira.
+- **Arquitetura demais também é erro.** Muito tutorial ensina hexagonal ou Clean Architecture
+  para um CRUD de três campos, e nenhuma ferramenta pergunta se a arquitetura cabe no projeto. O
+  Shishō pergunta, e responde com fatos medidos no código.
+- **Determinístico e local.** Mesma entrada, mesmo resultado: dá para rodar em CI. Seu código não
+  sai da máquina, nem quando você usa o LLM, que roda localmente e é opcional.
+
+## Instalação
+
+Ainda não há release com o jar pronto: o Shishō é compilado a partir do código. Você precisa de
+**JDK 25** e **Maven 3.9** (ou do [mise](#rodando-a-partir-do-código), que instala os dois só para
+esta pasta).
+
+```bash
+git clone https://github.com/mauricioandrade/shiso.git
+cd shiso
+mvn verify                                        # roda os testes e gera target/shisho.jar
+alias shisho="java -jar $PWD/target/shisho.jar"   # coloque no seu ~/.bashrc ou ~/.zshrc
+```
+
+## Uso rápido
+
+Aponte para a raiz de um projeto Maven com Java 21 ou superior:
+
+| Comando | O que faz |
+|---|---|
+| `shisho analyze ./meu-projeto` | lições, arquitetura, veredito e graduação |
+| `shisho analyze --sensei ./meu-projeto` | o mesmo, com o porquê e o antes/depois de cada lição |
+| `shisho analyze --format html --output r.html ./meu-projeto` | relatório HTML (ou `sarif`, para o GitHub) |
+| `shisho fix ./meu-projeto` | mostra as correções automáticas; `--apply` grava |
+| `shisho crud --arquitetura layered ./meu-projeto Produto nome:String` | cria um CRUD que explica cada arquivo |
+| `shisho ask ./meu-projeto "por onde começo?"` | um LLM local explica o veredito (precisa do Ollama) |
+
+`shisho <comando> --help` lista todas as opções.
+
 ## Demo
 
 ```

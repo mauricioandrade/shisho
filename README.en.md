@@ -45,6 +45,43 @@ wrong, **why** it matters and which way to go, the way a sensei would teach a st
 - 🏗️ **CRUD generator**: creates a REST CRUD in the project's architecture and explains the role
   of every file. The generated code passes every kata.
 
+## Why it exists
+
+- **Linters point, they don't teach.** A warning says something is wrong, but someone learning
+  needs the why, the cost and when the rule does not apply. The Shishō writes the whole lesson.
+- **Too much architecture is a mistake too.** Plenty of tutorials teach hexagonal or Clean
+  Architecture for a three-field CRUD, and no tool asks whether the architecture fits the
+  project. The Shishō asks, and answers with facts measured in the code.
+- **Deterministic and local.** Same input, same result, so it runs in CI. Your code never leaves
+  your machine, not even with the LLM, which runs locally and is optional.
+
+## Installation
+
+There is no release with a prebuilt jar yet: the Shishō is built from source. You need **JDK 25**
+and **Maven 3.9** (or [mise](#running-from-source), which installs both for this folder only).
+
+```bash
+git clone https://github.com/mauricioandrade/shiso.git
+cd shiso
+mvn verify                                        # runs the tests and builds target/shisho.jar
+alias shisho="java -jar $PWD/target/shisho.jar"   # add it to your ~/.bashrc or ~/.zshrc
+```
+
+## Quick start
+
+Point it at the root of a Maven project on Java 21 or later:
+
+| Command | What it does |
+|---|---|
+| `shisho analyze ./my-project` | lessons, architecture, verdict and rank |
+| `shisho analyze --sensei ./my-project` | the same, with the why and the before/after of each lesson |
+| `shisho analyze --format html --output r.html ./my-project` | HTML report (or `sarif`, for GitHub) |
+| `shisho fix ./my-project` | shows the automatic fixes; `--apply` writes them |
+| `shisho crud --arquitetura layered ./my-project Product name:String` | creates a CRUD that explains every file |
+| `shisho ask ./my-project "where do I start?"` | a local LLM explains the verdict (needs Ollama) |
+
+`shisho <command> --help` lists every option.
+
 ## Demo
 
 ```

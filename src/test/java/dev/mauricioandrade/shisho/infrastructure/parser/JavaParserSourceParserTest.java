@@ -169,6 +169,29 @@ class JavaParserSourceParserTest {
         }
 
         @Test
+        void mapsSupertypesWithoutTypeArgumentsAndModifiers() throws IOException {
+            List<ClassUnit> classes = parse("""
+                    package app;
+
+                    public sealed interface Payment permits Pix {}
+                    final record Pix(String key) implements Payment, java.io.Serializable {}
+                    interface Orders extends org.springframework.data.jpa.repository.JpaRepository<Order, Long> {}
+                    abstract class Base extends Thread implements Runnable {}
+                    enum Role implements Comparable<Role> { ADMIN }
+                    """);
+
+            assertThat(classes).extracting(ClassUnit::name, ClassUnit::supertypes).containsExactly(
+                    tuple("Payment", List.of()),
+                    tuple("Pix", List.of("Payment", "Serializable")),
+                    tuple("Orders", List.of("JpaRepository")),
+                    tuple("Base", List.of("Thread", "Runnable")),
+                    tuple("Role", List.of("Comparable")));
+            assertThat(classes.get(0).modifiers()).containsExactlyInAnyOrder("public", "sealed");
+            assertThat(classes.get(1).modifiers()).containsExactly("final");
+            assertThat(classes.get(3).modifiers()).containsExactly("abstract");
+        }
+
+        @Test
         void mapsFieldsOnePerVariable() throws IOException {
             ClassUnit service = parse("""
                     class UserService {

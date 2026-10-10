@@ -4,11 +4,16 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * One type declaration (top-level or nested) and what katas ask about it. Members belong to the
  * type that declares them directly: a nested type's fields are in its own {@code ClassUnit}.
  * Lines are 1-based; {@code file} is relative to the analyzed project root.
+ *
+ * @param supertypes the types it extends or implements, by simple name and without type
+ *                   arguments: {@code JpaRepository<Pedido, Long>} is {@code JpaRepository}
+ * @param modifiers  its modifiers as written, such as {@code public}, {@code sealed} or {@code abstract}
  */
 public record ClassUnit(
         Path file,
@@ -21,7 +26,9 @@ public record ClassUnit(
         List<Field> fields,
         List<Constructor> constructors,
         List<Method> methods,
-        List<Invocation> invocations) {
+        List<Invocation> invocations,
+        List<String> supertypes,
+        Set<String> modifiers) {
 
     public ClassUnit {
         annotations = List.copyOf(annotations);
@@ -30,6 +37,16 @@ public record ClassUnit(
         constructors = List.copyOf(constructors);
         methods = List.copyOf(methods);
         invocations = List.copyOf(invocations);
+        supertypes = List.copyOf(supertypes);
+        modifiers = Set.copyOf(modifiers);
+    }
+
+    /** Without supertypes or modifiers: most tests need neither. */
+    public ClassUnit(Path file, String packageName, String name, Kind kind, int line, List<Annotation> annotations,
+                     List<Import> imports, List<Field> fields, List<Constructor> constructors, List<Method> methods,
+                     List<Invocation> invocations) {
+        this(file, packageName, name, kind, line, annotations, imports, fields, constructors, methods, invocations,
+                List.of(), Set.of());
     }
 
     public boolean isAnnotatedWith(String simpleName) {

@@ -8,6 +8,7 @@ import com.github.javaparser.Problem;
 import com.github.javaparser.TokenRange;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.Node;
+import com.github.javaparser.ast.NodeList;
 import com.github.javaparser.ast.body.AnnotationDeclaration;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.body.EnumDeclaration;
@@ -26,7 +27,9 @@ import com.github.javaparser.ast.expr.SingleMemberAnnotationExpr;
 import com.github.javaparser.ast.expr.StringLiteralExpr;
 import com.github.javaparser.ast.expr.ThisExpr;
 import com.github.javaparser.ast.expr.TypeExpr;
+import com.github.javaparser.ast.nodeTypes.NodeWithImplements;
 import com.github.javaparser.ast.nodeTypes.NodeWithName;
+import com.github.javaparser.ast.type.ClassOrInterfaceType;
 import dev.mauricioandrade.shisho.domain.exception.SourceException;
 import dev.mauricioandrade.shisho.domain.model.ClassUnit;
 import dev.mauricioandrade.shisho.domain.model.ClassUnit.Annotation;
@@ -179,9 +182,19 @@ public final class JavaParserSourceParser implements SourceParser {
                     fields(type),
                     constructors(type),
                     methods(type),
-                    invocations(type)));
+                    invocations(type),
+                    supertypes(type),
+                    type.getModifiers().stream().map(modifier -> modifier.getKeyword().asString()).collect(Collectors.toSet())));
         }
         return classes;
+    }
+
+    private static List<String> supertypes(TypeDeclaration<?> type) {
+        NodeList<ClassOrInterfaceType> extended = type instanceof ClassOrInterfaceDeclaration declaration
+                ? declaration.getExtendedTypes() : new NodeList<>();
+        NodeList<ClassOrInterfaceType> implemented = type instanceof NodeWithImplements<?> withImplements
+                ? withImplements.getImplementedTypes() : new NodeList<>();
+        return Stream.concat(extended.stream(), implemented.stream()).map(ClassOrInterfaceType::getNameAsString).toList();
     }
 
     private static Kind kind(TypeDeclaration<?> type) {

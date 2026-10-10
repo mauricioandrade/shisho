@@ -10,8 +10,9 @@ practice rules) and reports lessons, recognizes the architecture, gives an overe
 underengineering verdict and a rank. Its judgment is the source of truth; your job is to run it,
 explain what it says and act on it with the user.
 
-The jar is at `${user_config.shisho_jar}`. If that path is empty, use `$SHISHO_JAR`; if both are
-empty, ask the user where they built `shisho.jar` (`install.sh` prints it). Every command takes
+The jar is at `${user_config.shisho_jar}` (`~` is the user's home). If that path is empty, use
+`$SHISHO_JAR`, or the `shisho` command that `install.sh` puts on the PATH; if none works, ask the
+user to run `install.sh`. Every command takes
 the project root, the directory with `pom.xml`:
 
 ```bash

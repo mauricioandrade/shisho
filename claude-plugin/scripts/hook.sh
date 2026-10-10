@@ -1,7 +1,7 @@
 #!/bin/sh
 # PostToolUse hook: hands the hook's JSON to `shisho claude-hook`, which shows Claude the lessons
 # of the file it just edited. See docs/adr/0008-claude-code-plugin.md.
-jar="${CLAUDE_PLUGIN_OPTION_SHISHO_JAR:-$SHISHO_JAR}"
+jar="${CLAUDE_PLUGIN_OPTION_SHISHO_JAR:-${SHISHO_JAR:-$HOME/.local/share/shisho/shisho.jar}}"
 case "$jar" in
     "~/"*) jar="$HOME/${jar#\~/}" ;;
 esac

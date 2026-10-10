@@ -6,6 +6,8 @@
 
 Começando por Java e Spring Boot.
 
+**Português** · [English](README.en.md)
+
 ![Java 25](https://img.shields.io/badge/runs%20on-Java%2025-orange)
 ![Analisa Java 21+](https://img.shields.io/badge/analisa-Java%2021%2B-blue)
 ![License](https://img.shields.io/badge/license-Apache%202.0-green)
@@ -288,7 +290,7 @@ O código de saída foi pensado para CI e não depende do formato:
 |---|---|
 | 0 | nenhuma lição grave |
 | 1 | há pelo menos uma lição **GRAVE** |
-| 2 | entrada inválida (caminho inexistente, argumento faltando, `--output` que não pode ser gravado) |
+| 2 | entrada inválida (caminho inexistente, argumento faltando, `--output` que não pode ser gravado; no `crud`, uma arquitetura que nada no contexto paga) |
 | 3 | o projeto não pôde ser analisado (ex.: Java abaixo do 21, `shisho.yaml` inválido); no `fix --apply`, um arquivo que não pôde ser gravado; no `ask`, o Ollama fora do ar ou o modelo não instalado |
 
 O mise é usado só para conveniência de desenvolvimento. Ele não é dependência do Shishō, e

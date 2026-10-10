@@ -26,7 +26,7 @@ Começando por Java e Spring Boot.
 
 **Começando:** [O que é](#-o-que-é) · [Por que existe](#-por-que-existe) · [Instalação](#-instalação) · [Uso rápido](#-uso-rápido) · [Demo](#-demo)
 
-**Guia:** [Katas](#-katas) · [A graduação](#-a-graduação) · [Modo sensei](#-modo-sensei-aprender-e-corrigir) · [Overengineering](#-overengineering) · [`shisho crud`](#-do-zero-shisho-crud) · [LLM local](#-o-llm-explica-não-julga) · [No Claude Code](#-no-claude-code) · [Versões do Java](#-versões-do-java) · [Relatórios](#-relatórios-e-códigos-de-saída) · [No GitHub Actions](#-no-github-actions)
+**Guia:** [Katas](#-katas) · [A graduação](#-a-graduação) · [Modo sensei](#-modo-sensei-aprender-e-corrigir) · [Modo shoshin](#-modo-shoshin-os-conceitos-do-seu-código) · [Overengineering](#-overengineering) · [`shisho crud`](#-do-zero-shisho-crud) · [LLM local](#-o-llm-explica-não-julga) · [No Claude Code](#-no-claude-code) · [Versões do Java](#-versões-do-java) · [Relatórios](#-relatórios-e-códigos-de-saída) · [No GitHub Actions](#-no-github-actions)
 
 **Projeto:** [Desenvolvimento](#-desenvolvimento) · [Roadmap](#-roadmap) · [Contribuindo](#-contribuindo) · [Licença](#-licença) · [Créditos](#-créditos)
 
@@ -48,6 +48,7 @@ Linters dizem **o que** está errado. O Shishō é opinativo e didático: diz o 
 - ⚖️ **Veredito de overengineering** — cruza o que está no código com o contexto do projeto e
   diz se a arquitetura está grande demais (ou pequena demais) para o problema.
 - 🎖️ **Graduação** — do 6º kyū ao 1º dan.
+- 🌱 **Modo shoshin** — dá nome aos conceitos que já estão no código (record, transações, Repository, Strategy…) e explica cada um.
 - 🧠 **LLM local opcional** — um modelo rodando na sua máquina explica o veredito. Ele explica,
   nunca decide.
 - 🏗️ **Gerador de CRUD** — cria um CRUD REST na arquitetura do projeto, explicando o papel de
@@ -100,6 +101,7 @@ Aponte para a raiz de um projeto Maven com Java 21 ou superior:
 |---|---|
 | `shisho analyze ./meu-projeto` | lições, arquitetura, veredito e graduação |
 | `shisho analyze --sensei ./meu-projeto` | o mesmo, com o porquê e o antes/depois de cada lição |
+| `shisho analyze --shoshin ./meu-projeto` | explica os conceitos do código: record, injeção de dependência, Strategy… |
 | `shisho analyze --format html --output r.html ./meu-projeto` | relatório HTML (ou `sarif`, para o GitHub) |
 | `shisho fix ./meu-projeto` | mostra as correções automáticas; `--apply` grava |
 | `shisho crud --arquitetura layered ./meu-projeto Produto nome:String` | cria um CRUD que explica cada arquivo |
@@ -237,6 +239,47 @@ Só as linhas da correção mudam: formatação e comentários ficam como estava
 não é segura (um `@Qualifier` que teria de mudar de lugar, um `@Builder` que depende do
 construtor do Lombok…), a lição fica para você, com o exemplo do modo sensei. Por quê
 JavaParser e não OpenRewrite: [ADR 0003](docs/adr/0003-autofix.md).
+
+## 🌱 Modo shoshin: os conceitos do seu código
+
+O modo sensei explica o que está errado. O shoshin (初心, a "mente de principiante" do zen)
+explica o que **já está** no código: com `--shoshin`, o relatório dá nome a cada conceito que
+aparece no projeto, diz onde ele está e o que ele é.
+
+```
+$ shisho analyze --shoshin ./loja
+...
+初心 Conceitos neste código (modo shoshin)
+
+Java
+  Record  (4 lugares: ClienteRequest.java:5, ClienteResponse.java:3, ProdutoRequest.java:8 e mais 1)
+    Uma classe feita só para carregar dados. Você declara os componentes entre parênteses, e o
+    compilador escreve o resto: construtor, acessores (`nome()`, sem o `get`), `equals`, `hashCode`
+    e `toString`. Os componentes são `final`: depois de criado, um record não muda.
+    [...]
+
+Spring
+  Injeção de dependência pelo construtor  (4 lugares: ClienteController.java:23, ClienteService.java:14, ...)
+  Transações (@Transactional)  (8 lugares: ClienteService.java:9, ClienteService.java:26, ...)
+  [...]
+
+Padrões de projeto
+  Repository  (2 lugares: ClienteRepository.java:5, ProdutoRepository.java:5)
+  [...]
+```
+
+São 18 conceitos em três grupos, na ordem em que um iniciante deveria encontrá-los:
+
+| Grupo | Conceitos |
+|---|---|
+| Java | record, enum, tipos selados, `Optional`, streams |
+| Spring | beans, injeção de dependência, controller REST, entidade JPA, transações, Bean Validation, tratamento de erros, `@ConfigurationProperties` |
+| Padrões de projeto | Repository, DTO, Strategy, Builder, Observer |
+
+Rode num projeto gerado pelo `shisho crud` para ver cada peça explicada. O shoshin descreve, não
+julga: um Strategy reconhecido não é elogio, e quem diz se ele cabe é o veredito. Os conceitos
+ficam em [`catalog/concepts`](catalog/concepts), em Markdown, e um teste exige que cada um
+reconheça o próprio exemplo. Por que assim: [ADR 0009](docs/adr/0009-shoshin.md).
 
 ## 📐 Overengineering
 
@@ -529,10 +572,10 @@ nada no build exige que você o use.
 - [x] **Fase 8** — português e inglês, tanto nos relatórios quanto no código analisado
   (`SHISHO_IDIOMA`, `install.sh`)
 - [x] **Fase 9** — plugin para o Claude Code: o Shishō confere cada arquivo que o Claude edita
+- [x] **Fase 10** — modo shoshin (`--shoshin`): os conceitos de Java, Spring e padrões de projeto
+  que aparecem no código
 - [ ] **Depois** — template de CRUD para clean; outras stacks, reaproveitando o catálogo de
   arquiteturas
-- [ ] **Ideias** — modo `--shoshin` (初心, "mente de principiante"), que explica cada conceito
-  que aparece no código (o que é um record, uma sealed interface…) e os design patterns
 
 ![Sung Jinwoo, de Solo Leveling, atacando com uma adaga em meio a estátuas de pedra](docs/anime/roadmap.gif)
 

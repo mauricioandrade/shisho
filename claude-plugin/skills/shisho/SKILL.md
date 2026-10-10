@@ -1,6 +1,6 @@
 ---
 name: shisho
-description: Use the Shishō (師匠) CLI on Java/Spring Boot projects. Use it when the user asks to review a Java or Spring Boot project, check its architecture or whether it is overengineered, explain a Shishō lesson, fix what the katas flag, or create a REST CRUD (entity, repository, DTOs, service, controller) in the project's architecture.
+description: Use the Shishō (師匠) CLI on Java/Spring Boot projects. Use it when the user asks to review a Java or Spring Boot project, check its architecture or whether it is overengineered, explain a Shishō lesson, fix what the katas flag, explain the concepts and design patterns in their code, or create a REST CRUD (entity, repository, DTOs, service, controller) in the project's architecture.
 ---
 
 # Shishō
@@ -17,6 +17,7 @@ the project root, the directory with `pom.xml`:
 ```bash
 java -jar "${user_config.shisho_jar}" analyze <project>            # lessons, architecture, verdict, rank
 java -jar "${user_config.shisho_jar}" analyze --sensei <project>   # adds why, when it is fine, before/after
+java -jar "${user_config.shisho_jar}" analyze --shoshin <project>  # names the concepts in the code, for beginners
 java -jar "${user_config.shisho_jar}" fix <project>                # shows the safe automatic fixes as a diff
 java -jar "${user_config.shisho_jar}" fix --apply <project>        # writes them
 java -jar "${user_config.shisho_jar}" crud [--arquitetura <id>] <project> <Entity> name:Type...
@@ -32,6 +33,13 @@ analyzed. Output follows `SHISHO_IDIOMA` (`pt`, the default, or `en`).
 2. Report the verdict and the most severe lessons first. Quote the Shishō; do not invent lessons
    it did not report, and do not argue with its verdict: explain it.
 3. Offer `fix` for the lessons it can fix mechanically. Show the diff before `--apply`.
+
+## Teaching a beginner
+
+When the user is learning (asks what something in the code is, or what a pattern means), run
+`analyze --shoshin`. It names the Java features, Spring concepts and design patterns the project
+shows, with where each one is. Start from those places in their own code rather than from a
+textbook example.
 
 ## Lessons after your own edits
 

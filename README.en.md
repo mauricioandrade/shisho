@@ -327,6 +327,11 @@ Consider package-by-feature.
 The context keys (`dominio_com_regras_complexas`, `vida_util_longa`…) are the ones you write in
 `shisho.yaml`, so they stay as they are in any language.
 
+When the context justifies the architecture but the code still shows the signals, the verdict is
+**"overengineering, for now"**: it names the `shisho.yaml` reason that pays for the cost, shows what
+the code does not use yet and does not suggest switching architectures, since the choice was
+made.
+
 It works the other way too: a layered project with a 30-method service, or services that depend
 on each other, gets an **underengineering** verdict and the next step up.
 
@@ -408,6 +413,11 @@ and the report names the reason that paid for it. `--mesmo-assim` ("anyway") is 
 want to see what the architecture looks like. In a project that is already hexagonal, the next
 `crud` goes ahead without asking: the decision was already made. Why it works this way:
 [ADR 0006](docs/adr/0006-crud-cost-warning.md).
+
+Right after it is generated, `analyze` gives that CRUD **"overengineering, for now"**: the domain is
+still a copy of the table, with the same fields as the JPA entity. The verdict changes once the
+domain gains rules of its own. There is no clean template: for a CRUD, it would only add layers to
+what hexagonal already shows ([ADR 0011](docs/adr/0011-no-clean-crud.md)).
 
 ![Dazai, from Bungou Stray Dogs, kneeling in a garden and laughing](docs/anime/cost-paid.gif)
 
@@ -596,7 +606,7 @@ downloads. Why it works this way: [ADR 0010](docs/adr/0010-release.md).
 - [x] **Phase 10**: shoshin mode (`--shoshin`): the Java, Spring and design pattern concepts that
   appear in the code
 - [x] **Phase 11**: a release with the ready-made jar for every tag, and a one-command install
-- [ ] **Next**: a CRUD template for clean; other stacks, reusing the architecture catalog
+- [ ] **Next**: other stacks, reusing the architecture catalog
 
 ![Sung Jinwoo, from Solo Leveling, striking with a dagger among stone statues](docs/anime/roadmap.gif)
 

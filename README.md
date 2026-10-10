@@ -317,6 +317,10 @@ dominio_com_regras_complexas, vida_util_longa, troca_provavel_de_infra, time_gra
 Considere package-by-feature.
 ```
 
+Quando o contexto justifica a arquitetura mas o código ainda mostra os sinais, o veredito é
+**"overengineering, por enquanto"**: ele diz que motivo do `shisho.yaml` paga o custo, mostra o
+que o código ainda não usa e não sugere trocar de arquitetura, porque a escolha já foi feita.
+
 O caminho inverso também existe: um projeto em camadas com um service de 30 métodos ou services
 que dependem um do outro recebe **subengenharia** e a sugestão do próximo degrau.
 
@@ -394,6 +398,11 @@ Com o motivo declarado no [`shisho.yaml`](#-overengineering), o CRUD sai direto,
 diz qual motivo pagou o custo. O `--mesmo-assim` serve para quem só quer ver como a arquitetura
 fica. Num projeto que já é hexagonal, o próximo `crud` segue sem perguntar: a decisão já foi
 tomada. Por que assim: [ADR 0006](docs/adr/0006-crud-cost-warning.md).
+
+Logo depois de gerado, o `analyze` dá **"overengineering, por enquanto"** a esse CRUD: o domínio
+ainda é uma cópia da tabela, com os mesmos campos da entidade JPA. O veredito muda quando o
+domínio ganha regras próprias. Não há template clean: para um CRUD, ele só acrescentaria camadas
+ao que o hexagonal já mostra ([ADR 0011](docs/adr/0011-no-clean-crud.md)).
 
 ![Dazai, de Bungou Stray Dogs, ajoelhado no jardim e rindo à toa](docs/anime/cost-paid.gif)
 
@@ -582,8 +591,7 @@ que assim: [ADR 0010](docs/adr/0010-release.md).
 - [x] **Fase 10** — modo shoshin (`--shoshin`): os conceitos de Java, Spring e padrões de projeto
   que aparecem no código
 - [x] **Fase 11** — release com o jar pronto a cada tag, e instalação com um comando
-- [ ] **Depois** — template de CRUD para clean; outras stacks, reaproveitando o catálogo de
-  arquiteturas
+- [ ] **Depois** — outras stacks, reaproveitando o catálogo de arquiteturas
 
 ![Sung Jinwoo, de Solo Leveling, atacando com uma adaga em meio a estátuas de pedra](docs/anime/roadmap.gif)
 

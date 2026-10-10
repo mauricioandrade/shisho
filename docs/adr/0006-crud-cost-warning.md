@@ -89,7 +89,8 @@ hexagonal, não viola nenhuma regra de dependência e não tem nenhuma lição.
   comando interativo hoje.
 - **`clean` junto.** O `clean` do catálogo tem custo alto e uma estrutura (`usecase`,
   `domain/port`) que se sobrepõe à do hexagonal. Fica para quando houver pedido: o mecanismo do
-  aviso já serve para ele.
+  aviso já serve para ele. Decidido no
+  [ADR 0011](0011-no-clean-crud.md): não haverá template clean.
 
 ## Consequências
 

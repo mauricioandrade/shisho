@@ -7,6 +7,7 @@
 Começando por Java e Spring Boot.
 
 [![CI](https://github.com/mauricioandrade/shiso/actions/workflows/ci.yml/badge.svg)](https://github.com/mauricioandrade/shiso/actions/workflows/ci.yml)
+[![Release](https://img.shields.io/github/v/release/mauricioandrade/shiso?label=release)](https://github.com/mauricioandrade/shiso/releases)
 ![Roda em Java 25](https://img.shields.io/badge/roda%20em-Java%2025-orange?logo=openjdk)
 ![Analisa Java 21+](https://img.shields.io/badge/analisa-Java%2021%2B-blue?logo=openjdk)
 ![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3%20%7C%204-6DB33F?logo=springboot&logoColor=white)
@@ -69,29 +70,28 @@ Linters dizem **o que** está errado. O Shishō é opinativo e didático: diz o 
 
 ## 🚀 Instalação
 
-Ainda não há release com o jar pronto: o Shishō é compilado a partir do código. Você precisa de
-**JDK 25** e **Maven 3.9** (ou do [mise](#-desenvolvimento), que instala os dois só para
-esta pasta).
+Você só precisa do **Java 25** ([Temurin](https://adoptium.net), por exemplo). O instalador baixa
+o `shisho.jar` da última [release](https://github.com/mauricioandrade/shiso/releases), confere o
+checksum e pergunta o idioma:
 
 ```bash
-git clone https://github.com/mauricioandrade/shiso.git
-cd shiso
-./install.sh        # compila, pergunta o idioma e adiciona o comando shisho ao seu shell
+bash -c "$(curl -fsSL https://raw.githubusercontent.com/mauricioandrade/shiso/main/install.sh)"
 ```
 
-O instalador pergunta `pt` ou `en` e, se você deixar, adiciona o alias `shisho` e a variável
-`SHISHO_IDIOMA` ao seu `~/.bashrc` ou `~/.zshrc`; rodar de novo substitui os dois. Em português
-ou em inglês, o idioma vale para tudo: relatórios, guias do modo sensei e o código que o
-`shisho crud` gera. Para trocar só num comando: `SHISHO_IDIOMA=en shisho analyze .`. Prefere
-fazer à mão? `mvn verify` gera o `target/shisho.jar`, e
-`alias shisho="java -jar $PWD/target/shisho.jar"` faz o resto.
+O jar vai para `~/.local/share/shisho/` e o comando `shisho` para `~/.local/bin/`. Se você deixar,
+o instalador põe essa pasta no `PATH` e grava o `SHISHO_IDIOMA` (`pt` ou `en`) no seu `~/.bashrc`
+ou `~/.zshrc`; rodar de novo atualiza a versão e substitui as duas linhas. Em português ou em
+inglês, o idioma vale para tudo: relatórios, guias do modo sensei e o código que o `shisho crud`
+gera. Para trocar só num comando: `SHISHO_IDIOMA=en shisho analyze .`.
+
+Prefere baixar à mão? O `shisho.jar` da release roda com `java -jar shisho.jar analyze <projeto>`.
 
 O código analisado pode estar em português ou em inglês: o Shishō reconhece pacotes como
 `dominio`, `servico` e `porta/entrada` tanto quanto `domain`, `service` e `port/in`.
 
 ![Gojo Satoru, de Jujutsu Kaisen, em versão chibi, saltitando feliz num campo de flores](docs/anime/install.gif)
 
-*Um `./install.sh`, uma pergunta, e o Shishō está pronto.*
+*Um comando, uma pergunta, e o Shishō está pronto.*
 
 ## ⚡ Uso rápido
 
@@ -454,8 +454,8 @@ arquitetura, overengineering ou pede um CRUD.
 /plugin install shisho --marketplace mauricioandrade/shiso
 ```
 
-Ao habilitar o plugin, o Claude Code pede o caminho do `shisho.jar`, que o `install.sh` mostra no
-fim. Num teste real, o Claude escreveu um `@Autowired` em campo, recebeu a lição GRAVE e trocou
+Se você instalou com o `install.sh`, o plugin acha o jar sozinho; se não, ele pergunta onde está
+o `shisho.jar` ao ser habilitado. Num teste real, o Claude escreveu um `@Autowired` em campo, recebeu a lição GRAVE e trocou
 pela injeção por construtor sem ninguém pedir.
 
 ![Gojo, Yuji e Nobara, de Jujutsu Kaisen, pulando e batendo as mãos para comemorar](docs/anime/claude-code.gif)
@@ -553,8 +553,15 @@ O `target/shisho.jar` é a versão que você acabou de compilar: `java -jar targ
 analyze <projeto>`. Antes de abrir um PR, rode o `mvn verify` e o Shishō nele mesmo (`java -jar
 target/shisho.jar analyze .`): o código do Shishō precisa passar nas próprias katas.
 
+Para usar a versão compilada no lugar da instalada, rode `./install.sh --from-source` no clone.
+
 O mise é usado só para conveniência de desenvolvimento. Ele não é dependência do Shishō, e
 nada no build exige que você o use.
+
+**Publicar uma versão** é criar a tag: `git tag v0.1.0 && git push origin v0.1.0`. O workflow
+[`release.yml`](.github/workflows/release.yml) compila com essa versão, roda todos os testes e
+publica o `shisho.jar` e o checksum numa GitHub Release, que o `install.sh` passa a baixar. Por
+que assim: [ADR 0010](docs/adr/0010-release.md).
 
 ## 📍 Roadmap
 
@@ -574,6 +581,7 @@ nada no build exige que você o use.
 - [x] **Fase 9** — plugin para o Claude Code: o Shishō confere cada arquivo que o Claude edita
 - [x] **Fase 10** — modo shoshin (`--shoshin`): os conceitos de Java, Spring e padrões de projeto
   que aparecem no código
+- [x] **Fase 11** — release com o jar pronto a cada tag, e instalação com um comando
 - [ ] **Depois** — template de CRUD para clean; outras stacks, reaproveitando o catálogo de
   arquiteturas
 

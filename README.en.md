@@ -7,6 +7,7 @@
 Starting with Java and Spring Boot.
 
 [![CI](https://github.com/mauricioandrade/shiso/actions/workflows/ci.yml/badge.svg)](https://github.com/mauricioandrade/shiso/actions/workflows/ci.yml)
+[![Release](https://img.shields.io/github/v/release/mauricioandrade/shiso?label=release)](https://github.com/mauricioandrade/shiso/releases)
 ![Runs on Java 25](https://img.shields.io/badge/runs%20on-Java%2025-orange?logo=openjdk)
 ![Analyzes Java 21+](https://img.shields.io/badge/analyzes-Java%2021%2B-blue?logo=openjdk)
 ![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3%20%7C%204-6DB33F?logo=springboot&logoColor=white)
@@ -72,27 +73,28 @@ wrong, **why** it matters and which way to go, the way a sensei would teach a st
 
 ## 🚀 Installation
 
-There is no release with a prebuilt jar yet: the Shishō is built from source. You need **JDK 25**
-and **Maven 3.9** (or [mise](#-development), which installs both for this folder only).
+All you need is **Java 25** ([Temurin](https://adoptium.net), for example). The installer
+downloads `shisho.jar` from the latest [release](https://github.com/mauricioandrade/shiso/releases),
+checks its checksum and asks for the language:
 
 ```bash
-git clone https://github.com/mauricioandrade/shiso.git
-cd shiso
-./install.sh        # builds the jar, asks the language and adds the shisho command to your shell
+bash -c "$(curl -fsSL https://raw.githubusercontent.com/mauricioandrade/shiso/main/install.sh)"
 ```
 
-The installer asks `pt` or `en` and, if you allow it, adds the `shisho` alias and
-`SHISHO_IDIOMA` to your `~/.bashrc` or `~/.zshrc`; running it again replaces them. To switch
-language for a single command: `SHISHO_IDIOMA=pt shisho analyze .`. Prefer doing it by hand?
-`mvn verify` builds `target/shisho.jar`, and `alias shisho="java -jar $PWD/target/shisho.jar"`
-does the rest.
+The jar goes to `~/.local/share/shisho/` and the `shisho` command to `~/.local/bin/`. If you allow
+it, the installer puts that folder on the `PATH` and writes `SHISHO_IDIOMA` (`pt` or `en`) to your
+`~/.bashrc` or `~/.zshrc`; running it again updates the version and replaces both lines. The
+language applies to everything: reports, sensei guides and the code `shisho crud` generates. To
+switch for a single command: `SHISHO_IDIOMA=pt shisho analyze .`.
+
+Rather download it by hand? The release's `shisho.jar` runs with `java -jar shisho.jar analyze <project>`.
 
 The analyzed code may be written in English or in Portuguese: the Shishō recognizes packages such
 as `dominio`, `servico` and `porta/entrada` just as well as `domain`, `service` and `port/in`.
 
 ![Gojo Satoru, from Jujutsu Kaisen, in chibi form, skipping happily through a field of flowers](docs/anime/install.gif)
 
-*One `./install.sh`, one question, and the Shishō is ready.*
+*One command, one question, and the Shishō is ready.*
 
 ## ⚡ Quick start
 
@@ -467,8 +469,8 @@ overengineering or for a CRUD.
 /plugin install shisho --marketplace mauricioandrade/shiso
 ```
 
-When you enable the plugin, Claude Code asks for the path to `shisho.jar`, which `install.sh`
-prints at the end. In a real run, Claude wrote a field `@Autowired`, got the GRAVE lesson and
+If you installed with `install.sh`, the plugin finds the jar by itself; if not, it asks where
+`shisho.jar` is when you enable it. In a real run, Claude wrote a field `@Autowired`, got the GRAVE lesson and
 switched to constructor injection without anyone asking.
 
 ![Gojo, Yuji and Nobara, from Jujutsu Kaisen, jumping and high-fiving to celebrate](docs/anime/claude-code.gif)
@@ -565,8 +567,16 @@ mvn verify      # tests + target/shisho.jar
 <project>`. Before opening a PR, run `mvn verify` and the Shishō on itself (`java -jar
 target/shisho.jar analyze .`): the Shishō's own code has to pass its katas.
 
+To use the version you built instead of the installed one, run `./install.sh --from-source` in
+the clone.
+
 mise is only a development convenience. The Shishō does not depend on it, and nothing in the
 build requires it.
+
+**Publishing a version** means creating the tag: `git tag v0.1.0 && git push origin v0.1.0`. The
+[`release.yml`](.github/workflows/release.yml) workflow builds with that version, runs every test
+and publishes `shisho.jar` and its checksum in a GitHub Release, which `install.sh` then
+downloads. Why it works this way: [ADR 0010](docs/adr/0010-release.md).
 
 ## 📍 Roadmap
 
@@ -585,6 +595,7 @@ build requires it.
 - [x] **Phase 9**: a Claude Code plugin, where the Shishō checks every file Claude edits
 - [x] **Phase 10**: shoshin mode (`--shoshin`): the Java, Spring and design pattern concepts that
   appear in the code
+- [x] **Phase 11**: a release with the ready-made jar for every tag, and a one-command install
 - [ ] **Next**: a CRUD template for clean; other stacks, reusing the architecture catalog
 
 ![Sung Jinwoo, from Solo Leveling, striking with a dagger among stone statues](docs/anime/roadmap.gif)

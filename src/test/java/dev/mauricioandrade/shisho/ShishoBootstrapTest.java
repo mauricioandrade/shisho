@@ -173,6 +173,19 @@ class ShishoBootstrapTest {
         assertThat(out()).startsWith("Uso: shisho").contains("Comandos:", "analyze");
     }
 
+    @Test
+    void speaksTheLanguageOfShishoIdioma() {
+        assertThat(ShishoBootstrap.run(new String[] {"analyze", FIXTURES + "aluno-astronauta"}, "EN", out, err)).isZero();
+        assertThat(out()).startsWith("師匠 Shishō — analysis of aluno-astronauta").contains("\nVerdict: overengineering.");
+    }
+
+    @Test
+    void refusesALanguageItDoesNotSpeak() {
+        assertThat(ShishoBootstrap.run(new String[] {"analyze", "."}, "es", out, err)).isEqualTo(2);
+        assertThat(err()).startsWith("SHISHO_IDIOMA=es não é um idioma do Shishō: use pt ou en.");
+        assertThat(out()).isEmpty();
+    }
+
     private int run(String... args) {
         return ShishoBootstrap.run(args, out, err);
     }

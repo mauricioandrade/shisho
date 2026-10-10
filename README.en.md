@@ -44,6 +44,8 @@ wrong, **why** it matters and which way to go, the way a sensei would teach a st
   it never decides.
 - 🏗️ **CRUD generator**: creates a REST CRUD in the project's architecture and explains the role
   of every file. The generated code passes every kata.
+- 🤖 **Claude Code plugin**: checks every file Claude edits and shows it the lessons while it
+  writes.
 
 ## Why it exists
 
@@ -87,6 +89,7 @@ Point it at the root of a Maven project on Java 21 or later:
 | `shisho fix ./my-project` | shows the automatic fixes; `--apply` writes them |
 | `shisho crud --arquitetura layered ./my-project Product name:String` | creates a CRUD that explains every file |
 | `shisho ask ./my-project "where do I start?"` | a local LLM explains the verdict (needs Ollama) |
+| `/plugin install shisho --marketplace mauricioandrade/shiso` | in Claude Code: the Shishō checks every file Claude edits |
 
 `shisho <command> --help` lists every option.
 
@@ -304,8 +307,8 @@ Preview features are never recommended. What the Shishō knows about each versio
   with an overengineering warning before generating
 - [x] **Phase 8**: English and Portuguese, both for the reports and for the analyzed code
   (`SHISHO_IDIOMA`, `install.sh`)
-- [ ] **Next**: a Claude Code plugin, where the Shishō checks the code while Claude writes it; a
-  CRUD template for clean; other stacks, reusing the architecture catalog
+- [x] **Phase 9**: a Claude Code plugin, where the Shishō checks every file Claude edits
+- [ ] **Next**: a CRUD template for clean; other stacks, reusing the architecture catalog
 - [ ] **Ideas**: a `--shoshin` mode (初心, "beginner's mind") that explains every concept found
   in the code (what a record is, a sealed interface…) and design patterns
 
@@ -469,6 +472,25 @@ to recognize the architecture and find **no** lesson at all. The code was also c
 Initializr project (Spring Boot 4.1): it compiles, starts and answers. The templates live in
 [`catalog/scaffolds`](catalog/scaffolds), in Markdown. Why it works this way:
 [ADR 0005](docs/adr/0005-crud-scaffolding.md).
+
+## In Claude Code
+
+With the Shishō plugin, Claude Code gets checked while it writes. After every edit to a `.java`
+file, the Shishō analyzes the project and shows Claude that file's lessons, and Claude fixes them
+before moving on. A skill teaches Claude to use the CLI when you ask about architecture,
+overengineering or for a CRUD.
+
+```
+/plugin install shisho --marketplace mauricioandrade/shiso
+```
+
+When you enable the plugin, Claude Code asks for the path to `shisho.jar`, which `install.sh`
+prints at the end. In a real run, Claude wrote a field `@Autowired`, got the GRAVE lesson and
+switched to constructor injection without anyone asking.
+
+The Shishō only points things out. When a lesson does not apply, the plugin asks Claude to
+explain that to you instead of rewriting the code just to silence the kata. Why it works this
+way: [ADR 0008](docs/adr/0008-claude-code-plugin.md).
 
 ## On GitHub Actions
 

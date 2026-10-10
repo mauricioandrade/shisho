@@ -40,6 +40,8 @@ Linters dizem **o que** está errado. O Shishō é opinativo e didático: diz o 
   nunca decide.
 - 🏗️ **Gerador de CRUD** — cria um CRUD REST na arquitetura do projeto, explicando o papel de
   cada arquivo. O código gerado passa em todas as katas.
+- 🤖 **Plugin para o Claude Code** — confere cada arquivo que o Claude edita e mostra a ele as
+  lições, enquanto ele escreve.
 
 ## Por que existe
 
@@ -86,6 +88,7 @@ Aponte para a raiz de um projeto Maven com Java 21 ou superior:
 | `shisho fix ./meu-projeto` | mostra as correções automáticas; `--apply` grava |
 | `shisho crud --arquitetura layered ./meu-projeto Produto nome:String` | cria um CRUD que explica cada arquivo |
 | `shisho ask ./meu-projeto "por onde começo?"` | um LLM local explica o veredito (precisa do Ollama) |
+| `/plugin install shisho --marketplace mauricioandrade/shiso` | no Claude Code: o Shishō confere cada arquivo que o Claude edita |
 
 `shisho <comando> --help` lista todas as opções.
 
@@ -298,8 +301,9 @@ Recursos em preview nunca são recomendados. O que o Shishō sabe sobre cada ver
   com aviso de overengineering antes de gerar
 - [x] **Fase 8** — português e inglês, tanto nos relatórios quanto no código analisado
   (`SHISHO_IDIOMA`, `install.sh`)
-- [ ] **Depois** — plugin para o Claude Code, com o Shishō conferindo o código enquanto o Claude
-  escreve; template de CRUD para clean; outras stacks, reaproveitando o catálogo de arquiteturas
+- [x] **Fase 9** — plugin para o Claude Code: o Shishō confere cada arquivo que o Claude edita
+- [ ] **Depois** — template de CRUD para clean; outras stacks, reaproveitando o catálogo de
+  arquiteturas
 - [ ] **Ideias** — modo `--shoshin` (初心, "mente de principiante"), que explica cada conceito
   que aparece no código (o que é um record, uma sealed interface…) e os design patterns
 
@@ -459,6 +463,25 @@ Um teste aplica cada template a um projeto igual ao do Initializr e exige que o 
 reconheça a arquitetura e não encontre **nenhuma** lição. O código foi conferido também num
 projeto real do Initializr (Spring Boot 4.1): compila, sobe e responde. Os templates ficam em
 [`catalog/scaffolds`](catalog/scaffolds), em Markdown. Por que assim: [ADR 0005](docs/adr/0005-crud-scaffolding.md).
+
+## No Claude Code
+
+Com o plugin do Shishō, o Claude Code passa a ser conferido enquanto escreve. Depois de cada
+edição num `.java`, o Shishō analisa o projeto e mostra ao Claude as lições daquele arquivo, e ele
+corrige antes de seguir. Uma skill ensina o Claude a usar a CLI quando você pergunta sobre
+arquitetura, overengineering ou pede um CRUD.
+
+```
+/plugin install shisho --marketplace mauricioandrade/shiso
+```
+
+Ao habilitar o plugin, o Claude Code pede o caminho do `shisho.jar`, que o `install.sh` mostra no
+fim. Num teste real, o Claude escreveu um `@Autowired` em campo, recebeu a lição GRAVE e trocou
+pela injeção por construtor sem ninguém pedir.
+
+O Shishō só aponta. Quando uma lição não se aplica, o plugin pede ao Claude que explique isso a
+você, em vez de reescrever o código só para calar a kata. Por que assim:
+[ADR 0008](docs/adr/0008-claude-code-plugin.md).
 
 ## No GitHub Actions
 

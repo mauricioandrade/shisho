@@ -65,6 +65,10 @@ printf '%s\n' "$block" >> "$rc"
 
 if [ "$language" = "pt" ]; then
     echo "Pronto. Abra um terminal novo (ou rode: source $rc) e experimente: shisho analyze <projeto>"
+    echo "No Claude Code: /plugin install shisho --marketplace mauricioandrade/shiso"
+    echo "  e, quando ele pedir o shisho.jar: $root/target/shisho.jar"
 else
     echo "Done. Open a new terminal (or run: source $rc) and try: shisho analyze <project>"
+    echo "In Claude Code: /plugin install shisho --marketplace mauricioandrade/shiso"
+    echo "  and, when it asks for shisho.jar: $root/target/shisho.jar"
 fi

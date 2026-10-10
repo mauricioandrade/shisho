@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -173,6 +174,22 @@ class ShishoBootstrapTest {
         assertThat(out()).startsWith("Uso: shisho").contains("Comandos:", "analyze");
     }
 
+    /** The story docs/demo/demo.tape records: four lessons, three fixed by fix --apply, 1st dan. */
+    @Test
+    void theDemoProjectTellsTheDemoStory(@TempDir Path project) throws IOException {
+        copyFixture("demo-loja", project);
+
+        assertThat(run("analyze", project.toString())).isEqualTo(1);
+        assertThat(out()).contains("[field-injection]", "[entity-in-controller]", "[request-body-without-valid]", "[transactional-read-only]")
+                .endsWith("Graduação: 2º kyū  (4 lições: 1 grave, 2 médias, 1 leve)\n");
+        out.reset();
+        assertThat(run("fix", "--apply", project.toString())).isZero();
+        assertThat(out()).startsWith("Corrigido: 3 lições em 2 arquivos.\n");
+        out.reset();
+        assertThat(run("analyze", project.toString())).isZero();
+        assertThat(out()).endsWith("Graduação: 1º dan  (1 lição: 0 graves, 1 média, 0 leves)\n");
+    }
+
     @Test
     void namesTheConceptsInTheCodeInTheShoshinMode() {
         assertThat(run("analyze", "--shoshin", FIXTURES + "aluno-astronauta")).isZero();
@@ -191,6 +208,20 @@ class ShishoBootstrapTest {
         assertThat(ShishoBootstrap.run(new String[] {"analyze", "."}, "es", out, err)).isEqualTo(2);
         assertThat(err()).startsWith("SHISHO_IDIOMA=es não é um idioma do Shishō: use pt ou en.");
         assertThat(out()).isEmpty();
+    }
+
+    private static void copyFixture(String fixture, Path target) throws IOException {
+        Path source = Path.of(FIXTURES + fixture);
+        try (Stream<Path> files = Files.walk(source)) {
+            for (Path file : files.toList()) {
+                Path copy = target.resolve(source.relativize(file).toString());
+                if (Files.isDirectory(file)) {
+                    Files.createDirectories(copy);
+                } else {
+                    Files.copy(file, copy);
+                }
+            }
+        }
     }
 
     private int run(String... args) {

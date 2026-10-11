@@ -81,6 +81,28 @@ class KatasTest {
     }
 
     @Test
+    void messyQuarkusStudentLearnsTheQuarkusWay() {
+        String pedido = "src/main/java/com/exemplo/loja/pedido/";
+
+        assertThat(analyze(FIXTURES.resolve("aluno-quarkus-baguncado")))
+                .extracting(lesson -> lesson.file().toString(), Lesson::line, Lesson::kataId, Lesson::messageKey)
+                .containsExactly(
+                        tuple("pom.xml", 0, "missing-actuator", "kata.missing-actuator.lesson.quarkus"),
+                        tuple("pom.xml", 0, "missing-springdoc", "kata.missing-springdoc.lesson.quarkus"),
+                        tuple(pedido + "CriarPedidoRequest.java", 5, "dto-not-record", "kata.dto-not-record.lesson"),
+                        tuple(pedido + "FreteService.java", 9, "prefer-configuration-properties",
+                                "kata.prefer-configuration-properties.lesson.quarkus"),
+                        tuple(pedido + "PedidoResource.java", 8, "missing-controller-advice",
+                                "kata.missing-controller-advice.lesson.quarkus"),
+                        tuple(pedido + "PedidoResource.java", 14, "entity-in-controller", "kata.entity-in-controller.lesson"),
+                        tuple(pedido + "PedidoResource.java", 20, "entity-in-controller", "kata.entity-in-controller.lesson"),
+                        tuple(pedido + "PedidoResource.java", 21, "request-body-without-valid",
+                                "kata.request-body-without-valid.lesson.quarkus"),
+                        tuple(pedido + "PedidoService.java", 9, "non-final-dependency", "kata.non-final-dependency.lesson"),
+                        tuple(pedido + "PedidoService.java", 25, "system-out", "kata.system-out.lesson"));
+    }
+
+    @Test
     void modelStudentHasNothingToLearn() {
         assertThat(analyze(FIXTURES.resolve("aluno-exemplar"))).isEmpty();
     }

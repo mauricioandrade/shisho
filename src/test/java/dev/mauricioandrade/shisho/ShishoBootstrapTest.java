@@ -40,6 +40,16 @@ class ShishoBootstrapTest {
     }
 
     @Test
+    void explainsTheQuarkusWayInEnglishToo() {
+        assertThat(ShishoBootstrap.run(new String[] {"analyze", FIXTURES + "aluno-quarkus-baguncado"}, "en", out, err)).isZero();
+        assertThat(out().replaceAll("\\s+", " ")).contains(
+                "Web application without quarkus-smallrye-health.",
+                "Group them in an interface with @ConfigMapping(prefix = \"loja.frete\")",
+                "@ServerExceptionMapper methods",
+                "Body CriarPedidoRequest without @Valid");
+    }
+
+    @Test
     void judgesAnOverengineeredProject() {
         assertThat(run("analyze", FIXTURES + "aluno-astronauta")).isZero();
         assertThat(out())

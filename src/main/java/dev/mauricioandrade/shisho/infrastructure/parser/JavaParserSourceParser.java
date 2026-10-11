@@ -218,6 +218,7 @@ public final class JavaParserSourceParser implements SourceParser {
                     annotations,
                     declaration.isFinal(),
                     declaration.isStatic(),
+                    declaration.isPrivate(),
                     variable.getInitializer().isPresent(),
                     line(declaration))));
         }

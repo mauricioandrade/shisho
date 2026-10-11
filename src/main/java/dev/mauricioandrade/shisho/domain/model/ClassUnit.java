@@ -97,6 +97,7 @@ public record ClassUnit(
             List<Annotation> annotations,
             boolean isFinal,
             boolean isStatic,
+            boolean isPrivate,
             boolean hasInitializer,
             int line) {
 

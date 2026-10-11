@@ -199,16 +199,16 @@ class JavaParserSourceParserTest {
                         private UserRepository repository;
                         private final Clock clock;
                         private static final int LIMIT = 10;
-                        private int a, b = 2;
+                        int a, b = 2;
                     }
                     """).getFirst();
 
             assertThat(service.fields()).containsExactly(
-                    new Field("repository", "UserRepository", List.of(new Annotation("Autowired", 2)), false, false, false, 2),
-                    new Field("clock", "Clock", List.of(), true, false, false, 4),
-                    new Field("LIMIT", "int", List.of(), true, true, true, 5),
-                    new Field("a", "int", List.of(), false, false, false, 6),
-                    new Field("b", "int", List.of(), false, false, true, 6));
+                    new Field("repository", "UserRepository", List.of(new Annotation("Autowired", 2)), false, false, true, false, 2),
+                    new Field("clock", "Clock", List.of(), true, false, true, false, 4),
+                    new Field("LIMIT", "int", List.of(), true, true, true, true, 5),
+                    new Field("a", "int", List.of(), false, false, false, false, 6),
+                    new Field("b", "int", List.of(), false, false, false, true, 6));
         }
 
         @Test

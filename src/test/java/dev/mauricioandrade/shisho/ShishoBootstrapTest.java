@@ -34,6 +34,12 @@ class ShishoBootstrapTest {
     }
 
     @Test
+    void exitsWithZeroForTheQuarkusModelStudent() {
+        assertThat(run("analyze", FIXTURES + "aluno-quarkus")).isZero();
+        assertThat(out()).endsWith("Graduação: 1º dan  (nenhuma lição)\n");
+    }
+
+    @Test
     void judgesAnOverengineeredProject() {
         assertThat(run("analyze", FIXTURES + "aluno-astronauta")).isZero();
         assertThat(out())

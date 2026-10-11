@@ -86,6 +86,11 @@ class KatasTest {
     }
 
     @Test
+    void quarkusModelStudentHasNothingToLearn() {
+        assertThat(analyze(FIXTURES.resolve("aluno-quarkus"))).isEmpty();
+    }
+
+    @Test
     void theArchitectureAstronautWritesCleanCode() {
         assertThat(analyze(FIXTURES.resolve("aluno-astronauta"))).isEmpty();
     }

@@ -71,7 +71,29 @@ Ficaram como estão, de propósito:
   pelo mesmo motivo do `@Inject`.
 - `configuration-properties-not-record`: o `@ConfigMapping` é uma interface, não uma classe.
 - `transactional-read-only`: o `@Transactional` do Jakarta não tem `readOnly`.
-- `system-out`, `lombok-constructor`, `dto-not-record`: já não dependiam do framework.
+- `lombok-constructor`, `dto-not-record`: já não dependiam do framework.
+
+### 12c — catálogo e katas próprias
+
+- **Panache não precisou de exceção na classificação.** O que escondia um projeto Quarkus era o
+  nome: o controller do Jakarta REST se chama `*Resource`, num pacote `resource`. Layered e
+  package-by-feature passaram a aceitar `resource|recurso` onde aceitavam `controller|controlador`.
+  Com isso, um Active Record sem repositório já casa com a assinatura (resource, service, entity).
+  O `dominio_anemico` só olha pacotes `domain`, então uma entidade Panache com campos públicos em
+  `entity` não é acusada.
+- **`quarkus-private-injection`** (LEVE): `@Inject` ou `@ConfigProperty` em campo `private` num
+  projeto Quarkus. O `shisho fix` tira o `private`. É a primeira kata que só existe num framework,
+  e o prefixo `quarkus-` no id diz isso a quem lê o `shisho.yaml`.
+- **`system-out`** virou `ProjectKata` para, num projeto Quarkus, sugerir `io.quarkus.logging.Log`.
+- **Shoshin.** Um grupo Quarkus (beans CDI, resources Jakarta REST, Panache, `@ConfigMapping`) e
+  o padrão Active Record. Entidade JPA, transações e Bean Validation saíram do grupo Spring para um
+  grupo Jakarta EE, com textos que valem para os dois frameworks: num projeto Quarkus, o shoshin os
+  mostrava sob o título "Spring". O Panache Repository conta como o padrão Repository.
+
+O `Concept.Group` do `domain` já tinha `SPRING`; ganhou `QUARKUS` e `JAKARTA`. É um nome de
+framework no `domain`, contra o que o CLAUDE.md pede, mas é um rótulo do catálogo (o título de um
+grupo no relatório) e nenhuma regra depende dele. Trocá-lo por uma string vinda do catálogo é o
+caminho se aparecer um terceiro framework.
 
 ## Alternativas registradas
 

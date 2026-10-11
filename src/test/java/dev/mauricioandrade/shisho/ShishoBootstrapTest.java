@@ -214,6 +214,12 @@ class ShishoBootstrapTest {
     }
 
     @Test
+    void namesTheQuarkusConceptsInTheShoshinMode() {
+        assertThat(run("analyze", "--shoshin", FIXTURES + "aluno-quarkus-baguncado")).isZero();
+        assertThat(out()).contains("\nQuarkus\n  Beans CDI e escopos  (", "\nJakarta EE\n  Entidade JPA  (", "  Active Record  (");
+    }
+
+    @Test
     void speaksTheLanguageOfShishoIdioma() {
         assertThat(ShishoBootstrap.run(new String[] {"analyze", FIXTURES + "aluno-astronauta"}, "EN", out, err)).isZero();
         assertThat(out()).startsWith("師匠 Shishō — analysis of aluno-astronauta").contains("\nVerdict: overengineering.");

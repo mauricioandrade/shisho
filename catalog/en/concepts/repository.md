@@ -11,7 +11,7 @@ relational database, a document store or a service sits on the other side.
 
 With Spring Data, you only declare the interface extending `JpaRepository`, and the
 implementation is generated. Even the queries: a method `findByCustomer(String customer)` becomes
-SQL from its name.
+SQL from its name. In Quarkus, the equivalent is a class implementing `PanacheRepository<Order>`.
 
 ## Example
 

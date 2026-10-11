@@ -4,6 +4,7 @@ referencias:
   - https://docs.spring.io/spring-framework/reference/core/beans/dependencies/factory-collaborators.html
   - https://odrotbohm.de/2013/11/why-field-injection-is-evil/
   - https://docs.spring.io/spring-boot/reference/using/spring-beans-and-dependency-injection.html
+  - https://quarkus.io/guides/cdi-reference#native-executables-and-private-members
 ---
 
 ## Por quê
@@ -28,6 +29,10 @@ a constrói à mão, `@Autowired` em campo é comum e aparece na própria docume
 Shishō não analisa `src/test`). Em código legado, migrar aos poucos vale mais do que reescrever
 tudo de uma vez. Dependências opcionais podem vir por setter, como a documentação do Spring
 sugere, mas isso é raro numa aplicação Spring Boot.
+
+Num projeto Quarkus, `@Inject` em campo package-private é o estilo que a própria documentação
+recomenda: o ArC gera, na compilação, o código que preenche o campo, sem reflexão. O Shishō
+reconhece o Quarkus pelo build (uma dependência `io.quarkus`) e, nele, só acusa `@Autowired`.
 
 ## Antes
 

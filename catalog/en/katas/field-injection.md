@@ -26,6 +26,11 @@ Shishō does not analyze `src/test`). In legacy code, migrating gradually is wor
 rewriting everything at once. Optional dependencies may come through a setter, as the Spring
 documentation suggests, but that is rare in a Spring Boot application.
 
+In a Quarkus project, `@Inject` on a package-private field is the style its own documentation
+recommends: ArC generates, at build time, the code that fills the field, with no reflection. The
+Shishō recognizes Quarkus by the build (an `io.quarkus` dependency) and, there, only flags
+`@Autowired`.
+
 ## Before
 
 ```java

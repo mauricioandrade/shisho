@@ -38,12 +38,20 @@ final class KataTestSupport {
 
     /** A project with no classes and a {@code pom.xml} declaring these {@code groupId:artifactId} pairs. */
     static List<Lesson> evaluateBuild(ProjectKata kata, String... dependencies) {
+        return kata.evaluate(new ProjectModel(new JavaVersion(25), Optional.of(build(dependencies)), List.of()));
+    }
+
+    /** A project made of {@code source} and a {@code pom.xml} declaring these {@code groupId:artifactId} pairs. */
+    static List<Lesson> evaluate(ProjectKata kata, String source, String... dependencies) {
+        return kata.evaluate(new ProjectModel(new JavaVersion(25), Optional.of(build(dependencies)), classes(source)));
+    }
+
+    private static BuildInfo build(String... dependencies) {
         List<Dependency> declared = Arrays.stream(dependencies)
                 .map(dependency -> dependency.split(":"))
                 .map(parts -> new Dependency(parts[0], parts[1]))
                 .toList();
-        BuildInfo build = new BuildInfo(Path.of("pom.xml"), Optional.of(new JavaVersion(25)), declared);
-        return kata.evaluate(new ProjectModel(new JavaVersion(25), Optional.of(build), List.of()));
+        return new BuildInfo(Path.of("pom.xml"), Optional.of(new JavaVersion(25)), declared);
     }
 
     static List<ClassUnit> classes(String source) {

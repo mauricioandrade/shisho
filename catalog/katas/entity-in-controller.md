@@ -3,6 +3,7 @@ id: entity-in-controller
 referencias:
   - https://api-security.owasp.org/editions/2023/en/0xa3-broken-object-property-level-authorization
   - https://docs.spring.io/spring-boot/reference/data/sql.html#data.sql.jpa-and-spring-data.open-entity-manager-in-view
+  - https://quarkus.io/guides/hibernate-orm-panache
 ---
 
 ## Por quê
@@ -24,6 +25,10 @@ inteira.
 Em protótipos e ferramentas internas descartáveis, em que a API e o banco mudam juntos e o
 cliente é você mesmo. Mesmo aí, evite receber a entidade como `@RequestBody`. As projeções do
 Spring Data (interfaces ou records) são um jeito barato de ter um DTO sem mapear à mão.
+
+Os guias do Quarkus com Panache devolvem a entidade direto do resource `@Path`, porque o objetivo
+deles é mostrar o Panache em poucas linhas. É o mesmo protótipo, com o mesmo custo: num projeto de
+verdade, o resource Jakarta REST recebe e devolve records, como o controller do Spring.
 
 ## Antes
 

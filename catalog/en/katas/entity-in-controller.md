@@ -21,6 +21,10 @@ In prototypes and throwaway internal tools, where the API and the database chang
 the client is yourself. Even then, avoid receiving the entity as `@RequestBody`. Spring Data
 projections (interfaces or records) are a cheap way to get a DTO without mapping by hand.
 
+The Quarkus guides with Panache return the entity straight from the `@Path` resource, because
+their goal is to show Panache in a few lines. It is the same prototype, with the same cost: in a
+real project, the Jakarta REST resource receives and returns records, like the Spring controller.
+
 ## Before
 
 ```java

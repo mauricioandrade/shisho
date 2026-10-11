@@ -2,6 +2,8 @@ package dev.mauricioandrade.shisho.infrastructure.kata;
 
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
+
 import static dev.mauricioandrade.shisho.infrastructure.kata.KataTestSupport.evaluate;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -43,6 +45,28 @@ class EntityInControllerKataTest {
                     assertThat(update.line()).isEqualTo(14);
                     assertThat(update.arguments()).containsExactly("Order", "update");
                 });
+    }
+
+    @Test
+    void flagsEntitiesInJakartaRestResources() {
+        assertThat(evaluate(kata, ENTITIES + """
+                @Path("/users")
+                class UserResource {
+                    @GET
+                    @Path("{id}")
+                    Uni<User> find(Long id) { return null; }
+
+                    @POST
+                    void create(Order order) {}
+
+                    @PUT
+                    @Path("{order}")
+                    UserResponse rename(Long order, @RestQuery String name) { return null; }
+
+                    User helper() { return null; }
+                }
+                """)).extracting(lesson -> lesson.arguments()).containsExactly(
+                List.of("User", "find"), List.of("Order", "create"));
     }
 
     @Test

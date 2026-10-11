@@ -16,8 +16,9 @@ import java.util.stream.Stream;
 
 /**
  * A request mapping that returns or receives (as {@code @RequestBody}) a JPA {@code @Entity},
- * also inside generics such as {@code ResponseEntity<List<User>>}. Entities are matched by
- * simple name, so the kata needs the whole project.
+ * also inside generics such as {@code ResponseEntity<List<User>>}; or a Jakarta REST resource
+ * method (Quarkus) doing the same. Entities are matched by simple name, so the kata needs the
+ * whole project.
  */
 final class EntityInControllerKata implements ProjectKata {
 
@@ -53,20 +54,23 @@ final class EntityInControllerKata implements ProjectKata {
             return List.of();
         }
         return project.classes().stream()
-                .filter(unit -> Annotations.has(unit.annotations(), CONTROLLER))
+                .filter(unit -> Annotations.has(unit.annotations(), CONTROLLER) || JakartaRest.isResource(unit))
                 .flatMap(controller -> controller.methods().stream()
-                        .filter(method -> Annotations.has(method.annotations(), MAPPING))
-                        .flatMap(method -> exposedTypes(method)
+                        .filter(method -> Annotations.has(method.annotations(), MAPPING) || JakartaRest.isResourceMethod(method))
+                        .flatMap(method -> exposedTypes(controller, method)
                                 .filter(entities::contains)
                                 .distinct()
                                 .map(entity -> lesson(controller.file(), method.line(), entity, method.name()))))
                 .toList();
     }
 
-    private static Stream<String> exposedTypes(Method method) {
-        Stream<String> bodies = method.parameters().stream()
-                .filter(parameter -> Annotations.has(parameter.annotations(), REQUEST_BODY))
-                .map(ClassUnit.Parameter::type);
+    private static Stream<String> exposedTypes(ClassUnit controller, Method method) {
+        Stream<ClassUnit.Parameter> springBodies = method.parameters().stream()
+                .filter(parameter -> Annotations.has(parameter.annotations(), REQUEST_BODY));
+        Stream<ClassUnit.Parameter> jakartaRestBodies = JakartaRest.isResourceMethod(method)
+                ? JakartaRest.body(controller, method).stream()
+                : Stream.empty();
+        Stream<String> bodies = Stream.concat(springBodies, jakartaRestBodies).map(ClassUnit.Parameter::type);
         return Stream.concat(Stream.of(method.returnType()), bodies).flatMap(EntityInControllerKata::simpleNames);
     }
 

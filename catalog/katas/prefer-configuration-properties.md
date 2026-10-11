@@ -3,6 +3,7 @@ id: prefer-configuration-properties
 referencias:
   - https://docs.spring.io/spring-boot/reference/features/external-config.html#features.external-config.typesafe-configuration-properties
   - https://docs.spring.io/spring-boot/reference/features/external-config.html#features.external-config.typesafe-configuration-properties.vs-value-annotation
+  - https://quarkus.io/guides/config-mappings
 ---
 
 ## Por quê
@@ -15,6 +16,10 @@ Com `@ConfigurationProperties`, o grupo vira um tipo: as chaves são declaradas 
 valores são convertidos (`Duration`, `DataSize`, listas) e validados na inicialização, e, com o
 `spring-boot-configuration-processor`, a IDE autocompleta o `application.yml`. A documentação
 do Spring Boot recomenda esse caminho para as chaves dos seus próprios componentes.
+
+No Quarkus, o equivalente do `@Value` é o `@ConfigProperty` do MicroProfile Config, e o do
+`@ConfigurationProperties` é o `@ConfigMapping(prefix = "mail")`, numa interface: o Quarkus gera
+a implementação, valida as propriedades na inicialização e falha cedo se alguma estiver faltando.
 
 ## Quando é aceitável
 

@@ -30,6 +30,26 @@ class PreferConfigurationPropertiesKataTest {
     }
 
     @Test
+    void flagsThreeConfigPropertiesWithTheSamePrefix() {
+        assertThat(evaluate(kata, """
+                @ApplicationScoped
+                class MailService {
+                    @ConfigProperty(name = "mail.host", defaultValue = "localhost")
+                    String host;
+                    @ConfigProperty(name = "mail.port")
+                    int port;
+
+                    MailService(@ConfigProperty(name = "mail.from") String from,
+                            @ConfigProperty(name = "app.name") String app) {}
+                }
+                """)).singleElement().satisfies(lesson -> {
+            assertThat(lesson.line()).isEqualTo(3);
+            assertThat(lesson.arguments()).containsExactly("mail", 3);
+            assertThat(lesson.messageKey()).isEqualTo("kata.prefer-configuration-properties.lesson.quarkus");
+        });
+    }
+
+    @Test
     void groupsByTheWholePrefix() {
         assertThat(evaluate(kata, """
                 @Service

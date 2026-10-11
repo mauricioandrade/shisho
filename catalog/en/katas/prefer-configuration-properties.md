@@ -13,6 +13,11 @@ are converted (`Duration`, `DataSize`, lists) and validated at startup, and with
 `spring-boot-configuration-processor` the IDE autocompletes `application.yml`. The Spring Boot
 documentation recommends this route for your own components' keys.
 
+In Quarkus, the equivalent of `@Value` is MicroProfile Config's `@ConfigProperty`, and the
+equivalent of `@ConfigurationProperties` is `@ConfigMapping(prefix = "mail")`, on an interface:
+Quarkus generates the implementation, validates the properties at startup and fails early if one
+is missing.
+
 ## Acceptable when
 
 With two or three properties used in a single place, `@Value` in the constructor is simple and

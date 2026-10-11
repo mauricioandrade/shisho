@@ -13,6 +13,11 @@ the standard format is RFC 9457's `ProblemDetail` (`application/problem+json`), 
 `ResponseEntityExceptionHandler` already handles Spring MVC's own exceptions, such as validation
 ones.
 
+In Quarkus, the advice's role belongs to an `ExceptionMapper` or, with Quarkus REST, to
+`@ServerExceptionMapper` methods in any class: each one turns an exception type into an HTTP
+response. Quarkus has no ready-made `ProblemDetail`, but the RFC 9457 format is just a record with
+`type`, `title`, `status` and `detail`, returned as `application/problem+json`.
+
 ## Acceptable when
 
 In an application with few endpoints, when the default handling is enough: with

@@ -3,6 +3,7 @@ id: missing-controller-advice
 referencias:
   - https://docs.spring.io/spring-framework/reference/web/webmvc/mvc-ann-rest-exceptions.html
   - https://www.rfc-editor.org/rfc/rfc9457
+  - https://quarkus.io/guides/rest#exception-mapping
 ---
 
 ## Por quê
@@ -15,6 +16,11 @@ Um `@RestControllerAdvice` traduz exceções em respostas HTTP num lugar só. De
 formato padrão é o `ProblemDetail` da RFC 9457 (`application/problem+json`), e estender
 `ResponseEntityExceptionHandler` já trata as exceções do próprio Spring MVC, como as de
 validação.
+
+No Quarkus, o papel do advice é de um `ExceptionMapper` ou, com Quarkus REST, de métodos
+`@ServerExceptionMapper` numa classe qualquer: cada um traduz um tipo de exceção numa resposta
+HTTP. O Quarkus não tem um `ProblemDetail` pronto, mas o formato da RFC 9457 é só um record com
+`type`, `title`, `status` e `detail`, devolvido como `application/problem+json`.
 
 ## Quando é aceitável
 

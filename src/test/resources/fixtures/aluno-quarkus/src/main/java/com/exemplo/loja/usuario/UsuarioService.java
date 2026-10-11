@@ -18,6 +18,9 @@ class UsuarioService {
 
     @Transactional
     UsuarioResponse criar(CriarUsuarioRequest pedido) {
+        if (usuarios.count("email", pedido.email()) > 0) {
+            throw new EmailJaCadastradoException(pedido.email());
+        }
         Usuario usuario = new Usuario(pedido.nome(), pedido.email());
         usuarios.persist(usuario);
         return UsuarioResponse.de(usuario);

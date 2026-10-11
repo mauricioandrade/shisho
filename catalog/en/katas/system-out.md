@@ -17,6 +17,10 @@ Spring Boot already ships SLF4J and Logback configured. Outside it, the JDK itse
 `System.Logger` since Java 9 (JEP 264), a facade that forwards to whatever logging framework is
 present.
 
+In Quarkus, the shortcut is `io.quarkus.logging.Log`: `Log.info("Order created")` directly, with no
+logger declared per class. At build time, Quarkus replaces each call with a logger of the calling
+class, so the log still says where it came from.
+
 ## Acceptable when
 
 When the console is the interface: the `main` of a command line tool (the Shishō itself writes

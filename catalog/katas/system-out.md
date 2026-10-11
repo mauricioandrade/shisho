@@ -4,6 +4,7 @@ referencias:
   - https://docs.spring.io/spring-boot/reference/features/logging.html
   - https://openjdk.org/jeps/264
   - https://www.slf4j.org/manual.html
+  - https://quarkus.io/guides/logging
 ---
 
 ## Por quê
@@ -20,6 +21,10 @@ inconsistente.
 O Spring Boot já vem com SLF4J e Logback configurados. Fora dele, o próprio JDK tem
 `System.Logger` desde o Java 9 (JEP 264), uma fachada que encaminha para o framework de log
 presente.
+
+No Quarkus, o atalho é o `io.quarkus.logging.Log`: `Log.info("Pedido criado")` direto, sem
+declarar um logger por classe. Na compilação, o Quarkus troca cada chamada por um logger da classe
+que a fez, então o log continua dizendo de onde veio.
 
 ## Quando é aceitável
 

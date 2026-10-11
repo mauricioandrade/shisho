@@ -45,4 +45,16 @@ class SystemOutKataTest {
                 }
                 """)).isEmpty();
     }
+
+    @Test
+    void suggestsTheQuarkusLoggerInQuarkusApplications() {
+        assertThat(evaluate(kata, """
+                class Mailer {
+                    void send() {
+                        System.out.println("sent");
+                    }
+                }
+                """, "io.quarkus:quarkus-arc")).singleElement().satisfies(lesson ->
+                assertThat(lesson.messageKey()).isEqualTo("kata.system-out.lesson.quarkus"));
+    }
 }

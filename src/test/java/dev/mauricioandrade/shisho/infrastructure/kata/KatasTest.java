@@ -101,7 +101,7 @@ class KatasTest {
                         tuple(pedido + "PedidoResource.java", 21, "request-body-without-valid",
                                 "kata.request-body-without-valid.lesson.quarkus"),
                         tuple(pedido + "PedidoService.java", 9, "non-final-dependency", "kata.non-final-dependency.lesson"),
-                        tuple(pedido + "PedidoService.java", 25, "system-out", "kata.system-out.lesson"));
+                        tuple(pedido + "PedidoService.java", 25, "system-out", "kata.system-out.lesson.quarkus"));
     }
 
     @Test

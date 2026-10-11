@@ -115,7 +115,7 @@ class ShishoBootstrapTest {
     @Test
     void theSenseiModeShowsTheCatalogGuides() {
         assertThat(run("analyze", "--sensei", FIXTURES + "aluno-baguncado")).isEqualTo(1);
-        assertThat(out()).contains("\nPor que e como corrigir (modo sensei)\n\n[missing-actuator] Aplicação web sem actuator\n  Por quê:\n")
+        assertThat(out()).contains("\nPor que e como corrigir (modo sensei)\n\n[missing-actuator] Aplicação web sem health check\n  Por quê:\n")
                 .contains("  Referências:\n    https://docs.spring.io/spring-boot/reference/actuator/endpoints.html\n");
 
         out.reset();

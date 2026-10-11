@@ -1,6 +1,7 @@
 package dev.mauricioandrade.shisho.infrastructure.kata;
 
 import dev.mauricioandrade.shisho.domain.model.BuildInfo;
+import dev.mauricioandrade.shisho.domain.model.Dependency;
 import dev.mauricioandrade.shisho.domain.model.Kata;
 import dev.mauricioandrade.shisho.domain.model.Lesson;
 
@@ -14,13 +15,22 @@ import java.util.List;
  */
 final class QuarkusApplications {
 
-    private static final String QUARKUS = "io.quarkus";
-
     private QuarkusApplications() {
     }
 
+    static final String QUARKUS = "io.quarkus";
+
     static boolean isQuarkusApplication(BuildInfo build) {
         return build.dependencies().stream().anyMatch(dependency -> dependency.groupId().equals(QUARKUS));
+    }
+
+    /** A REST server: Quarkus REST or RESTEasy Classic, and not only their clients. */
+    static boolean isWebApplication(BuildInfo build) {
+        return build.dependencies().stream()
+                .filter(dependency -> dependency.groupId().equals(QUARKUS))
+                .map(Dependency::artifactId)
+                .anyMatch(artifact -> (artifact.startsWith("quarkus-rest") || artifact.startsWith("quarkus-resteasy"))
+                        && !artifact.contains("client"));
     }
 
     /**

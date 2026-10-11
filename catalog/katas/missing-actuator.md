@@ -2,6 +2,7 @@
 id: missing-actuator
 referencias:
   - https://docs.spring.io/spring-boot/reference/actuator/endpoints.html
+  - https://quarkus.io/guides/smallrye-health
 ---
 
 ## Por quê
@@ -14,6 +15,10 @@ métricas via Micrometer.
 Por padrão, só o `health` fica exposto na web. Endpoints como `env`, `configprops` e `heapdump`
 revelam informação sensível; a documentação do Spring Boot recomenda expor só o necessário e
 protegê-los, com Spring Security ou isolamento de rede.
+
+No Quarkus, o papel do actuator é dividido em extensões: `quarkus-smallrye-health` expõe
+`/q/health/live` e `/q/health/ready` (os nomes que o Kubernetes espera), e `quarkus-micrometer`
+cuida das métricas.
 
 ## Quando é aceitável
 

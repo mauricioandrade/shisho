@@ -61,7 +61,7 @@ class SarifReportWriterTest {
                             {
                               "id": "missing-actuator",
                               "shortDescription": {
-                                "text": "Aplicação web sem actuator"
+                                "text": "Aplicação web sem health check"
                               },
                               "helpUri": "https://github.com/mauricioandrade/shisho#katas",
                               "defaultConfiguration": {

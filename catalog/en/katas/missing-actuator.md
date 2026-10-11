@@ -13,6 +13,10 @@ By default, only `health` is exposed over the web. Endpoints such as `env`, `con
 `heapdump` reveal sensitive information; the Spring Boot documentation recommends exposing only
 what is needed and protecting them, with Spring Security or network isolation.
 
+In Quarkus, the actuator's role is split into extensions: `quarkus-smallrye-health` exposes
+`/q/health/live` and `/q/health/ready` (the names Kubernetes expects), and `quarkus-micrometer`
+takes care of metrics.
+
 ## Acceptable when
 
 In applications that do not run as a service (a batch job that ends, a local tool) or when the

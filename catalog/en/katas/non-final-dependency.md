@@ -20,6 +20,11 @@ construction, as in a component reconfigured at runtime through JMX (the example
 documentation gives for setter injection), it does not come through the constructor, and this
 kata does not flag it.
 
+In Quarkus, the kata applies the same way to CDI beans (`@ApplicationScoped`, `@Singleton`...) and
+`@Path` resources that receive dependencies through the constructor: ArC accepts `final` fields
+and generates on its own the no-args constructor the proxy needs. Fields with `@Inject` do not
+come from the constructor and are left out of this kata.
+
 ## Before
 
 ```java

@@ -3,6 +3,7 @@ id: non-final-dependency
 referencias:
   - https://docs.spring.io/spring-framework/reference/core/beans/dependencies/factory-collaborators.html
   - https://docs.oracle.com/javase/specs/jls/se25/html/jls-17.html#jls-17.5
+  - https://quarkus.io/guides/cdi-reference#simplified-constructor-injection
 ---
 
 ## Por quê
@@ -22,6 +23,11 @@ Quase nunca, se o campo vem do construtor. Quando uma dependência precisa mesmo
 da construção, como num componente reconfigurado em tempo de execução via JMX (o exemplo que a
 documentação do Spring dá para injeção por setter), ela não vem pelo construtor, e esta kata não
 a acusa.
+
+No Quarkus, a kata vale igual para beans CDI (`@ApplicationScoped`, `@Singleton`...) e resources
+`@Path` que recebem dependências pelo construtor: o ArC aceita campos `final` e gera sozinho o
+construtor sem argumentos de que o proxy precisa. Campos com `@Inject` não vêm do construtor e
+ficam fora desta kata.
 
 ## Antes
 

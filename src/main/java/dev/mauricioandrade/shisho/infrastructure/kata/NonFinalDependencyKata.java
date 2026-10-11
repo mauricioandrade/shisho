@@ -13,7 +13,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
- * A Spring bean's field that receives a dependency through the constructor but is not
+ * A bean's field (Spring or CDI) that receives a dependency through the constructor but is not
  * {@code final}. A field counts as constructor-injected when its type is a constructor parameter
  * type, or when Lombok's {@code @AllArgsConstructor} puts every field in the constructor.
  * Fields with {@code @Autowired} or {@code @Value} are left to their own katas.
@@ -39,7 +39,7 @@ final class NonFinalDependencyKata implements ClassKata {
 
     @Override
     public List<Lesson> evaluate(ClassUnit unit) {
-        if (!Annotations.has(unit.annotations(), Annotations.SPRING_BEANS)) {
+        if (!Annotations.has(unit.annotations(), Annotations.BEANS)) {
             return List.of();
         }
         boolean allArgsConstructor = Annotations.has(unit.annotations(), Set.of("AllArgsConstructor"));

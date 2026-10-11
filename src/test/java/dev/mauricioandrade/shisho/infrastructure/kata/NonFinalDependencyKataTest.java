@@ -28,6 +28,31 @@ class NonFinalDependencyKataTest {
     }
 
     @Test
+    void flagsCdiBeansAndJakartaRestResources() {
+        assertThat(evaluate(kata, """
+                @ApplicationScoped
+                class OrderService {
+                    private OrderRepository repository;
+
+                    OrderService(OrderRepository repository) {
+                        this.repository = repository;
+                    }
+                }
+
+                @Path("/orders")
+                class OrderResource {
+                    @Inject
+                    OrderService service;
+                    private Clock clock;
+
+                    OrderResource(Clock clock) {
+                        this.clock = clock;
+                    }
+                }
+                """)).extracting(lesson -> lesson.arguments().getFirst()).containsExactly("repository", "clock");
+    }
+
+    @Test
     void flagsEveryMutableFieldWithAllArgsConstructor() {
         assertThat(evaluate(kata, """
                 @RestController

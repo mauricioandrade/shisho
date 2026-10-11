@@ -10,9 +10,11 @@ import java.util.Set;
 final class Annotations {
 
     static final Set<String> INJECTION = Set.of("Autowired", "Inject");
-    static final Set<String> SPRING_BEANS = Set.of(
+    /** Spring stereotypes, CDI scopes (Quarkus) and Jakarta REST resources, which CDI makes beans. */
+    static final Set<String> BEANS = Set.of(
             "Component", "Service", "Repository", "Controller", "RestController",
-            "Configuration", "ControllerAdvice", "RestControllerAdvice");
+            "Configuration", "ControllerAdvice", "RestControllerAdvice",
+            "ApplicationScoped", "Singleton", "RequestScoped", "Dependent", "SessionScoped", "Path");
 
     private Annotations() {
     }

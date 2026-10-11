@@ -75,7 +75,10 @@ class KataGuidesTest {
     private static List<Lesson> lessons(Kata kata, String code) {
         return switch (kata) {
             case ClassKata classKata -> KataTestSupport.evaluate(classKata, code);
-            case ProjectKata projectKata -> KataTestSupport.evaluate(projectKata, code);
+            // the Quarkus-only katas need a Quarkus build to say anything
+            case ProjectKata projectKata -> kata.id().startsWith("quarkus-")
+                    ? KataTestSupport.evaluate(projectKata, code, "io.quarkus:quarkus-arc")
+                    : KataTestSupport.evaluate(projectKata, code);
         };
     }
 }

@@ -30,7 +30,7 @@ class KatasTest {
 
     @Test
     void katasHaveUniqueIds() {
-        assertThat(Katas.all(MarkdownCatalogRepository.bundled().avoidedDependencies())).extracting(Kata::id).doesNotHaveDuplicates().hasSize(17);
+        assertThat(Katas.all(MarkdownCatalogRepository.bundled().avoidedDependencies())).extracting(Kata::id).doesNotHaveDuplicates().hasSize(18);
     }
 
     @Test
@@ -92,6 +92,8 @@ class KatasTest {
                         tuple(pedido + "CriarPedidoRequest.java", 5, "dto-not-record", "kata.dto-not-record.lesson"),
                         tuple(pedido + "FreteService.java", 9, "prefer-configuration-properties",
                                 "kata.prefer-configuration-properties.lesson.quarkus"),
+                        tuple(pedido + "FreteService.java", 9, "quarkus-private-injection",
+                                "kata.quarkus-private-injection.lesson"),
                         tuple(pedido + "PedidoResource.java", 8, "missing-controller-advice",
                                 "kata.missing-controller-advice.lesson.quarkus"),
                         tuple(pedido + "PedidoResource.java", 14, "entity-in-controller", "kata.entity-in-controller.lesson"),

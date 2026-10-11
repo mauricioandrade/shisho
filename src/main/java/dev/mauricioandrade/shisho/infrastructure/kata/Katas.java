@@ -33,6 +33,7 @@ public final class Katas {
                 new ConfigurationPropertiesNotRecordKata(),
                 new PreferConfigurationPropertiesKata(),
                 new PreferVirtualThreadsKata(),
-                new PreferScopedValuesKata());
+                new PreferScopedValuesKata(),
+                new QuarkusPrivateInjectionKata());
     }
 }

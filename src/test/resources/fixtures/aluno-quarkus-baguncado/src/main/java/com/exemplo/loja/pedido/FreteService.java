@@ -7,7 +7,7 @@ import org.eclipse.microprofile.config.inject.ConfigProperty;
 class FreteService {
 
     @ConfigProperty(name = "loja.frete.base")
-    long base;
+    private long base;
 
     @ConfigProperty(name = "loja.frete.por-quilo")
     long porQuilo;

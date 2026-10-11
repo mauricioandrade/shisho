@@ -3,13 +3,13 @@ id: layered
 nome: Camadas técnicas (Layered)
 familia: simples
 assinatura:
-  pacotes: ["controller|controlador", "service|servico", "repository|repositorio", "model|modelo", "entity|entidade", dto]
+  pacotes: ["controller|controlador|resource|recurso", "service|servico", "repository|repositorio", "model|modelo", "entity|entidade", dto]
   minimo_sinais: 3
 regras_dependencia:
   - de: "repository|repositorio"
-    nao_pode_depender_de: ["controller|controlador", "service|servico"]
+    nao_pode_depender_de: ["controller|controlador|resource|recurso", "service|servico"]
   - de: "service|servico"
-    nao_pode_depender_de: ["controller|controlador"]
+    nao_pode_depender_de: ["controller|controlador|resource|recurso"]
 custo:
   classes_por_feature: 4-6
   complexidade: baixa

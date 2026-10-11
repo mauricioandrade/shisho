@@ -5,8 +5,10 @@ familia: simples
 assinatura:
   # Plano (usuario/UsuarioController) ou com subpacotes (usuario/controller/...):
   # pacotes com nomes de domínio contendo classes de papéis técnicos diferentes.
-  pacotes: ["<feature>/*Controller|*Controlador", "<feature>/*Service|*Servico", "<feature>/*Repository|*Repositorio",
-            "<feature>/controller|controlador", "<feature>/service|servico", "<feature>/repository|repositorio"]
+  # Resource/recurso: o nome do controller no Jakarta REST (Quarkus).
+  pacotes: ["<feature>/*Controller|*Controlador|*Resource|*Recurso", "<feature>/*Service|*Servico",
+            "<feature>/*Repository|*Repositorio", "<feature>/controller|controlador|resource|recurso",
+            "<feature>/service|servico", "<feature>/repository|repositorio"]
   minimo_sinais: 2
 regras_dependencia:
   - de: "<feature>"

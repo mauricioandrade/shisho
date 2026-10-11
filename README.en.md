@@ -4,13 +4,14 @@
 
 **The master who reads your code, points out what is wrong and explains why.**
 
-Starting with Java and Spring Boot.
+Starting with Java, with Spring Boot and Quarkus.
 
 [![CI](https://github.com/mauricioandrade/shisho/actions/workflows/ci.yml/badge.svg)](https://github.com/mauricioandrade/shisho/actions/workflows/ci.yml)
 [![Release](https://img.shields.io/github/v/release/mauricioandrade/shisho?label=release)](https://github.com/mauricioandrade/shisho/releases)
 ![Runs on Java 25](https://img.shields.io/badge/runs%20on-Java%2025-orange?logo=openjdk)
 ![Analyzes Java 21+](https://img.shields.io/badge/analyzes-Java%2021%2B-blue?logo=openjdk)
 ![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3%20%7C%204-6DB33F?logo=springboot&logoColor=white)
+![Quarkus](https://img.shields.io/badge/Quarkus-3-4695EB?logo=quarkus&logoColor=white)
 [![License Apache 2.0](https://img.shields.io/badge/license-Apache%202.0-green)](LICENSE)
 ![Languages: pt-BR and en](https://img.shields.io/badge/languages-pt--BR%20%7C%20en-informational)
 [![Claude Code plugin](https://img.shields.io/badge/Claude%20Code-plugin-D97757)](#-in-claude-code)
@@ -46,7 +47,7 @@ wrong, **why** it matters and which way to go, the way a sensei would teach a st
 
 *You, reading 300 linter warnings with no explanation at all.*
 
-- 🥋 **Katas**: Java/Spring Boot good-practice rules. Every violation becomes a **lesson** with an
+- 🥋 **Katas**: Java, Spring Boot and Quarkus good-practice rules. Every violation becomes a **lesson** with an
   explanation.
 - 🏯 **Architecture classification**: recognizes whether the project is layered,
   package-by-feature, modular monolith, hexagonal, clean, CQRS, event-driven or microservices.
@@ -157,23 +158,28 @@ Each lesson says what is wrong, what goes wrong because of it and how to fix it.
 
 | Kata | Severity | What it flags | Why it matters |
 |---|---|---|---|
-| `field-injection` | GRAVE | `@Autowired`/`@Inject` on a field | `new` creates an incomplete object, and the test needs Spring |
+| `field-injection` | GRAVE | `@Autowired`/`@Inject` on a field (in Quarkus, only `@Autowired`) | `new` creates an incomplete object, and the test needs Spring |
 | `lombok-constructor` | MEDIA | `@RequiredArgsConstructor`/`@AllArgsConstructor` | the dependencies vanish from the code, and the tenth one slips in unnoticed |
 | `non-final-dependency` | MEDIA | injected dependency without `final` | any method can replace it after construction |
 | `system-out` | MEDIA | `System.out`, `System.err`, `printStackTrace()` | no level or timestamp, and outside the log aggregator |
-| `request-body-without-valid` | MEDIA | `@RequestBody` without `@Valid` | the DTO's validation is ignored, and invalid data reaches the service |
+| `request-body-without-valid` | MEDIA | request body without `@Valid` (`@RequestBody` or a Jakarta REST body) | the DTO's validation is ignored, and invalid data reaches the service |
 | `entity-in-controller` | MEDIA | endpoint that receives or returns a JPA `@Entity` | the database becomes the API contract, and internal fields leak |
-| `missing-controller-advice` | MEDIA | controllers and no `@RestControllerAdvice` at all | every endpoint handles (or forgets) its own errors |
+| `missing-controller-advice` | MEDIA | controllers and no `@RestControllerAdvice` at all (in Quarkus, `ExceptionMapper`) | every endpoint handles (or forgets) its own errors |
 | `avoided-dependency` | MEDIA | abandoned, replaced or relocated dependency (Log4j 1, Springfox, Joda-Time... see [`catalog/dependencies`](catalog/dependencies)) | no security fixes, or already replaced by its own project |
 | `value-outside-constructor` | LEVE | `@Value` outside a constructor parameter | the value arrives by reflection, and a test using `new` goes without it |
 | `dto-not-record` | LEVE | DTO (by package or suffix) that is not a record | hand-written getters, `equals` and `hashCode`, and mutable |
 | `transactional-read-only` | LEVE | read method (`find…`, `buscar…`) in a write transaction | Hibernate dirty-checks for nothing |
 | `configuration-properties-not-record` | LEVE | `@ConfigurationProperties` on a class with setters | the configuration can change after it is loaded |
-| `prefer-configuration-properties` | LEVE | 3 or more `@Value` with the same prefix in one class | loose properties, with no type or validation in one place |
-| `missing-actuator` | LEVE | web application without `spring-boot-starter-actuator` | with no health check, the orchestrator cannot tell whether the app is alive |
-| `missing-springdoc` | INFO | web application without springdoc-openapi | API consumers get no contract and no Swagger UI |
+| `prefer-configuration-properties` | LEVE | 3 or more `@Value` (or `@ConfigProperty`) with the same prefix in one class | loose properties, with no type or validation in one place |
+| `missing-actuator` | LEVE | web application without `spring-boot-starter-actuator` (in Quarkus, `quarkus-smallrye-health`) | with no health check, the orchestrator cannot tell whether the app is alive |
+| `missing-springdoc` | INFO | web application without springdoc-openapi (in Quarkus, `quarkus-smallrye-openapi`) | API consumers get no contract and no Swagger UI |
 | `prefer-virtual-threads` | INFO | `Executors.newFixedThreadPool`/`newCachedThreadPool` (Java 21) | for I/O, virtual threads need no pool sizing |
 | `prefer-scoped-values` | INFO | `ThreadLocal` field (Java 25) | `ScopedValue` does not leak between tasks and needs no `remove()` |
+| `quarkus-private-injection` | LEVE | `private` field with `@Inject` or `@ConfigProperty` (Quarkus only) | ArC falls back to reflection, which costs at startup and in the native image |
+
+A Quarkus project is recognized by its build (an `io.quarkus` dependency): the katas use its
+equivalents (CDI, Jakarta REST, SmallRye) and explain the lesson with the Quarkus APIs. Why and
+how: [ADR 0012](docs/adr/0012-quarkus.md).
 
 The severities are GRAVE (severe), MEDIA (medium), LEVE (minor) and INFO. Suggestions (INFO)
 cost no points. With `--sensei`, every lesson comes with the full explanation, the cases where
@@ -250,6 +256,7 @@ java -jar target/shisho.jar fix --apply ~/projects/my-api    # writes it
 | `non-final-dependency` | adds `final`, if every constructor assigns the field and nothing else changes it |
 | `request-body-without-valid` | adds `@Valid`, if the build has Bean Validation |
 | `transactional-read-only` | sets `readOnly = true` |
+| `quarkus-private-injection` | drops `private` from the injected field |
 
 Only the fixed lines change: formatting and comments stay as they were. When the fix is not
 safe (a `@Qualifier` that would have to move, a `@Builder` that relies on Lombok's
@@ -276,6 +283,9 @@ Java
 
 Spring
   Constructor dependency injection  (4 places: CustomerController.java:23, CustomerService.java:14, ...)
+  [...]
+
+Jakarta EE
   Transactions (@Transactional)  (8 places: CustomerService.java:9, CustomerService.java:26, ...)
   [...]
 
@@ -284,13 +294,15 @@ Design patterns
   [...]
 ```
 
-There are 18 concepts in three groups, in the order a beginner should meet them:
+There are 23 concepts in five groups, in the order a beginner should meet them:
 
 | Group | Concepts |
 |---|---|
 | Java | record, enum, sealed types, `Optional`, streams |
-| Spring | beans, dependency injection, REST controller, JPA entity, transactions, Bean Validation, error handling, `@ConfigurationProperties` |
-| Design patterns | Repository, DTO, Strategy, Builder, Observer |
+| Spring | beans, dependency injection, REST controller, error handling, `@ConfigurationProperties` |
+| Quarkus | CDI beans and scopes, Jakarta REST resources, Panache, `@ConfigMapping` |
+| Jakarta EE | JPA entity, transactions, Bean Validation |
+| Design patterns | Repository, Active Record, DTO, Strategy, Builder, Observer |
 
 Run it on a project generated by `shisho crud` to see every piece explained. Shoshin describes, it
 does not judge: a recognized Strategy is not praise, and the verdict is what says whether it fits.
@@ -621,6 +633,8 @@ downloads. Why it works this way: [ADR 0010](docs/adr/0010-release.md).
 - [x] **Phase 10**: shoshin mode (`--shoshin`): the Java, Spring and design pattern concepts that
   appear in the code
 - [x] **Phase 11**: a release with the ready-made jar for every tag, and a one-command install
+- [x] **Phase 12**: Quarkus: the katas, shoshin and the classification recognize CDI, Jakarta REST
+  and Panache
 - [ ] **Next**: other stacks, reusing the architecture catalog
 
 ![Sung Jinwoo, from Solo Leveling, striking with a dagger among stone statues](docs/anime/roadmap.gif)

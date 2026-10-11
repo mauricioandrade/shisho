@@ -41,6 +41,38 @@ Para isso, `field-injection` deixa de ser `ClassKata` e vira `ProjectKata`: uma 
 não diz se o projeto é Quarkus, e um `@Inject` do `jakarta.inject` também é aceito pelo Spring,
 onde continua sendo injeção em campo.
 
+### 12b — como as katas reconhecem o Quarkus
+
+- **Pela anotação, quando ela basta.** `@ApplicationScoped`, `@POST` e `@ConfigProperty` só
+  existem no mundo CDI/Jakarta REST/MicroProfile, então as katas de classe as reconhecem direto:
+  `non-final-dependency` (beans CDI e resources `@Path`), `request-body-without-valid` e
+  `entity-in-controller` (o corpo de um método `@POST` é o parâmetro sem anotação que não aparece
+  no template do `@Path` nem é um tipo de contexto, como `UriInfo`), `missing-controller-advice`
+  (`ExceptionMapper` ou `@ServerExceptionMapper`) e `prefer-configuration-properties`
+  (`@ConfigProperty` repetido sugere `@ConfigMapping`).
+- **Pelo build, quando só ele diz.** `missing-actuator` e `missing-springdoc` olham as extensões:
+  um servidor Quarkus REST (`quarkus-rest*` ou `quarkus-resteasy*`, sem os clientes) sem
+  `quarkus-smallrye-health` ou `quarkus-smallrye-openapi`.
+- **O id da kata não muda.** `missing-actuator` continua com esse nome num projeto Quarkus,
+  porque quem desliga a kata no `shisho.yaml` desliga a ideia (health check), não a biblioteca.
+  O título passou a falar da ideia: "Aplicação web sem health check", "Corpo da requisição sem
+  @Valid", "Propriedades repetidas com o mesmo prefixo".
+- **A lição muda de texto.** Uma lição no jeito Quarkus usa a chave `kata.<id>.lesson.quarkus`,
+  com as APIs do Quarkus. O `domain` não sabe disso: para ele, é só outra chave de mensagem.
+- **Os guias ganham um parágrafo, não outro exemplo.** O "Antes/Depois" continua em Spring; o
+  "Por quê" ou o "Quando é aceitável" explica o equivalente no Quarkus, com a fonte. Um segundo par
+  de exemplos testados por kata dobraria o catálogo antes de alguém precisar dele.
+- **O parâmetro ganhou linha** (`ClassUnit.Parameter.line`): no Jakarta REST o corpo não tem
+  anotação, e a lição precisa apontar para algum lugar além do método.
+
+Ficaram como estão, de propósito:
+
+- `value-outside-constructor`: `@ConfigProperty` em campo é o estilo da documentação do Quarkus,
+  pelo mesmo motivo do `@Inject`.
+- `configuration-properties-not-record`: o `@ConfigMapping` é uma interface, não uma classe.
+- `transactional-read-only`: o `@Transactional` do Jakarta não tem `readOnly`.
+- `system-out`, `lombok-constructor`, `dto-not-record`: já não dependiam do framework.
+
 ## Alternativas registradas
 
 - **Detectar o Quarkus pelos imports** (`io.quarkus.*`). Um bean Quarkus típico não importa nada
@@ -48,6 +80,8 @@ onde continua sendo injeção em campo.
 - **Acusar só `@Inject` em campo `private` no Quarkus, como `field-injection`.** O conselho da
   kata (troque por construtor) seria errado para o Quarkus; o problema ali é a reflexão, e isso é
   outra kata (12c), com outra explicação e outra severidade.
+- **Katas novas para o Quarkus** (`missing-smallrye-health`...). Dobrariam as katas para a mesma
+  ideia, e quem desliga "health check" no `shisho.yaml` teria de desligar duas.
 - **Um enum `Framework` no `ProjectModel`.** Seria uma abstração antes de haver duas katas que
   precisam dela, e colocaria nomes de framework no `domain`.
 

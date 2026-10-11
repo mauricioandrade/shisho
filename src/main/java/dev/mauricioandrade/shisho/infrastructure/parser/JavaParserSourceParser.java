@@ -248,7 +248,8 @@ public final class JavaParserSourceParser implements SourceParser {
     private static List<Parameter> parameters(List<com.github.javaparser.ast.body.Parameter> parameters) {
         return parameters.stream()
                 .map(parameter -> new Parameter(
-                        parameter.getNameAsString(), parameter.getTypeAsString(), annotations(parameter.getAnnotations())))
+                        parameter.getNameAsString(), parameter.getTypeAsString(), annotations(parameter.getAnnotations()),
+                        line(parameter)))
                 .toList();
     }
 

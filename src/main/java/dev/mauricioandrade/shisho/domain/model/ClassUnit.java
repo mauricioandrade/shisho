@@ -105,7 +105,8 @@ public record ClassUnit(
         }
     }
 
-    public record Parameter(String name, String type, List<Annotation> annotations) {
+    /** {@code line} is where the parameter begins: its first annotation, if it has any. */
+    public record Parameter(String name, String type, List<Annotation> annotations, int line) {
 
         public Parameter {
             annotations = List.copyOf(annotations);

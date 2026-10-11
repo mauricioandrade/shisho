@@ -225,7 +225,7 @@ class JavaParserSourceParserTest {
             assertThat(controller.constructors()).singleElement().satisfies(constructor -> {
                 assertThat(constructor.line()).isEqualTo(2);
                 assertThat(constructor.parameters()).containsExactly(
-                        new Parameter("limit", "int", List.of(new Annotation("Value", 2, Map.of("value", "${limit}")))));
+                        new Parameter("limit", "int", List.of(new Annotation("Value", 2, Map.of("value", "${limit}"))), 2));
             });
             assertThat(controller.methods()).singleElement().satisfies(method -> {
                 assertThat(method.name()).isEqualTo("create");
@@ -233,8 +233,8 @@ class JavaParserSourceParserTest {
                 assertThat(method.line()).isEqualTo(4);
                 assertThat(method.annotations()).extracting(Annotation::name).containsExactly("PostMapping");
                 assertThat(method.parameters()).containsExactly(
-                        new Parameter("request", "CreateUser", List.of(new Annotation("Valid", 5), new Annotation("RequestBody", 5))),
-                        new Parameter("other", "String", List.of()));
+                        new Parameter("request", "CreateUser", List.of(new Annotation("Valid", 5), new Annotation("RequestBody", 5)), 5),
+                        new Parameter("other", "String", List.of(), 5));
             });
         }
 
@@ -271,8 +271,8 @@ class JavaParserSourceParserTest {
             assertThat(properties.fields()).isEmpty();
             assertThat(properties.constructors()).singleElement().satisfies(constructor ->
                     assertThat(constructor.parameters()).containsExactly(
-                            new Parameter("host", "String", List.of(new Annotation("Value", 1, Map.of("value", "${mail.host}")))),
-                            new Parameter("port", "int", List.of())));
+                            new Parameter("host", "String", List.of(new Annotation("Value", 1, Map.of("value", "${mail.host}"))), 1),
+                            new Parameter("port", "int", List.of(), 1)));
         }
 
         @Test

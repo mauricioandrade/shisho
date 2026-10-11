@@ -202,14 +202,14 @@ de custo: o `crud` só grava se o `contexto` do projeto tiver uma das chaves de
 ## Conceitos (`concepts/`)
 
 O que o modo shoshin (`shisho analyze --shoshin`) reconhece e explica no código: recursos do
-Java, conceitos do Spring e padrões de projeto. Um arquivo por conceito:
+Java, conceitos do Spring, do Jakarta EE e padrões de projeto. Um arquivo por conceito:
 
 ```markdown
 ---
 id: transacoes
 nome: Transações (@Transactional)
-grupo: spring                 # java | spring | padrao
-ordem: 50                     # posição no grupo: o que um iniciante deveria ver primeiro vem antes
+grupo: jakarta                # java | spring | jakarta | padrao
+ordem: 20                     # posição no grupo: o que um iniciante deveria ver primeiro vem antes
 aparece_em:                   # basta um sinal; num sinal, todas as condições valem para a mesma classe
   - anotacao: Transactional
 referencias:

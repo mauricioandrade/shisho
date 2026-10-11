@@ -293,9 +293,9 @@ class MarkdownCatalogRepositoryTest {
             List<Concept> concepts = MarkdownCatalogRepository.bundled().concepts();
 
             assertThat(concepts).extracting(Concept::id).contains("record", "transacoes", "strategy").doesNotHaveDuplicates();
-            assertThat(concepts).extracting(Concept::group).contains(Concept.Group.JAVA, Concept.Group.SPRING, Concept.Group.PATTERN);
+            assertThat(concepts).extracting(Concept::group).contains(Concept.Group.JAVA, Concept.Group.SPRING, Concept.Group.JAKARTA, Concept.Group.PATTERN);
             assertThat(concepts).extracting(Concept::id).as("by group, then in the order a beginner meets them")
-                    .startsWith("record", "enum").containsSubsequence("beans", "injecao-de-dependencia", "transacoes", "bean-validation");
+                    .startsWith("record", "enum").containsSubsequence("beans", "injecao-de-dependencia", "entidade-jpa", "transacoes", "bean-validation");
             assertThat(concepts).allSatisfy(concept -> {
                 assertThat(concept.explanation()).as(concept.id()).isNotEmpty();
                 assertThat(concept.references()).as(concept.id()).allMatch(url -> url.startsWith("https://"));

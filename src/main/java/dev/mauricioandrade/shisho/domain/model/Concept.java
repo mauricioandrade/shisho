@@ -21,7 +21,7 @@ public record Concept(String id, String name, Group group, int order, List<Signa
         explanation = List.copyOf(explanation);
     }
 
-    public enum Group { JAVA, SPRING, PATTERN }
+    public enum Group { JAVA, SPRING, JAKARTA, PATTERN }
 
     /**
      * Conditions on one type, all of which must hold. {@code detector} names Java code that finds

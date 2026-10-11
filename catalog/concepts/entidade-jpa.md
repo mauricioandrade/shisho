@@ -1,8 +1,8 @@
 ---
 id: entidade-jpa
 nome: Entidade JPA
-grupo: spring
-ordem: 40
+grupo: jakarta
+ordem: 10
 aparece_em:
   - anotacao: Entity
 referencias:

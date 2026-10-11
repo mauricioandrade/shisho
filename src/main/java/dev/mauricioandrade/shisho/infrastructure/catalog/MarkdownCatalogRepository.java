@@ -194,6 +194,7 @@ public final class MarkdownCatalogRepository implements CatalogRepository {
         return switch (value) {
             case "java" -> Group.JAVA;
             case "spring" -> Group.SPRING;
+            case "jakarta" -> Group.JAKARTA;
             case "padrao" -> Group.PATTERN;
             default -> throw fields.invalid("grupo", value);
         };

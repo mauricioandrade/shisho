@@ -1,8 +1,8 @@
 ---
 id: bean-validation
 nome: Bean Validation
-grupo: spring
-ordem: 60
+grupo: jakarta
+ordem: 30
 aparece_em:
   - anotacao: Valid
   - anotacao: NotBlank
@@ -13,6 +13,7 @@ aparece_em:
 referencias:
   - https://beanvalidation.org/
   - https://docs.spring.io/spring-framework/reference/core/validation/beanvalidation.html
+  - https://quarkus.io/guides/validation
 ---
 
 ## O que é
@@ -21,8 +22,9 @@ Regras de validação declaradas como anotações nos campos: `@NotBlank` (texto
 `@NotNull`, `@Positive`, `@Email`, `@Size`. A regra fica junto do dado, e não espalhada em `if`s
 pelo código.
 
-Elas só são checadas quando alguém pede. Num controller, quem pede é o `@Valid` antes do
-`@RequestBody`: um corpo inválido vira 400 antes de o método rodar.
+Elas só são checadas quando alguém pede. Num controller do Spring, quem pede é o `@Valid` antes do
+`@RequestBody`; num resource Jakarta REST (Quarkus), o `@Valid` antes do parâmetro do corpo. Nos
+dois, um corpo inválido vira 400 antes de o método rodar.
 
 ## Exemplo
 

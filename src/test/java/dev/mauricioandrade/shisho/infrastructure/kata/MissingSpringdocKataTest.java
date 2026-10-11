@@ -35,4 +35,12 @@ class MissingSpringdocKataTest {
         assertThat(evaluateBuild(kata, "org.springframework.boot:spring-boot-starter")).isEmpty();
         assertThat(evaluate(kata, "class App {}")).isEmpty();
     }
+
+    @Test
+    void suggestsSmallRyeOpenApiToQuarkusRestServers() {
+        assertThat(evaluateBuild(kata, "io.quarkus:quarkus-rest")).singleElement().satisfies(lesson ->
+                assertThat(lesson.messageKey()).isEqualTo("kata.missing-springdoc.lesson.quarkus"));
+        assertThat(evaluateBuild(kata, "io.quarkus:quarkus-rest", "io.quarkus:quarkus-smallrye-openapi")).isEmpty();
+        assertThat(evaluateBuild(kata, "io.quarkus:quarkus-arc")).isEmpty();
+    }
 }

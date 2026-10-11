@@ -3,6 +3,7 @@ id: missing-springdoc
 referencias:
   - https://springdoc.org/
   - https://spec.openapis.org/oas/latest.html
+  - https://quarkus.io/guides/openapi-swaggerui
 ---
 
 ## Por quê
@@ -11,6 +12,10 @@ Uma API é um contrato com quem a consome. Gerar o documento OpenAPI a partir do
 o contrato sincronizado com o que de fato roda: endpoints, parâmetros, DTOs e anotações de
 validação aparecem sem uma documentação escrita à mão para ficar desatualizada. O Swagger UI
 deixa testar a API no navegador, e o JSON alimenta geradores de clientes.
+
+No Quarkus, quem faz isso é a extensão `quarkus-smallrye-openapi`: o documento fica em
+`/q/openapi` e o Swagger UI em `/q/swagger-ui`, a partir das mesmas anotações Jakarta REST que
+definem os endpoints.
 
 ## Quando é aceitável
 

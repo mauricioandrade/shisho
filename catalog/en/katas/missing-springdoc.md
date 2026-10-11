@@ -9,6 +9,10 @@ keeps the contract in sync with what actually runs: endpoints, parameters, DTOs 
 annotations show up without hand-written documentation waiting to go stale. Swagger UI lets you
 try the API in the browser, and the JSON feeds client generators.
 
+In Quarkus, the `quarkus-smallrye-openapi` extension does this: the document is at `/q/openapi`
+and Swagger UI at `/q/swagger-ui`, built from the same Jakarta REST annotations that define the
+endpoints.
+
 ## Acceptable when
 
 When the API is designed contract-first (API-first): `openapi.yaml` is the source and the code is

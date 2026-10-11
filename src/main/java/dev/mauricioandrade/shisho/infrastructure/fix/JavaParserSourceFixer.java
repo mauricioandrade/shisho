@@ -44,7 +44,8 @@ public final class JavaParserSourceFixer implements SourceFixer {
                 new FieldInjectionFixer(),
                 new LombokConstructorFixer(),
                 new RequestBodyWithoutValidFixer(),
-                new TransactionalReadOnlyFixer()));
+                new TransactionalReadOnlyFixer(),
+                new QuarkusPrivateInjectionFixer()));
     }
 
     JavaParserSourceFixer(List<Fixer> fixers) {

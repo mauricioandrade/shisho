@@ -10,7 +10,8 @@ import dev.mauricioandrade.shisho.domain.model.Lesson;
 import java.util.Optional;
 
 /**
- * Adds {@code @Valid} before {@code @RequestBody}, importing {@code jakarta.validation.Valid}
+ * Adds {@code @Valid} before the request body ({@code @RequestBody} in Spring, the unannotated
+ * parameter in Jakarta REST), importing {@code jakarta.validation.Valid}
  * when needed. Only when the build declares Bean Validation: without it the import would not
  * compile, and the annotations of the DTO would still not be checked.
  */
@@ -32,7 +33,8 @@ final class RequestBodyWithoutValidFixer implements Fixer {
         return unit.findAll(Parameter.class).stream()
                 .filter(parameter -> parameter.getTypeAsString().equals(type))
                 .filter(parameter -> parameter.getAnnotations().stream().anyMatch(annotation ->
-                        annotation.getName().getIdentifier().equals("RequestBody") && Trees.startsAt(annotation, lesson.line())))
+                        annotation.getName().getIdentifier().equals("RequestBody") && Trees.startsAt(annotation, lesson.line()))
+                        || parameter.getAnnotations().isEmpty() && Trees.startsAt(parameter, lesson.line()))
                 .findFirst()
                 .map(parameter -> () -> {
                     parameter.getAnnotations().addFirst(new MarkerAnnotationExpr("Valid"));
@@ -44,6 +46,7 @@ final class RequestBodyWithoutValidFixer implements Fixer {
 
     private static boolean hasBeanValidation(BuildInfo build) {
         return build.dependsOn("org.springframework.boot", "spring-boot-starter-validation")
+                || build.dependsOn("io.quarkus", "quarkus-hibernate-validator")
                 || build.dependencies().stream().anyMatch(dependency ->
                         dependency.groupId().equals("jakarta.validation") || dependency.groupId().equals("org.hibernate.validator"));
     }

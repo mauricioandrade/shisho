@@ -3,6 +3,7 @@ id: request-body-without-valid
 referencias:
   - https://docs.spring.io/spring-framework/reference/web/webmvc/mvc-controller/ann-validation.html
   - https://docs.spring.io/spring-boot/reference/io/validation.html
+  - https://quarkus.io/guides/validation#rest-end-point-validation
 ---
 
 ## Por quê
@@ -15,6 +16,10 @@ de segurança.
 Com `@Valid`, um corpo inválido vira `MethodArgumentNotValidException` antes de o método rodar,
 e o Spring responde 400. A regra fica declarada no DTO, e o método só trata do caso válido.
 Atenção: sem o `spring-boot-starter-validation` no classpath, `@Valid` também não faz nada.
+
+No Quarkus, com Jakarta REST, não existe `@RequestBody`: o corpo é o parâmetro sem anotação de um
+método `@POST` ou `@PUT`, e a regra é a mesma, `criar(@Valid CriarPedidoRequest pedido)`. Com a
+extensão `quarkus-hibernate-validator`, um corpo inválido vira 400 antes de o método rodar.
 
 ## Quando é aceitável
 

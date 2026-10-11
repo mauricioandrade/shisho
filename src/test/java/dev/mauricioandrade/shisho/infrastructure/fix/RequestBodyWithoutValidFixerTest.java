@@ -56,6 +56,38 @@ class RequestBodyWithoutValidFixerTest {
     }
 
     @Test
+    void addsValidToAJakartaRestBody() {
+        String pom = """
+                <project>
+                    <properties><maven.compiler.release>21</maven.compiler.release></properties>
+                    <dependencies>
+                        <dependency>
+                            <groupId>io.quarkus</groupId>
+                            <artifactId>quarkus-hibernate-validator</artifactId>
+                        </dependency>
+                    </dependencies>
+                </project>
+                """;
+        assertThat(fix(root, pom, """
+                package app;
+
+                import jakarta.ws.rs.*;
+
+                @Path("/orders")
+                public class OrderResource {
+
+                    @POST
+                    @Path("{id}")
+                    public OrderResponse update(Long id, UpdateOrder request) {
+                        return null;
+                    }
+                }
+                """)).singleElement().satisfies(fix -> assertThat(fix.fixed())
+                .contains("import jakarta.validation.Valid;")
+                .contains("public OrderResponse update(Long id, @Valid UpdateOrder request) {"));
+    }
+
+    @Test
     void needsBeanValidationInTheBuild() {
         assertThat(fix(root, "<project><properties><java.version>21</java.version></properties></project>", CONTROLLER)).isEmpty();
     }

@@ -14,6 +14,11 @@ runs, and Spring answers 400. The rule stays declared on the DTO, and the method
 the valid case. Note: without `spring-boot-starter-validation` on the classpath, `@Valid` does
 nothing either.
 
+In Quarkus, with Jakarta REST, there is no `@RequestBody`: the body is the unannotated parameter of
+a `@POST` or `@PUT` method, and the rule is the same, `create(@Valid CreateOrderRequest request)`.
+With the `quarkus-hibernate-validator` extension, an invalid body becomes a 400 before the method
+runs.
+
 ## Acceptable when
 
 When validation is done elsewhere on purpose, as in a domain validator that has to query the

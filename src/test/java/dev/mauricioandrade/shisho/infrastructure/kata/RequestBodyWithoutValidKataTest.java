@@ -36,6 +36,29 @@ class RequestBodyWithoutValidKataTest {
     }
 
     @Test
+    void flagsJakartaRestBodiesWithoutValidation() {
+        assertThat(evaluate(kata, """
+                @Path("/orders/{tenant}")
+                class OrderResource {
+                    @POST
+                    @Path("{id}")
+                    void create(String tenant, Long id, @RestQuery String source, UriInfo uri,
+                            CreateOrderRequest request) {}
+
+                    @PUT
+                    void update(@Valid UpdateOrderRequest request) {}
+
+                    @GET
+                    List<Order> list(@QueryParam("page") int page) { return List.of(); }
+                }
+                """)).singleElement().satisfies(lesson -> {
+            assertThat(lesson.line()).isEqualTo(6);
+            assertThat(lesson.arguments()).containsExactly("CreateOrderRequest");
+            assertThat(lesson.messageKey()).isEqualTo("kata.request-body-without-valid.lesson.quarkus");
+        });
+    }
+
+    @Test
     void ignoresBodiesWithNothingToValidate() {
         assertThat(evaluate(kata, """
                 @RestController

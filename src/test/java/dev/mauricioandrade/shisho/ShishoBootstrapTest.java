@@ -50,6 +50,38 @@ class ShishoBootstrapTest {
     }
 
     @Test
+    void aGradleBuildTeachesTheSameLessonsAsMaven(@TempDir Path temp) throws IOException {
+        assertThat(run("analyze", FIXTURES + "aluno-quarkus-baguncado")).isZero();
+        String maven = out();
+        out.reset();
+        Path gradle = temp.resolve("aluno-quarkus-baguncado");
+        copyFixture("aluno-quarkus-baguncado", gradle);
+        Files.delete(gradle.resolve("pom.xml"));
+        Files.writeString(gradle.resolve("build.gradle.kts"), """
+                plugins {
+                    java
+                    id("io.quarkus")
+                }
+
+                dependencies {
+                    implementation(enforcedPlatform("io.quarkus.platform:quarkus-bom:3.28.2"))
+                    implementation("io.quarkus:quarkus-rest-jackson")
+                    implementation("io.quarkus:quarkus-hibernate-validator")
+                    implementation("io.quarkus:quarkus-hibernate-orm-panache")
+                }
+
+                java {
+                    toolchain {
+                        languageVersion = JavaLanguageVersion.of(21)
+                    }
+                }
+                """);
+
+        assertThat(run("analyze", gradle.toString())).isZero();
+        assertThat(out()).contains("build.gradle.kts").isEqualTo(maven.replace("pom.xml", "build.gradle.kts"));
+    }
+
+    @Test
     void judgesAnOverengineeredProject() {
         assertThat(run("analyze", FIXTURES + "aluno-astronauta")).isZero();
         assertThat(out())

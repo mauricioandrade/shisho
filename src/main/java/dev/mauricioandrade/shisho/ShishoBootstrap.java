@@ -9,7 +9,7 @@ import dev.mauricioandrade.shisho.domain.port.in.AnalyzeProject;
 import dev.mauricioandrade.shisho.domain.port.in.ClassifyArchitecture;
 import dev.mauricioandrade.shisho.domain.port.in.FixProject;
 import dev.mauricioandrade.shisho.domain.port.in.GenerateCrud;
-import dev.mauricioandrade.shisho.infrastructure.build.MavenBuildFileReader;
+import dev.mauricioandrade.shisho.infrastructure.build.BuildFileReaders;
 import dev.mauricioandrade.shisho.infrastructure.catalog.MarkdownCatalogRepository;
 import dev.mauricioandrade.shisho.infrastructure.detector.Detectors;
 import dev.mauricioandrade.shisho.infrastructure.fix.JavaParserSourceFixer;
@@ -80,7 +80,7 @@ public final class ShishoBootstrap {
         MarkdownCatalogRepository catalog = MarkdownCatalogRepository.bundled(language.get().catalogTranslation());
         ClassifyArchitecture classifyArchitecture = new ClassifyArchitectureService(catalog, Detectors.all());
         AnalyzeProject analyzeProject = new AnalyzeProjectService(
-                new MavenBuildFileReader(),
+                BuildFileReaders.all(),
                 new YamlProjectConfigReader(),
                 new JavaParserSourceParser(),
                 Katas.all(catalog.avoidedDependencies()),
@@ -97,7 +97,7 @@ public final class ShishoBootstrap {
         };
 
         FixProject fixProject = new FixProjectService(analyzeProject, new JavaParserSourceFixer());
-        GenerateCrud generateCrud = new GenerateCrudService(new MavenBuildFileReader(), new YamlProjectConfigReader(),
+        GenerateCrud generateCrud = new GenerateCrudService(BuildFileReaders.all(), new YamlProjectConfigReader(),
                 new JavaParserSourceParser(), classifyArchitecture, catalog, new TemplateScaffoldRenderer());
 
         CommandLine commandLine = new CommandLine(new ShishoCommand())

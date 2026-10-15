@@ -159,7 +159,8 @@ teste roda o exemplo num projeto Quarkus e exige a lição com a chave `.quarkus
 ## Templates de CRUD (`scaffolds/`)
 
 Cada arquivo ensina o `shisho crud` a gerar um CRUD REST numa arquitetura: um arquivo por
-arquitetura, com o mesmo `id` dela. Cada seção `## caminho/Arquivo.java` é um arquivo gerado,
+arquitetura, com o mesmo `id` dela, e um a mais para cada outro stack (`layered-quarkus.md`, com
+`arquitetura: layered`). Cada seção `## caminho/Arquivo.java` é um arquivo gerado,
 com o caminho relativo ao pacote base do projeto. O texto antes do bloco de código explica, no
 terminal, por que o arquivo existe; o bloco é o conteúdo.
 
@@ -168,7 +169,7 @@ terminal, por que o arquivo existe; o bloco é o conteúdo.
 id: layered                  # uma arquitetura de architectures/
 dependencias: ["spring-boot-starter-webmvc|spring-boot-starter-web", spring-boot-starter-data-jpa]   # artifactIds que o código exige; com |, qualquer um serve
 uma_vez_por_projeto:         # opcional: arquivo comum a todas as entidades
-  controller/TratadorDeErros.java: RestControllerAdvice   # pulado se alguma classe já tem a anotação
+  controller/TratadorDeErros.java: RestControllerAdvice   # pulado se alguma classe ou método já tem a anotação
 ---
 
 ## controller/{{Entidade}}Controller.java
@@ -194,8 +195,20 @@ Placeholders, no caminho, na explicação e no código:
 | `{{#importacoes}}…{{/importacoes}}` | um item por tipo que precisa de import, com `{{importacao}}` (`java.math.BigDecimal`) |
 | `{{#validacoes}}…{{/validacoes}}` | um item por anotação de validação usada, com `{{validacao}}` |
 
+Um template de outro stack declara mais dois campos:
+
+```yaml
+id: layered-quarkus
+arquitetura: layered         # a arquitetura que ele gera; sem o campo, é o id
+grupo_do_build: io.quarkus   # usado quando o build declara uma dependência deste groupId
+```
+
+Num projeto cujo build declara o `grupo_do_build` de algum template, o `crud` só usa os templates
+desse stack, e uma arquitetura sem template nele é recusada: um projeto Quarkus nunca recebe um
+CRUD Spring. Nos outros projetos, valem os templates sem `grupo_do_build`.
+
 Uma linha que só tem uma tag de seção desaparece, e linhas em branco repetidas viram uma. O
-teste gera cada template num projeto como o do Spring Initializr e exige que o `shisho analyze`
+teste gera cada template num projeto como o do Spring Initializr (ou o do code.quarkus.io) e exige que o `shisho analyze`
 reconheça a arquitetura e não encontre **nenhuma** lição. Detalhes em
 [`docs/adr/0005-crud-scaffolding.md`](../docs/adr/0005-crud-scaffolding.md).
 

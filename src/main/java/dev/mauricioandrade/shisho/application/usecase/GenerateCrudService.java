@@ -64,7 +64,7 @@ public final class GenerateCrudService implements GenerateCrud {
                 .map(ArchitectureMatch::architecture)
                 .or(() -> knownBasePackage.flatMap(base -> generatedBefore(project, base)));
 
-        Scaffold scaffold = scaffold(request, detected);
+        Scaffold scaffold = scaffold(request, detected, scaffolds(project));
         ArchitectureProfile architecture = architecture(scaffold.architectureId());
         String basePackage = knownBasePackage.orElseThrow(() -> new ScaffoldException("crud.error.no-package"));
 
@@ -88,7 +88,7 @@ public final class GenerateCrudService implements GenerateCrud {
     private Optional<ArchitectureProfile> generatedBefore(ProjectModel project, String basePackage) {
         Set<Path> files = project.classes().stream().map(ClassUnit::file).collect(Collectors.toSet());
         List<String> names = project.classes().stream().map(ClassUnit::name).distinct().sorted().toList();
-        for (Scaffold scaffold : catalog.scaffolds()) {
+        for (Scaffold scaffold : scaffolds(project)) {
             for (String name : names) {
                 if (generated(scaffold, basePackage, name, files)) {
                     return Optional.of(architecture(scaffold.architectureId()));
@@ -125,8 +125,21 @@ public final class GenerateCrudService implements GenerateCrud {
         return Optional.of(new CrudPlan.Cost(architecture.justifiedBy(context)));
     }
 
-    private Scaffold scaffold(CrudRequest request, Optional<ArchitectureProfile> detected) {
-        List<Scaffold> scaffolds = catalog.scaffolds();
+    /**
+     * The templates of the project's stack: those whose build group the build declares, or, if
+     * none does, those of the default stack. A Quarkus project never gets a Spring CRUD.
+     */
+    private List<Scaffold> scaffolds(ProjectModel project) {
+        Set<String> groups = project.build().stream()
+                .flatMap(build -> build.dependencies().stream())
+                .map(Dependency::groupId)
+                .collect(Collectors.toSet());
+        List<Scaffold> all = catalog.scaffolds();
+        List<Scaffold> stack = all.stream().filter(scaffold -> scaffold.buildGroup().filter(groups::contains).isPresent()).toList();
+        return stack.isEmpty() ? all.stream().filter(scaffold -> scaffold.buildGroup().isEmpty()).toList() : stack;
+    }
+
+    private static Scaffold scaffold(CrudRequest request, Optional<ArchitectureProfile> detected, List<Scaffold> scaffolds) {
         String available = scaffolds.stream().map(Scaffold::architectureId).collect(Collectors.joining(", "));
         if (request.architectureId().isEmpty() && detected.isEmpty()) {
             throw new ScaffoldException("crud.error.no-architecture", available);
@@ -160,9 +173,12 @@ public final class GenerateCrudService implements GenerateCrud {
         return common.isEmpty() ? Optional.empty() : Optional.of(String.join(".", common));
     }
 
+    /** On a class or on a method: Quarkus REST's {@code @ServerExceptionMapper} annotates methods. */
     private static boolean annotated(ProjectModel project, String annotation) {
         String simpleName = annotation.startsWith("@") ? annotation.substring(1) : annotation;
-        return project.classes().stream().anyMatch(unit -> unit.isAnnotatedWith(simpleName));
+        return project.classes().stream().anyMatch(unit -> unit.isAnnotatedWith(simpleName)
+                || unit.methods().stream().anyMatch(method -> method.annotations().stream()
+                        .anyMatch(methodAnnotation -> methodAnnotation.simpleName().equals(simpleName))));
     }
 
     private static List<List<String>> missingDependencies(Scaffold scaffold, ProjectModel project) {

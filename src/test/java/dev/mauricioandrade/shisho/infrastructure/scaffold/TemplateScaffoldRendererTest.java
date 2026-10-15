@@ -19,7 +19,7 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 class TemplateScaffoldRendererTest {
 
     private static final Scaffold LAYERED = MarkdownCatalogRepository.bundled().scaffolds().stream()
-            .filter(scaffold -> scaffold.architectureId().equals("layered")).findFirst().orElseThrow();
+            .filter(scaffold -> scaffold.architectureId().equals("layered") && scaffold.buildGroup().isEmpty()).findFirst().orElseThrow();
 
     private final TemplateScaffoldRenderer renderer = new TemplateScaffoldRenderer();
 

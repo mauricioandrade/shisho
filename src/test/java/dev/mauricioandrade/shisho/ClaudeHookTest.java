@@ -46,6 +46,16 @@ class ClaudeHookTest {
     }
 
     @Test
+    void findsTheRootOfAGradleProject() throws IOException {
+        copy(MESSY, project);
+        Files.delete(project.resolve("pom.xml"));
+        Files.writeString(project.resolve("build.gradle"), "dependencies { implementation 'org.springframework.boot:spring-boot-starter-web' }");
+
+        assertThat(hook(json(project.resolve(CONTROLLER).toString(), "/"))).isEqualTo(2);
+        assertThat(err()).contains("[field-injection]");
+    }
+
+    @Test
     void leavesTheSuggestionsOut() throws IOException {
         copy(MESSY, project);
 
@@ -60,7 +70,7 @@ class ClaudeHookTest {
         Files.writeString(clean, "package com.exemplo.loja;\n\nrecord Limpa(String nome) {\n}\n");
 
         assertThat(hook(json(clean.toString(), "/"))).as("a file without lessons").isZero();
-        assertThat(hook(json("/tmp/fora/de/um/projeto/A.java", "/"))).as("no pom.xml above").isZero();
+        assertThat(hook(json("/tmp/fora/de/um/projeto/A.java", "/"))).as("no build above").isZero();
         assertThat(hook("not json")).as("not the hook's JSON").isZero();
         assertThat(hook("{\"tool_input\": {\"command\": \"ls\"}}")).as("no file_path").isZero();
     }

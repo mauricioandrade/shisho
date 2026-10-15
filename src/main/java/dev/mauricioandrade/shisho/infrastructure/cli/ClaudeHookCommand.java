@@ -26,7 +26,7 @@ import java.util.concurrent.Callable;
  * {@code shisho claude-hook}: the Claude Code plugin's PostToolUse hook. It reads the hook's JSON
  * from standard input, analyzes the project of the edited file and shows Claude that file's
  * lessons on standard error with exit code 2, the code that makes Claude Code show it to Claude.
- * Anything else, a file outside a Maven project included, exits 0 in silence. See
+ * Anything else, a file outside a Maven or Gradle project included, exits 0 in silence. See
  * docs/adr/0008-claude-code-plugin.md.
  */
 @Command(name = "claude-hook", hidden = true)
@@ -34,7 +34,7 @@ public final class ClaudeHookCommand implements Callable<Integer> {
 
     /** PostToolUse: exit code 2 shows standard error to Claude. */
     static final int EXIT_SHOW_CLAUDE = 2;
-    private static final String BUILD_FILE = "pom.xml";
+    private static final List<String> BUILD_FILES = List.of("pom.xml", "build.gradle.kts", "build.gradle");
 
     private final AnalyzeProject analyzeProject;
     private final Messages messages;
@@ -96,13 +96,17 @@ public final class ClaudeHookCommand implements Callable<Integer> {
         return Optional.of(file.toAbsolutePath().normalize());
     }
 
-    /** The nearest directory above the file with a pom.xml. */
+    /** The nearest directory above the file with a Maven or Gradle build. */
     private static Optional<Path> projectRoot(Path file) {
         for (Path directory = file.getParent(); directory != null; directory = directory.getParent()) {
-            if (Files.isRegularFile(directory.resolve(BUILD_FILE))) {
+            if (hasBuild(directory)) {
                 return Optional.of(directory);
             }
         }
         return Optional.empty();
+    }
+
+    private static boolean hasBuild(Path directory) {
+        return BUILD_FILES.stream().anyMatch(build -> Files.isRegularFile(directory.resolve(build)));
     }
 }

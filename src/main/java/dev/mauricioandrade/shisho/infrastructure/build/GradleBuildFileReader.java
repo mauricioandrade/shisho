@@ -11,6 +11,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Matcher;
@@ -21,8 +22,9 @@ import java.util.stream.Stream;
  * Reads the Java version and dependencies from a single-module {@code build.gradle.kts} or
  * {@code build.gradle}. The script is never run: it is code from an untrusted project, and running
  * it would need Gradle and the network. The reader recognizes the literal forms that Spring
- * Initializr, code.quarkus.io and the Gradle docs write; a version or a dependency computed by the
- * script (a variable, a version catalog) is not seen. See {@code docs/adr/0013-gradle.md}.
+ * Initializr, code.quarkus.io and the Gradle docs write, plus the libraries of the default version
+ * catalog; a version or a dependency computed by the script (a variable, an {@code if}) is not seen.
+ * See {@code docs/adr/0013-gradle.md}.
  */
 public final class GradleBuildFileReader implements BuildFileReader {
 
@@ -40,12 +42,14 @@ public final class GradleBuildFileReader implements BuildFileReader {
             + "(?:JavaVersion\\.VERSION_(\\d+(?:_\\d+)?)|JavaVersion\\.toVersion\\(\\s*['\"]?([\\d.]+)['\"]?\\s*\\)|['\"]?([\\d.]+)['\"]?)");
 
     /**
-     * A configuration followed by {@code 'group:artifact[:version]'} or by
-     * {@code group: 'g', name: 'a'} (Groovy) / {@code group = "g", name = "a"} (Kotlin).
+     * A configuration followed by {@code 'group:artifact[:version]'}, by
+     * {@code group: 'g', name: 'a'} (Groovy) / {@code group = "g", name = "a"} (Kotlin) or by a
+     * version catalog accessor, {@code libs.spring.boot.starter.web}.
      */
     private static final Pattern DEPENDENCY = Pattern.compile("\\b(?<configuration>[A-Za-z]\\w*)\\s*\\(?\\s*(?:"
             + "(?<q>['\"])(?<group>[\\w.-]+):(?<artifact>[\\w.-]+)(?::[^'\"]*)?\\k<q>"
-            + "|group\\s*[:=]\\s*(?<q2>['\"])(?<mapGroup>[\\w.-]+)\\k<q2>\\s*,\\s*name\\s*[:=]\\s*(?<q3>['\"])(?<mapArtifact>[\\w.-]+)\\k<q3>)");
+            + "|group\\s*[:=]\\s*(?<q2>['\"])(?<mapGroup>[\\w.-]+)\\k<q2>\\s*,\\s*name\\s*[:=]\\s*(?<q3>['\"])(?<mapArtifact>[\\w.-]+)\\k<q3>"
+            + "|libs\\.(?<accessor>[\\w.]+))");
 
     /** BOMs, like {@code dependencyManagement} in Maven: they manage versions, they add no library. */
     private static final Set<String> PLATFORMS = Set.of("platform", "enforcedPlatform");
@@ -59,7 +63,8 @@ public final class GradleBuildFileReader implements BuildFileReader {
                 .findFirst()
                 .map(script -> {
                     String code = withoutComments(readScript(projectRoot.resolve(script)));
-                    return new BuildInfo(Path.of(script), javaVersion(projectRoot.resolve(script), code), dependencies(code));
+                    return new BuildInfo(Path.of(script), javaVersion(projectRoot.resolve(script), code),
+                            dependencies(code, VersionCatalog.libraries(projectRoot)));
                 });
     }
 
@@ -90,8 +95,11 @@ public final class GradleBuildFileReader implements BuildFileReader {
         return Optional.empty();
     }
 
-    /** Only the top-level {@code dependencies} block: {@code buildscript}'s holds Gradle plugins. */
-    private static List<Dependency> dependencies(String code) {
+    /**
+     * Only the top-level {@code dependencies} block: {@code buildscript}'s holds Gradle plugins. An
+     * accessor missing from {@code catalog} (a bundle, a typo) is skipped.
+     */
+    private static List<Dependency> dependencies(String code, Map<String, Dependency> catalog) {
         List<Dependency> dependencies = new ArrayList<>();
         Matcher block = DEPENDENCIES_BLOCK.matcher(code);
         while (block.find()) {
@@ -103,9 +111,13 @@ public final class GradleBuildFileReader implements BuildFileReader {
                 if (PLATFORMS.contains(dependency.group("configuration"))) {
                     continue;
                 }
-                dependencies.add(dependency.group("group") != null
-                        ? new Dependency(dependency.group("group"), dependency.group("artifact"))
-                        : new Dependency(dependency.group("mapGroup"), dependency.group("mapArtifact")));
+                if (dependency.group("group") != null) {
+                    dependencies.add(new Dependency(dependency.group("group"), dependency.group("artifact")));
+                } else if (dependency.group("mapGroup") != null) {
+                    dependencies.add(new Dependency(dependency.group("mapGroup"), dependency.group("mapArtifact")));
+                } else if (catalog.containsKey(dependency.group("accessor"))) {
+                    dependencies.add(catalog.get(dependency.group("accessor")));
+                }
             }
         }
         return dependencies.stream().distinct().toList();

@@ -209,6 +209,62 @@ class GradleBuildFileReaderTest {
                 .containsExactly(new Dependency("org.springframework.boot", "spring-boot-starter-web"));
     }
 
+    @Test
+    void readsLibrariesFromTheVersionCatalog() throws IOException {
+        Files.createDirectories(project.resolve("gradle"));
+        Files.writeString(project.resolve("gradle/libs.versions.toml"), """
+                [versions]
+                spring-boot = "3.5.6" # the [libraries] below is not this one
+
+                [libraries]
+                spring-boot-bom = { module = "org.springframework.boot:spring-boot-dependencies", version.ref = "spring-boot" }
+                spring-boot-starter-web = { module = "org.springframework.boot:spring-boot-starter-web" }
+                "lombok" = "org.projectlombok:lombok:1.18.42"
+                springdoc_webmvc = { group = "org.springdoc", name = "springdoc-openapi-starter-webmvc-ui", version = "2.8.13" }
+                unused = { module = "com.example:unused" }
+
+                [bundles]
+                web = ["spring-boot-starter-web", "springdoc_webmvc"]
+
+                [plugins]
+                spring-boot = { id = "org.springframework.boot", version.ref = "spring-boot" }
+                """);
+        writeKotlin("""
+                plugins {
+                    alias(libs.plugins.spring.boot)
+                }
+                dependencies {
+                    implementation(platform(libs.spring.boot.bom))
+                    implementation(libs.spring.boot.starter.web)
+                    compileOnly(libs.lombok)
+                    implementation(libs.springdoc.webmvc)
+                    implementation(libs.bundles.web)
+                    implementation(libs.not.in.the.catalog)
+                }
+                """);
+
+        assertThat(reader.read(project).orElseThrow().dependencies()).containsExactly(
+                new Dependency("org.springframework.boot", "spring-boot-starter-web"),
+                new Dependency("org.projectlombok", "lombok"),
+                new Dependency("org.springdoc", "springdoc-openapi-starter-webmvc-ui"));
+    }
+
+    @Test
+    void readsCatalogAccessorsInGroovy() throws IOException {
+        Files.createDirectories(project.resolve("gradle"));
+        Files.writeString(project.resolve("gradle/libs.versions.toml"), """
+                [libraries]
+                quarkus-rest = { module = "io.quarkus:quarkus-rest" }
+                """);
+        writeGroovy("""
+                dependencies {
+                    implementation libs.quarkus.rest
+                }
+                """);
+
+        assertThat(reader.read(project).orElseThrow().dependencies()).containsExactly(new Dependency("io.quarkus", "quarkus-rest"));
+    }
+
     private Optional<JavaVersion> javaVersion() {
         return reader.read(project).orElseThrow().javaVersion();
     }

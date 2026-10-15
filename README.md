@@ -96,7 +96,7 @@ O código analisado pode estar em português ou em inglês: o Shishō reconhece 
 
 ## ⚡ Uso rápido
 
-Aponte para a raiz de um projeto Maven com Java 21 ou superior:
+Aponte para a raiz de um projeto Maven ou Gradle com Java 21 ou superior:
 
 | Comando | O que faz |
 |---|---|
@@ -620,6 +620,8 @@ que assim: [ADR 0010](docs/adr/0010-release.md).
 - [x] **Fase 11** — release com o jar pronto a cada tag, e instalação com um comando
 - [x] **Fase 12** — Quarkus: as katas, o shoshin e a classificação reconhecem CDI, Jakarta REST
   e Panache
+- [x] **Fase 13** — Gradle: `build.gradle` e `build.gradle.kts` lidos sem executar o script
+  ([ADR 0013](docs/adr/0013-gradle.md))
 - [ ] **Depois** — outras stacks, reaproveitando o catálogo de arquiteturas
 
 ![Sung Jinwoo, de Solo Leveling, atacando com uma adaga em meio a estátuas de pedra](docs/anime/roadmap.gif)

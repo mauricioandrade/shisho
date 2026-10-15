@@ -99,7 +99,7 @@ as `dominio`, `servico` and `porta/entrada` just as well as `domain`, `service` 
 
 ## ⚡ Quick start
 
-Point it at the root of a Maven project on Java 21 or later:
+Point it at the root of a Maven or Gradle project on Java 21 or later:
 
 | Command | What it does |
 |---|---|
@@ -635,6 +635,8 @@ downloads. Why it works this way: [ADR 0010](docs/adr/0010-release.md).
 - [x] **Phase 11**: a release with the ready-made jar for every tag, and a one-command install
 - [x] **Phase 12**: Quarkus: the katas, shoshin and the classification recognize CDI, Jakarta REST
   and Panache
+- [x] **Phase 13**: Gradle: `build.gradle` and `build.gradle.kts` read without running the script
+  ([ADR 0013](docs/adr/0013-gradle.md))
 - [ ] **Next**: other stacks, reusing the architecture catalog
 
 ![Sung Jinwoo, from Solo Leveling, striking with a dagger among stone statues](docs/anime/roadmap.gif)

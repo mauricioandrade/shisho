@@ -648,7 +648,7 @@ downloads. Why it works this way: [ADR 0010](docs/adr/0010-release.md).
 
 ![Sung Jinwoo, from Solo Leveling, striking with a dagger among stone statues](docs/anime/roadmap.gif)
 
-*Nine phases, one dungeon at a time.*
+*One phase at a time, like clearing a dungeon.*
 
 ## 🤝 Contributing
 

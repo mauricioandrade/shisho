@@ -634,7 +634,7 @@ que assim: [ADR 0010](docs/adr/0010-release.md).
 
 ![Sung Jinwoo, de Solo Leveling, atacando com uma adaga em meio a estátuas de pedra](docs/anime/roadmap.gif)
 
-*Nove fases, uma dungeon de cada vez.*
+*Uma fase de cada vez, como quem limpa uma dungeon.*
 
 ## 🤝 Contribuindo
 

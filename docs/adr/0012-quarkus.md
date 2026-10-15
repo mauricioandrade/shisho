@@ -110,8 +110,11 @@ caminho se aparecer um terceiro framework.
 ## Consequências
 
 - Um projeto Quarkus deixa de receber uma lição GRAVE falsa por usar o estilo recomendado.
-- O Gradle continua sem leitor: um projeto Quarkus com Gradle não tem build, então é tratado como
-  um projeto qualquer e `@Inject` em campo continua acusado.
+- ~~O Gradle continua sem leitor~~: desde o ADR 0013, `build.gradle(.kts)` também é lido, e um
+  projeto Quarkus com Gradle é reconhecido como os com Maven.
+- Os guias das katas que explicam a lição do jeito do Quarkus trazem também `## Antes (Quarkus)` e
+  `## Depois (Quarkus)` (2026-10-15): uma lição `kata.<id>.lesson.quarkus` mostra esse exemplo no
+  modo sensei, no HTML e no SARIF, em vez do de Spring.
 
 ## 📚 Estudo — injeção em tempo de build
 

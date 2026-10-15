@@ -13,7 +13,7 @@ explain what it says and act on it with the user.
 The jar is at `${user_config.shisho_jar}` (`~` is the user's home). If that path is empty, use
 `$SHISHO_JAR`, or the `shisho` command that `install.sh` puts on the PATH; if none works, ask the
 user to run `install.sh`. Every command takes
-the project root, the directory with `pom.xml`:
+the project root, the directory with `pom.xml` or `build.gradle(.kts)`:
 
 ```bash
 java -jar "${user_config.shisho_jar}" analyze <project>            # lessons, architecture, verdict, rank

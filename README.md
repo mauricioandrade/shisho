@@ -390,6 +390,10 @@ Criados 8 arquivos. Rode shisho analyze para conferir: o código gerado passa em
   entidades, como o `@RestControllerAdvice`, só são criados se o projeto ainda não tem um.
 - **Erros no padrão.** 404 e erros de validação respondem com ProblemDetail (RFC 9457), dizendo
   quais campos falharam.
+- **Quarkus.** Num projeto Quarkus (uma dependência `io.quarkus` no build), as mesmas três
+  arquiteturas saem do jeito do Quarkus: resource Jakarta REST, `PanacheRepository`, `@Inject` em
+  campo package-private e um `@ServerExceptionMapper` para os 404. Um projeto do code.quarkus.io
+  sem código ainda não tem pacote, então o primeiro `crud` pede `--pacote`.
 
 ![Joseph Joestar, de JoJo's Bizarre Adventure, correndo enquanto alguém grita "Run away!"](docs/anime/never-overwrites.gif)
 
@@ -432,8 +436,10 @@ ao que o hexagonal já mostra ([ADR 0011](docs/adr/0011-no-clean-crud.md)).
 
 Um teste aplica cada template a um projeto igual ao do Initializr e exige que o `shisho analyze`
 reconheça a arquitetura e não encontre **nenhuma** lição. O código foi conferido também num
-projeto real do Initializr (Spring Boot 4.1): compila, sobe e responde. Os templates ficam em
-[`catalog/scaffolds`](catalog/scaffolds), em Markdown. Por que assim: [ADR 0005](docs/adr/0005-crud-scaffolding.md).
+projeto real do Initializr (Spring Boot 4.1) e num do code.quarkus.io (Quarkus 3.40): compila, sobe
+e responde. Os templates ficam em [`catalog/scaffolds`](catalog/scaffolds), em Markdown. Por que
+assim: [ADR 0005](docs/adr/0005-crud-scaffolding.md) e, para o Quarkus,
+[ADR 0014](docs/adr/0014-quarkus-crud.md).
 
 ## 🧠 O LLM explica, não julga
 
@@ -622,6 +628,8 @@ que assim: [ADR 0010](docs/adr/0010-release.md).
   e Panache
 - [x] **Fase 13** — Gradle: `build.gradle` e `build.gradle.kts` lidos sem executar o script
   ([ADR 0013](docs/adr/0013-gradle.md))
+- [x] **Fase 14** — `shisho crud` em projetos Quarkus, nas três arquiteturas
+  ([ADR 0014](docs/adr/0014-quarkus-crud.md))
 - [ ] **Depois** — outras stacks, reaproveitando o catálogo de arquiteturas
 
 ![Sung Jinwoo, de Solo Leveling, atacando com uma adaga em meio a estátuas de pedra](docs/anime/roadmap.gif)

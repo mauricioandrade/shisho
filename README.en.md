@@ -403,6 +403,10 @@ Created 8 files. Run shisho analyze to check: the generated code passes every ka
   entity, such as the `@RestControllerAdvice`, are only created if the project has none yet.
 - **Standard errors.** 404s and validation errors answer with ProblemDetail (RFC 9457), naming
   the fields that failed.
+- **Quarkus.** In a Quarkus project (an `io.quarkus` dependency in the build), the same three
+  architectures come out the Quarkus way: a Jakarta REST resource, `PanacheRepository`, `@Inject`
+  on a package-private field and a `@ServerExceptionMapper` for the 404s. A code.quarkus.io
+  project with no code has no package yet, so the first `crud` asks for `--pacote`.
 
 ![Joseph Joestar, from JoJo's Bizarre Adventure, running while someone shouts "Run away!"](docs/anime/never-overwrites.gif)
 
@@ -447,9 +451,10 @@ what hexagonal already shows ([ADR 0011](docs/adr/0011-no-clean-crud.md)).
 
 A test applies every template to a project like the Initializr's and requires `shisho analyze`
 to recognize the architecture and find **no** lesson at all. The code was also checked on a real
-Initializr project (Spring Boot 4.1): it compiles, starts and answers. The templates live in
-[`catalog/scaffolds`](catalog/scaffolds), in Markdown. Why it works this way:
-[ADR 0005](docs/adr/0005-crud-scaffolding.md).
+Initializr project (Spring Boot 4.1) and on a code.quarkus.io one (Quarkus 3.40): it compiles,
+starts and answers. The templates live in [`catalog/scaffolds`](catalog/scaffolds), in Markdown.
+Why it works this way: [ADR 0005](docs/adr/0005-crud-scaffolding.md) and, for Quarkus,
+[ADR 0014](docs/adr/0014-quarkus-crud.md).
 
 ## 🧠 The LLM explains, it does not judge
 
@@ -637,6 +642,8 @@ downloads. Why it works this way: [ADR 0010](docs/adr/0010-release.md).
   and Panache
 - [x] **Phase 13**: Gradle: `build.gradle` and `build.gradle.kts` read without running the script
   ([ADR 0013](docs/adr/0013-gradle.md))
+- [x] **Phase 14**: `shisho crud` in Quarkus projects, in all three architectures
+  ([ADR 0014](docs/adr/0014-quarkus-crud.md))
 - [ ] **Next**: other stacks, reusing the architecture catalog
 
 ![Sung Jinwoo, from Solo Leveling, striking with a dagger among stone statues](docs/anime/roadmap.gif)

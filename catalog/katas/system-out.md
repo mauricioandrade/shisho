@@ -71,3 +71,42 @@ public class PedidoService {
     }
 }
 ```
+
+## Antes (Quarkus)
+
+```java
+@ApplicationScoped
+public class PedidoService {
+
+    public void criar(Pedido pedido) {
+        try {
+            System.out.println("criando pedido " + pedido.id());
+            salvar(pedido);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+}
+```
+
+## Depois (Quarkus)
+
+`Log`, de `io.quarkus.logging`, dispensa declarar o logger: na compilação, o Quarkus troca cada
+chamada por um logger da própria classe. Nível, formato e destino continuam configuráveis em
+`quarkus.log.*`.
+
+```java
+@ApplicationScoped
+public class PedidoService {
+
+    public void criar(Pedido pedido) {
+        Log.debugf("criando pedido %s", pedido.id());
+        try {
+            salvar(pedido);
+        } catch (PersistenceException e) {
+            Log.errorf(e, "falha ao salvar o pedido %s", pedido.id());
+            throw e;
+        }
+    }
+}
+```

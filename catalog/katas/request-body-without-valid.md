@@ -52,3 +52,32 @@ class PedidoController {
     }
 }
 ```
+
+## Antes (Quarkus)
+
+```java
+@Path("/pedidos")
+class PedidoResource {
+
+    @POST
+    PedidoResponse criar(CriarPedidoRequest request) {
+        return pedidos.criar(request);
+    }
+}
+```
+
+## Depois (Quarkus)
+
+Com a extensão `quarkus-hibernate-validator`, um corpo inválido não chega ao método: o Quarkus
+responde 400 com os campos que falharam.
+
+```java
+@Path("/pedidos")
+class PedidoResource {
+
+    @POST
+    PedidoResponse criar(@Valid CriarPedidoRequest request) {
+        return pedidos.criar(request);
+    }
+}
+```

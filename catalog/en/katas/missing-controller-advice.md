@@ -62,3 +62,45 @@ class ErrorHandler {
     }
 }
 ```
+
+## Before (Quarkus)
+
+```java
+@Path("/orders")
+class OrderResource {
+
+    @GET
+    @Path("/{id}")
+    OrderResponse find(Long id) {
+        return orders.find(id);
+    }
+}
+```
+
+## After (Quarkus)
+
+A single place turns exceptions into HTTP responses. In Quarkus REST, a `@ServerExceptionMapper`
+method that takes the exception and returns the response is enough, here in the RFC 9457 format.
+
+```java
+@Path("/orders")
+class OrderResource {
+
+    @GET
+    @Path("/{id}")
+    OrderResponse find(Long id) {
+        return orders.find(id);
+    }
+}
+
+class ErrorHandler {
+
+    @ServerExceptionMapper
+    RestResponse<Problem> notFound(OrderNotFoundException e) {
+        return RestResponse.status(Response.Status.NOT_FOUND, new Problem("Order not found", 404, e.getMessage()));
+    }
+}
+
+record Problem(String title, int status, String detail) {
+}
+```

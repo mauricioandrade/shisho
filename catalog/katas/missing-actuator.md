@@ -54,3 +54,32 @@ Por padrão só `/actuator/health` fica exposto na web; exponha outros endpoints
     </dependency>
 </dependencies>
 ```
+
+## Antes (Quarkus)
+
+```xml
+<dependencies>
+    <dependency>
+        <groupId>io.quarkus</groupId>
+        <artifactId>quarkus-rest</artifactId>
+    </dependency>
+</dependencies>
+```
+
+## Depois (Quarkus)
+
+A saúde fica em `/q/health`, com `/q/health/live` e `/q/health/ready` para as sondas do
+Kubernetes. Para métricas, acrescente `quarkus-micrometer`.
+
+```xml
+<dependencies>
+    <dependency>
+        <groupId>io.quarkus</groupId>
+        <artifactId>quarkus-rest</artifactId>
+    </dependency>
+    <dependency>
+        <groupId>io.quarkus</groupId>
+        <artifactId>quarkus-smallrye-health</artifactId>
+    </dependency>
+</dependencies>
+```

@@ -50,6 +50,13 @@ class ShishoBootstrapTest {
     }
 
     @Test
+    void theSenseiShowsTheQuarkusWayToAQuarkusStudent() {
+        assertThat(run("analyze", "--sensei", FIXTURES + "aluno-quarkus-baguncado")).isZero();
+        assertThat(out()).contains("Log.debugf(", "@ServerExceptionMapper", "<artifactId>quarkus-smallrye-health</artifactId>")
+                .doesNotContain("LoggerFactory", "spring-boot-starter-actuator");
+    }
+
+    @Test
     void aGradleBuildTeachesTheSameLessonsAsMaven(@TempDir Path temp) throws IOException {
         assertThat(run("analyze", FIXTURES + "aluno-quarkus-baguncado")).isZero();
         String maven = out();

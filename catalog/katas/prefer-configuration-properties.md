@@ -57,3 +57,43 @@ public class EmailService {
     }
 }
 ```
+
+## Antes (Quarkus)
+
+```java
+@ApplicationScoped
+public class EmailService {
+
+    EmailService(
+            @ConfigProperty(name = "loja.email.host") String host,
+            @ConfigProperty(name = "loja.email.porta") int porta,
+            @ConfigProperty(name = "loja.email.remetente") String remetente) {
+        this.cliente = new ClienteSmtp(host, porta, remetente);
+    }
+}
+```
+
+## Depois (Quarkus)
+
+Cada método da interface é uma propriedade com o nome dele (`porta()` lê `loja.email.porta`), e
+o Quarkus gera a implementação. A classe recebe a interface pelo construtor, como qualquer bean.
+
+```java
+@ConfigMapping(prefix = "loja.email")
+public interface EmailConfig {
+
+    String host();
+
+    int porta();
+
+    String remetente();
+}
+
+@ApplicationScoped
+public class EmailService {
+
+    EmailService(EmailConfig email) {
+        this.cliente = new ClienteSmtp(email.host(), email.porta(), email.remetente());
+    }
+}
+```

@@ -50,3 +50,32 @@ class OrderController {
     }
 }
 ```
+
+## Before (Quarkus)
+
+```java
+@Path("/orders")
+class OrderResource {
+
+    @POST
+    OrderResponse create(CreateOrderRequest request) {
+        return orders.create(request);
+    }
+}
+```
+
+## After (Quarkus)
+
+With the `quarkus-hibernate-validator` extension, an invalid body never reaches the method:
+Quarkus answers 400 with the fields that failed.
+
+```java
+@Path("/orders")
+class OrderResource {
+
+    @POST
+    OrderResponse create(@Valid CreateOrderRequest request) {
+        return orders.create(request);
+    }
+}
+```

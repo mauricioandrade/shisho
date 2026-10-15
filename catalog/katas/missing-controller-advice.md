@@ -65,3 +65,45 @@ class TratadorDeErros {
     }
 }
 ```
+
+## Antes (Quarkus)
+
+```java
+@Path("/pedidos")
+class PedidoResource {
+
+    @GET
+    @Path("/{id}")
+    PedidoResponse buscar(Long id) {
+        return pedidos.buscar(id);
+    }
+}
+```
+
+## Depois (Quarkus)
+
+Um só lugar traduz exceções em respostas HTTP. Na Quarkus REST, basta um método
+`@ServerExceptionMapper` que recebe a exceção e devolve a resposta, aqui no formato da RFC 9457.
+
+```java
+@Path("/pedidos")
+class PedidoResource {
+
+    @GET
+    @Path("/{id}")
+    PedidoResponse buscar(Long id) {
+        return pedidos.buscar(id);
+    }
+}
+
+class TratadorDeErros {
+
+    @ServerExceptionMapper
+    RestResponse<Problema> naoEncontrado(PedidoNaoEncontradoException e) {
+        return RestResponse.status(Response.Status.NOT_FOUND, new Problema("Pedido não encontrado", 404, e.getMessage()));
+    }
+}
+
+record Problema(String title, int status, String detail) {
+}
+```

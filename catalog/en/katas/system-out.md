@@ -66,3 +66,42 @@ public class OrderService {
     }
 }
 ```
+
+## Before (Quarkus)
+
+```java
+@ApplicationScoped
+public class OrderService {
+
+    public void create(Order order) {
+        try {
+            System.out.println("creating order " + order.id());
+            save(order);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+}
+```
+
+## After (Quarkus)
+
+`Log`, from `io.quarkus.logging`, saves you declaring the logger: at build time, Quarkus
+replaces each call with a logger of the calling class. Level, format and destination stay
+configurable in `quarkus.log.*`.
+
+```java
+@ApplicationScoped
+public class OrderService {
+
+    public void create(Order order) {
+        Log.debugf("creating order %s", order.id());
+        try {
+            save(order);
+        } catch (PersistenceException e) {
+            Log.errorf(e, "failed to save order %s", order.id());
+            throw e;
+        }
+    }
+}
+```

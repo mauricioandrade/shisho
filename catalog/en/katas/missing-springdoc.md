@@ -49,3 +49,32 @@ Swagger UI lives at `/swagger-ui.html` and the contract at `/v3/api-docs`. For W
     </dependency>
 </dependencies>
 ```
+
+## Before (Quarkus)
+
+```xml
+<dependencies>
+    <dependency>
+        <groupId>io.quarkus</groupId>
+        <artifactId>quarkus-rest</artifactId>
+    </dependency>
+</dependencies>
+```
+
+## After (Quarkus)
+
+The contract lives at `/q/openapi` and Swagger UI at `/q/swagger-ui`, which by default only
+shows up in dev and test; `quarkus.swagger-ui.always-include=true` takes it to production.
+
+```xml
+<dependencies>
+    <dependency>
+        <groupId>io.quarkus</groupId>
+        <artifactId>quarkus-rest</artifactId>
+    </dependency>
+    <dependency>
+        <groupId>io.quarkus</groupId>
+        <artifactId>quarkus-smallrye-openapi</artifactId>
+    </dependency>
+</dependencies>
+```

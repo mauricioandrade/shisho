@@ -19,7 +19,7 @@ Connector/J release notes. Each case, with its reason and alternative, is in
 During a planned migration, with both versions living together for a while. Also when another
 library you depend on requires the old one and there is no way out yet; in that case, turn the
 kata off in `shisho.yaml` and write down why. If the dependency only arrives transitively, the
-kata does not see it: it looks at what `pom.xml` declares.
+kata does not see it: it looks at what `pom.xml` or `build.gradle` declares.
 
 ## Before
 

@@ -22,7 +22,7 @@ Connector/J. Cada caso, com o motivo e a alternativa, está em `catalog/dependen
 Durante uma migração planejada, com as duas versões convivendo por um tempo. Também quando outra
 biblioteca de que você depende exige a antiga e ainda não há saída; nesse caso, desligue a kata
 no `shisho.yaml` e registre o motivo. Se a dependência só chega de forma transitiva, a kata não a
-vê: ela olha o que o `pom.xml` declara.
+vê: ela olha o que o `pom.xml` ou o `build.gradle` declara.
 
 ## Antes
 

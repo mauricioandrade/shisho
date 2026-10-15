@@ -19,11 +19,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * The Shishō judges what it generates: every catalog template, applied to a project like the
- * Spring Initializr's, must be recognized as its architecture and teach no lesson at all.
+ * Spring Initializr's or code.quarkus.io's, must be recognized as its architecture and teach no
+ * lesson at all.
  */
 class CrudOracleTest {
 
     private static final Path INITIALIZR = Path.of("src/test/resources/fixtures/initializr");
+    /** No class shows the base package, so the first CRUD is told it. */
+    private static final Path CODE_QUARKUS = Path.of("src/test/resources/fixtures/code-quarkus");
 
     /** What the report says in each language: the architecture line, the clean rank and the crud header. */
     private record Language(String code, Optional<String> translation, String architecture, String cleanRank, String crudHeader) {
@@ -45,17 +48,30 @@ class CrudOracleTest {
     private static final Language ENGLISH = new Language("en", Optional.of("en"),
             "\nArchitecture: ", "Rank: 1st dan  (no lessons)\n", "師匠 Shishō — CRUD of %s in %s\n");
 
-    static Stream<Arguments> scaffolds() {
-        return Stream.of(PORTUGUESE, ENGLISH).flatMap(language -> MarkdownCatalogRepository.bundled().scaffolds().stream()
-                .map(scaffold -> Arguments.of(language, scaffold.architectureId())));
+    /** A starting project of the template's stack. */
+    private record Stack(String name, Path fixture) {
+
+        @Override
+        public String toString() {
+            return name;
+        }
     }
 
-    @ParameterizedTest(name = "{1} ({0})")
-    @MethodSource("scaffolds")
-    void theGeneratedCrudPassesEveryKata(Language language, String architectureId, @TempDir Path project) throws IOException {
-        copyInitializr(project);
+    static Stream<Arguments> scaffolds() {
+        return Stream.of(PORTUGUESE, ENGLISH).flatMap(language -> MarkdownCatalogRepository.bundled().scaffolds().stream()
+                .map(scaffold -> Arguments.of(language, scaffold.architectureId(), scaffold.buildGroup().isPresent()
+                        ? new Stack("quarkus", CODE_QUARKUS)
+                        : new Stack("spring", INITIALIZR))));
+    }
 
-        assertThat(run(language, "crud", "--arquitetura", architectureId, "--mesmo-assim", project.toString(), "Produto",
+    @ParameterizedTest(name = "{1}, {2} ({0})")
+    @MethodSource("scaffolds")
+    void theGeneratedCrudPassesEveryKata(Language language, String architectureId, Stack stack, @TempDir Path project)
+            throws IOException {
+        copy(stack.fixture(), project);
+
+        assertThat(run(language, "crud", "--arquitetura", architectureId, "--mesmo-assim", "--pacote", "com.exemplo.loja",
+                project.toString(), "Produto",
                 "nome:String", "estoque:Integer", "codigoBarras:Long", "peso:Double", "ativo:Boolean", "preco:BigDecimal",
                 "lancamento:LocalDate", "atualizadoEm:LocalDateTime", "criadoEm:Instant", "codigo:UUID")).isZero();
         assertThat(run(language, "crud", "--arquitetura", architectureId, project.toString(), "ItemPedido", "quantidade:Integer")).isZero();
@@ -66,12 +82,13 @@ class CrudOracleTest {
                 .endsWith(language.cleanRank());
     }
 
-    @ParameterizedTest(name = "{1} ({0})")
+    @ParameterizedTest(name = "{1}, {2} ({0})")
     @MethodSource("scaffolds")
-    void theSecondCrudFollowsTheArchitectureWithoutBeingTold(Language language, String architectureId, @TempDir Path project)
-            throws IOException {
-        copyInitializr(project);
-        run(language, "crud", "--arquitetura", architectureId, "--mesmo-assim", project.toString(), "Produto", "nome:String");
+    void theSecondCrudFollowsTheArchitectureWithoutBeingTold(Language language, String architectureId, Stack stack,
+                                                             @TempDir Path project) throws IOException {
+        copy(stack.fixture(), project);
+        run(language, "crud", "--arquitetura", architectureId, "--mesmo-assim", "--pacote", "com.exemplo.loja", project.toString(),
+                "Produto", "nome:String");
 
         assertThat(run(language, "crud", project.toString(), "Fornecedor", "nome:String")).isZero();
         assertThat(lastOut).startsWith(language.crudHeader().formatted("Fornecedor", language.name(architectureId)));
@@ -95,10 +112,10 @@ class CrudOracleTest {
         return lastOut;
     }
 
-    private static void copyInitializr(Path project) throws IOException {
-        try (Stream<Path> files = Files.walk(INITIALIZR)) {
+    private static void copy(Path fixture, Path project) throws IOException {
+        try (Stream<Path> files = Files.walk(fixture)) {
             for (Path file : files.toList()) {
-                Path target = project.resolve(INITIALIZR.relativize(file).toString());
+                Path target = project.resolve(fixture.relativize(file).toString());
                 if (Files.isDirectory(file)) {
                     Files.createDirectories(target);
                 } else {

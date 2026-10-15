@@ -140,6 +140,37 @@ class GenerateCrudServiceTest {
     }
 
     @Test
+    void aQuarkusProjectGetsTheQuarkusTemplateAndKeepsItsExceptionMappers() {
+        CrudPlan plan = service.plan(FIXTURES.resolve("aluno-quarkus"), new CrudRequest("Pedido",
+                List.of(new CrudRequest.Field("total", "BigDecimal")), Optional.of("package-by-feature"), Optional.of("com.exemplo.loja"),
+                Optional.empty()));
+
+        assertThat(plan.files()).extracting(GeneratedFile::file)
+                .contains(Path.of("src/main/java/com/exemplo/loja/pedido/PedidoResource.java"))
+                .noneMatch(file -> file.toString().endsWith("Controller.java"));
+        assertThat(plan.skipped()).extracting(GeneratedFile::file).as("the fixture has a @ServerExceptionMapper method")
+                .containsExactly(Path.of("src/main/java/com/exemplo/loja/TratadorDeErros.java"));
+        assertThat(plan.missingDependencies()).isEmpty();
+    }
+
+    @Test
+    void listsTheQuarkusExtensionsTheBuildLacks(@TempDir Path project) throws IOException {
+        Files.writeString(project.resolve("pom.xml"), """
+                <project><dependencies><dependency>
+                <groupId>io.quarkus</groupId><artifactId>quarkus-rest-jackson</artifactId>
+                </dependency></dependencies></project>
+                """);
+
+        CrudPlan plan = service.plan(project, new CrudRequest("Usuario", List.of(new CrudRequest.Field("nome", "String")),
+                Optional.of("layered"), Optional.of("com.loja"), Optional.empty()));
+
+        assertThat(plan.missingDependencies())
+                .containsExactly(List.of("quarkus-hibernate-validator"), List.of("quarkus-hibernate-orm-panache"));
+        assertThat(plan.files()).extracting(GeneratedFile::file)
+                .contains(Path.of("src/main/java/com/loja/resource/UsuarioResource.java"));
+    }
+
+    @Test
     void asksForThePackageOfAnEmptyProject(@TempDir Path project) {
         assertThatExceptionOfType(ScaffoldException.class)
                 .isThrownBy(() -> service.plan(project, request(Optional.of("layered"))))

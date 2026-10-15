@@ -32,6 +32,7 @@ import java.util.stream.Stream;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.entry;
+import static org.assertj.core.api.Assertions.tuple;
 
 class MarkdownCatalogRepositoryTest {
 
@@ -452,8 +453,11 @@ class MarkdownCatalogRepositoryTest {
             MarkdownCatalogRepository catalog = MarkdownCatalogRepository.bundled();
             Set<String> architectures = catalog.architectures().stream().map(ArchitectureProfile::id).collect(Collectors.toSet());
 
-            assertThat(catalog.scaffolds()).extracting(Scaffold::architectureId).containsExactly("hexagonal", "layered", "package-by-feature")
-                    .allMatch(architectures::contains);
+            assertThat(catalog.scaffolds()).extracting(Scaffold::architectureId, Scaffold::buildGroup).containsExactly(
+                    tuple("hexagonal", Optional.of("io.quarkus")), tuple("hexagonal", Optional.empty()),
+                    tuple("layered", Optional.of("io.quarkus")), tuple("layered", Optional.empty()),
+                    tuple("package-by-feature", Optional.of("io.quarkus")), tuple("package-by-feature", Optional.empty()));
+            assertThat(catalog.scaffolds()).extracting(Scaffold::architectureId).allMatch(architectures::contains);
             assertThat(catalog.scaffolds()).allSatisfy(scaffold -> assertThat(scaffold.files()).allSatisfy(file -> {
                 assertThat(file.path()).as(scaffold.architectureId()).endsWith(".java");
                 assertThat(file.explanation()).as(file.path()).isNotBlank();

@@ -49,11 +49,25 @@ projeto com os dois arquivos (raro, em geral uma migração pela metade) é lido
 É a segunda implementação real da porta `BuildFileReader`, então a porta continua do jeito que
 estava; o composto mora em `infrastructure/build`, e o `domain` não sabe que existe Gradle.
 
-### 3. O que não é visto
+### 3. O version catalog padrão
+
+Projetos Gradle novos costumam declarar as dependências em `gradle/libs.versions.toml` e usá-las
+por um acessor: `implementation(libs.spring.boot.starter.web)`. Sem ler esse arquivo, um build
+assim parecia não ter dependência nenhuma, e katas como `missing-actuator` acusariam o que o
+projeto tem.
+
+`VersionCatalog` lê só a tabela `[libraries]`, nas três formas que o Gradle aceita
+(`"g:a:v"`, `{ module = "g:a" }` e `{ group = "g", name = "a" }`), e transforma cada alias no
+acessor do jeito que o Gradle faz: `-`, `_` e `.` viram ponto, então `spring-boot-starter-web`
+é `libs.spring.boot.starter.web`. Não precisa de biblioteca de TOML: no TOML 1.0 uma tabela
+inline ocupa uma linha só, e é nessa forma que uma biblioteca aparece. Um acessor que não está no
+catálogo (um bundle, um erro de digitação) é ignorado, e `platform(libs...)` continua fora.
+
+### 4. O que não é visto
 
 - versão ou dependência calculada pelo script: `JavaLanguageVersion.of(jdkVersion)`, `if`, loops;
-- **version catalogs** (`implementation(libs.spring.boot.starter.web)`), que vivem em
-  `gradle/libs.versions.toml`;
+- `[bundles]` do version catalog (`libs.bundles.web`), cujos arrays podem ocupar várias linhas,
+  e catálogos com outro nome declarados no `settings.gradle`;
 - multi-módulo (`settings.gradle` com `include`), igual ao Maven hoje;
 - `kotlin { jvmToolchain(21) }`, que é configuração de projeto Kotlin.
 
@@ -74,8 +88,10 @@ do arquivo de build trocado.
 - **Parser de Groovy e de Kotlin.** Duas gramáticas e duas dependências pesadas para chegar numa
   AST que ainda precisaria ser interpretada. As expressões regulares cobrem as formas que os
   geradores escrevem, que é o que um aluno tem.
-- **Ler `gradle/libs.versions.toml`.** Útil, mas TOML pediria uma dependência nova (o JDK não
-  tem parser) ou um parser próprio. Fica para quando um aluno real chegar com catalog.
+- **Uma biblioteca de TOML** para o version catalog. Leria o arquivo inteiro, bundles inclusive,
+  mas seria uma dependência nova para uma tabela que cabe em duas expressões regulares. Na
+  primeira versão deste ADR o catalog ficou de fora por esse motivo; a leitura linha a linha
+  resolveu sem a dependência.
 
 ## 📚 Estudo — declarar versus executar
 

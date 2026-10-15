@@ -640,7 +640,7 @@ downloads. Why it works this way: [ADR 0010](docs/adr/0010-release.md).
 - [x] **Phase 11**: a release with the ready-made jar for every tag, and a one-command install
 - [x] **Phase 12**: Quarkus: the katas, shoshin and the classification recognize CDI, Jakarta REST
   and Panache
-- [x] **Phase 13**: Gradle: `build.gradle` and `build.gradle.kts` read without running the script
+- [x] **Phase 13**: Gradle: `build.gradle`, `build.gradle.kts` and the version catalog read without running the script
   ([ADR 0013](docs/adr/0013-gradle.md))
 - [x] **Phase 14**: `shisho crud` in Quarkus projects, in all three architectures
   ([ADR 0014](docs/adr/0014-quarkus-crud.md))

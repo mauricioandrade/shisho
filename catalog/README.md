@@ -151,6 +151,11 @@ As quatro seções e `referencias` (URLs `https://`) são obrigatórias, assim c
 código em "Antes" e em "Depois". Um teste roda cada kata sobre o próprio exemplo: o "Antes"
 precisa gerar a lição e o "Depois" não pode gerar nenhuma. Toda kata precisa de um guia.
 
+Quando a kata explica a lição de outro jeito num framework (a chave `kata.<id>.lesson.quarkus`),
+o guia traz também `## Antes (Quarkus)` e `## Depois (Quarkus)`, no mesmo formato. Uma lição
+com essa chave mostra esse exemplo no lugar do padrão, no modo sensei, no HTML e no SARIF. O
+teste roda o exemplo num projeto Quarkus e exige a lição com a chave `.quarkus`.
+
 ## Templates de CRUD (`scaffolds/`)
 
 Cada arquivo ensina o `shisho crud` a gerar um CRUD REST numa arquitetura: um arquivo por

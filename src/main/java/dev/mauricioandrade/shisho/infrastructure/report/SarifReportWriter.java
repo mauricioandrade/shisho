@@ -78,7 +78,7 @@ public final class SarifReportWriter implements ReportWriter {
         rule.put("id", lesson.kataId());
         rule.put("shortDescription", Map.of("text", texts.text("kata." + lesson.kataId() + ".title")));
         rule.put("helpUri", INFORMATION_URI + "#katas");
-        texts.guide(lesson.kataId()).ifPresent(guide -> rule.put("help", help(guide)));
+        texts.guide(lesson).ifPresent(guide -> rule.put("help", help(guide)));
         rule.put("defaultConfiguration", Map.of("level", level(lesson.severity())));
         return rule;
     }

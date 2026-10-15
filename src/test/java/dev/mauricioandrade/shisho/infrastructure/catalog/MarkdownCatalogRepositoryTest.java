@@ -12,6 +12,7 @@ import dev.mauricioandrade.shisho.domain.model.Dependency;
 import dev.mauricioandrade.shisho.domain.model.JavaFeature;
 import dev.mauricioandrade.shisho.domain.model.JavaVersion;
 import dev.mauricioandrade.shisho.domain.model.KataGuide;
+import dev.mauricioandrade.shisho.domain.model.KataGuide.Example;
 import dev.mauricioandrade.shisho.domain.model.KataGuide.Snippet;
 import dev.mauricioandrade.shisho.domain.model.ProjectContext;
 import dev.mauricioandrade.shisho.domain.model.Scaffold;
@@ -30,6 +31,7 @@ import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.entry;
 
 class MarkdownCatalogRepositoryTest {
 
@@ -189,6 +191,26 @@ class MarkdownCatalogRepositoryTest {
             assertThatThrownBy(() -> new MarkdownCatalogRepository(catalog).kataGuides())
                     .isInstanceOfSatisfying(CatalogException.class, e ->
                             assertThat(e.messageKey()).isEqualTo("catalog.error.invalid-value"));
+        }
+
+        @Test
+        void readsTheExampleOfAVariant() throws IOException {
+            String code = "## Antes\n\n```java\nx();\n```\n\n## Depois\n\n```java\ny();\n```\n\n";
+            String prose = "---\nid: system-out\nreferencias: [https://x.dev]\n---\n\n## Por quê\n\nX.\n\n## Quando é aceitável\n\nY.\n\n";
+            write("system-out.md", prose + code + "## Antes (Quarkus)\n\n```java\nq();\n```\n\n## Depois (Quarkus)\n\nUse Log.\n\n```java\nLog.info();\n```\n");
+
+            KataGuide guide = new MarkdownCatalogRepository(catalog).kataGuides().getFirst();
+
+            assertThat(guide.variants()).containsExactly(entry("quarkus", new Example(
+                    new Snippet("java", "q();", ""), new Snippet("java", "Log.info();", "Use Log."))));
+            assertThat(guide.after().code()).as("the default example ends where the variant begins").isEqualTo("y();");
+            assertThat(guide.in(Optional.of("quarkus")).before().code()).isEqualTo("q();");
+            assertThat(guide.in(Optional.of("other")).before().code()).isEqualTo("x();");
+
+            write("system-out.md", prose + code + "## Antes (Quarkus)\n\n```java\nq();\n```\n");
+            assertThatThrownBy(() -> new MarkdownCatalogRepository(catalog).kataGuides())
+                    .isInstanceOfSatisfying(CatalogException.class, e ->
+                            assertThat(e.arguments()).containsExactly("system-out.md", "## Depois (Quarkus)"));
         }
 
         @Test

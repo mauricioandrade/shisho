@@ -11,6 +11,7 @@ import dev.mauricioandrade.shisho.domain.model.SourceFile;
 import dev.mauricioandrade.shisho.domain.model.Verdict;
 import dev.mauricioandrade.shisho.infrastructure.i18n.Messages;
 
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -28,17 +29,33 @@ public final class ReportTexts {
         this.guides = guides.stream().collect(Collectors.toMap(KataGuide::kataId, Function.identity()));
     }
 
-    /** The guides of the katas that taught a lesson, in the order of their first lesson. */
+    /**
+     * The guides of the katas that taught a lesson, in the order of their first lesson, each with
+     * the example of that lesson's variant.
+     */
     List<KataGuide> guides(Analysis analysis) {
         return analysis.lessons().stream()
-                .map(Lesson::kataId)
-                .distinct()
-                .flatMap(kataId -> Optional.ofNullable(guides.get(kataId)).stream())
+                .collect(Collectors.toMap(Lesson::kataId, lesson -> lesson, (first, _) -> first, LinkedHashMap::new))
+                .values().stream()
+                .flatMap(lesson -> guide(lesson).stream())
                 .toList();
     }
 
     Optional<KataGuide> guide(String kataId) {
         return Optional.ofNullable(guides.get(kataId));
+    }
+
+    /** The guide of the lesson's kata, with the example the lesson's variant uses. */
+    Optional<KataGuide> guide(Lesson lesson) {
+        return guide(lesson.kataId()).map(guide -> guide.in(variant(lesson)));
+    }
+
+    /** {@code quarkus} for the message key {@code kata.<id>.lesson.quarkus}. */
+    private static Optional<String> variant(Lesson lesson) {
+        String prefix = "kata." + lesson.kataId() + ".lesson.";
+        return lesson.messageKey().startsWith(prefix)
+                ? Optional.of(lesson.messageKey().substring(prefix.length()))
+                : Optional.empty();
     }
 
     public String title(String kataId) {

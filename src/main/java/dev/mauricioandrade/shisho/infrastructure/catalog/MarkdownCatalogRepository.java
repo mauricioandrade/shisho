@@ -17,6 +17,7 @@ import dev.mauricioandrade.shisho.domain.model.JavaFeature;
 import dev.mauricioandrade.shisho.domain.model.JavaFeature.Status;
 import dev.mauricioandrade.shisho.domain.model.JavaVersion;
 import dev.mauricioandrade.shisho.domain.model.KataGuide;
+import dev.mauricioandrade.shisho.domain.model.KataGuide.Example;
 import dev.mauricioandrade.shisho.domain.model.KataGuide.Snippet;
 import dev.mauricioandrade.shisho.domain.model.Scaffold;
 import dev.mauricioandrade.shisho.domain.port.out.CatalogRepository;
@@ -37,6 +38,7 @@ import java.nio.file.Path;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -63,6 +65,8 @@ public final class MarkdownCatalogRepository implements CatalogRepository {
     private static final List<String> ACCEPTABLE_WHEN = List.of("Quando é aceitável", "Acceptable when");
     private static final List<String> BEFORE = List.of("Antes", "Before");
     private static final List<String> AFTER = List.of("Depois", "After");
+    /** {@code ## Antes (Quarkus)}: the before of a variant, whose after is {@code ## Depois (Quarkus)}. */
+    private static final Pattern VARIANT_BEFORE = Pattern.compile("(?:Antes|Before) \\((.+)\\)");
     private static final List<String> WHAT_IT_IS = List.of("O que é", "What it is");
     private static final List<String> EXAMPLE = List.of("Exemplo", "Example");
     /** The conditions a concept signal may set. See docs/adr/0009-shoshin.md. */
@@ -334,7 +338,22 @@ public final class MarkdownCatalogRepository implements CatalogRepository {
                 paragraphs(document.fileName(), sections, heading(sections, ACCEPTABLE_WHEN)),
                 snippet(document.fileName(), sections, heading(sections, BEFORE)),
                 snippet(document.fileName(), sections, heading(sections, AFTER)),
+                variants(document.fileName(), sections),
                 references);
+    }
+
+    /** By the variant's name in lower case: {@code ## Antes (Quarkus)} is the variant {@code quarkus}. */
+    private static Map<String, Example> variants(String fileName, Map<String, String> sections) {
+        Map<String, Example> variants = new LinkedHashMap<>();
+        for (String section : sections.keySet()) {
+            Matcher before = VARIANT_BEFORE.matcher(section);
+            if (before.matches()) {
+                String after = (section.startsWith("Antes") ? "Depois" : "After") + " (" + before.group(1) + ")";
+                variants.put(before.group(1).toLowerCase(Locale.ROOT),
+                        new Example(snippet(fileName, sections, section), snippet(fileName, sections, after)));
+            }
+        }
+        return variants;
     }
 
     /** The text under each {@code ## heading}, by heading, in order. */

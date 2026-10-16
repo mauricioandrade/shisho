@@ -99,7 +99,8 @@ as `dominio`, `servico` and `porta/entrada` just as well as `domain`, `service` 
 
 ## ⚡ Quick start
 
-Point it at the root of a Maven or Gradle project on Java 21 or later:
+Point it at the root of a Maven or Gradle project on Java 21 or later (in a multi-module project, the root that lists
+the modules):
 
 | Command | What it does |
 |---|---|
@@ -644,6 +645,8 @@ downloads. Why it works this way: [ADR 0010](docs/adr/0010-release.md).
   ([ADR 0013](docs/adr/0013-gradle.md))
 - [x] **Phase 14**: `shisho crud` in Quarkus projects, in all three architectures
   ([ADR 0014](docs/adr/0014-quarkus-crud.md))
+- [x] **Phase 15**: multi-module: Maven and Gradle modules, each lesson in its module's build
+  ([ADR 0015](docs/adr/0015-multi-module.md))
 - [ ] **Next**: other stacks, reusing the architecture catalog
 
 ![Sung Jinwoo, from Solo Leveling, striking with a dagger among stone statues](docs/anime/roadmap.gif)

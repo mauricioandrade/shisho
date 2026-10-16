@@ -96,7 +96,8 @@ O código analisado pode estar em português ou em inglês: o Shishō reconhece 
 
 ## ⚡ Uso rápido
 
-Aponte para a raiz de um projeto Maven ou Gradle com Java 21 ou superior:
+Aponte para a raiz de um projeto Maven ou Gradle com Java 21 ou superior (num multi-módulo, a raiz que lista os
+módulos):
 
 | Comando | O que faz |
 |---|---|
@@ -630,6 +631,8 @@ que assim: [ADR 0010](docs/adr/0010-release.md).
   ([ADR 0013](docs/adr/0013-gradle.md))
 - [x] **Fase 14** — `shisho crud` em projetos Quarkus, nas três arquiteturas
   ([ADR 0014](docs/adr/0014-quarkus-crud.md))
+- [x] **Fase 15** — multi-módulo: os módulos do Maven e do Gradle, cada lição no build do seu módulo
+  ([ADR 0015](docs/adr/0015-multi-module.md))
 - [ ] **Depois** — outras stacks, reaproveitando o catálogo de arquiteturas
 
 ![Sung Jinwoo, de Solo Leveling, atacando com uma adaga em meio a estátuas de pedra](docs/anime/roadmap.gif)

@@ -71,7 +71,8 @@ de antes.
   com build é, na prática, um multi-módulo.
 
 O que continua de fora: módulos ativados só num `<profile>`, `project(":x").projectDir = file(...)`
-no Gradle e dependências declaradas em `subprojects { }` ou em convention plugins do `buildSrc`.
+no Gradle e dependências declaradas em convention plugins do `buildSrc`. As de `subprojects { }` e
+`allprojects { }` passaram a ser lidas como do build da raiz ([ADR 0013](0013-gradle.md)).
 
 ## 📚 Estudo — agregação e herança
 

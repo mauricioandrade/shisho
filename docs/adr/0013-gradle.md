@@ -37,7 +37,10 @@ A precedência repete a do próprio Gradle: `release` decide o nível de linguag
 aceita; sem ele, a versão da toolchain vira o padrão do `sourceCompatibility`.
 
 Só conta o bloco `dependencies { }` **de nível superior**: o de dentro de `buildscript { }` traz
-plugins do Gradle, não bibliotecas do projeto. `platform(...)` e `enforcedPlatform(...)` são BOMs
+plugins do Gradle, não bibliotecas do projeto. A exceção são os blocos `subprojects { }` e
+`allprojects { }` do script, também de nível superior: o `dependencies` de dentro deles é o que a
+raiz dá aos módulos, e conta como declarado no build da raiz, que é onde a lição sobre ele deve
+apontar ([ADR 0015](0015-multi-module.md)). `platform(...)` e `enforcedPlatform(...)` são BOMs
 e ficam de fora, como o `dependencyManagement` do Maven. Comentários são removidos antes da
 leitura (respeitando strings, para que `'https://...'` não vire comentário), então uma
 dependência comentada não conta.

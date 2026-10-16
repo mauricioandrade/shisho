@@ -64,6 +64,9 @@ public final class GradleBuildFileReader implements BuildFileReader {
 
     private static final Pattern DEPENDENCIES_BLOCK = Pattern.compile("\\bdependencies\\s*\\{");
 
+    /** Blocks of the root script whose {@code dependencies} every module gets. */
+    private static final Pattern SHARED_BLOCK = Pattern.compile("\\b(?:subprojects|allprojects)\\s*\\{");
+
     /**
      * A multi-project root may have no script of its own, only the settings: the build is then the
      * settings file, with the included projects as modules.
@@ -141,17 +144,14 @@ public final class GradleBuildFileReader implements BuildFileReader {
     }
 
     /**
-     * Only the top-level {@code dependencies} block: {@code buildscript}'s holds Gradle plugins. An
-     * accessor missing from {@code catalog} (a typo, another catalog) is skipped.
+     * Only the top-level {@code dependencies} block and those of {@code subprojects} and
+     * {@code allprojects}, which the root declares for its modules: {@code buildscript}'s holds
+     * Gradle plugins. An accessor missing from {@code catalog} (a typo, another catalog) is skipped.
      */
     private static List<Dependency> dependencies(String code, Map<String, List<Dependency>> catalog) {
         List<Dependency> dependencies = new ArrayList<>();
-        Matcher block = DEPENDENCIES_BLOCK.matcher(code);
-        while (block.find()) {
-            if (depth(code, block.start()) != 0) {
-                continue;
-            }
-            Matcher dependency = DEPENDENCY.matcher(code.substring(block.end(), closingBrace(code, block.end())));
+        for (String block : topLevelBlocks(code, DEPENDENCIES_BLOCK)) {
+            Matcher dependency = DEPENDENCY.matcher(block);
             while (dependency.find()) {
                 if (PLATFORMS.contains(dependency.group("configuration"))) {
                     continue;
@@ -165,7 +165,22 @@ public final class GradleBuildFileReader implements BuildFileReader {
                 }
             }
         }
+        for (String shared : topLevelBlocks(code, SHARED_BLOCK)) {
+            dependencies.addAll(dependencies(shared, catalog));
+        }
         return dependencies.stream().distinct().toList();
+    }
+
+    /** The bodies of the blocks {@code opening} starts outside any other block. */
+    private static List<String> topLevelBlocks(String code, Pattern opening) {
+        List<String> blocks = new ArrayList<>();
+        Matcher block = opening.matcher(code);
+        while (block.find()) {
+            if (depth(code, block.start()) == 0) {
+                blocks.add(code.substring(block.end(), closingBrace(code, block.end())));
+            }
+        }
+        return blocks;
     }
 
     /** Braces open before {@code position}, outside strings. */

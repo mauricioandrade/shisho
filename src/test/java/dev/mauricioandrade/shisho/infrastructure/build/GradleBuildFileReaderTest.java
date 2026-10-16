@@ -280,6 +280,34 @@ class GradleBuildFileReaderTest {
     }
 
     @Test
+    void readsTheDependenciesTheRootSharesWithItsModules() throws IOException {
+        writeGroovy("""
+                buildscript {
+                    dependencies { classpath 'org.springframework.boot:spring-boot-gradle-plugin:3.5.6' }
+                }
+                allprojects {
+                    repositories { mavenCentral() }
+                    dependencies { testImplementation 'org.junit.jupiter:junit-jupiter' }
+                }
+                subprojects {
+                    buildscript {
+                        dependencies { classpath 'com.example:plugin' }
+                    }
+                    dependencies {
+                        implementation 'org.springframework.boot:spring-boot-starter-actuator'
+                    }
+                }
+                configurations {
+                    subprojects { }
+                }
+                """);
+
+        assertThat(reader.read(project).orElseThrow().dependencies()).containsExactly(
+                new Dependency("org.junit.jupiter", "junit-jupiter"),
+                new Dependency("org.springframework.boot", "spring-boot-starter-actuator"));
+    }
+
+    @Test
     void readsCatalogAccessorsInGroovy() throws IOException {
         Files.createDirectories(project.resolve("gradle"));
         Files.writeString(project.resolve("gradle/libs.versions.toml"), """

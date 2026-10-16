@@ -61,13 +61,19 @@ projeto tem.
 acessor do jeito que o Gradle faz: `-`, `_` e `.` viram ponto, então `spring-boot-starter-web`
 é `libs.spring.boot.starter.web`. Não precisa de biblioteca de TOML: no TOML 1.0 uma tabela
 inline ocupa uma linha só, e é nessa forma que uma biblioteca aparece. Um acessor que não está no
-catálogo (um bundle, um erro de digitação) é ignorado, e `platform(libs...)` continua fora.
+catálogo (um erro de digitação, outro catálogo) é ignorado, e `platform(libs...)` continua fora.
+
+A tabela `[bundles]` também é lida: `implementation(libs.bundles.web)` vale pelas bibliotecas que o
+bundle `web` lista. O array de um bundle pode ocupar várias linhas, então as linhas são juntadas até o
+`]`; nenhum nome de biblioteca tem colchete, e isso basta. Os nomes são resolvidos depois de ler o
+arquivo inteiro, porque `[bundles]` pode vir antes de `[libraries]`, e um nome que não é biblioteca é
+ignorado, como o acessor desconhecido.
 
 ### 4. O que não é visto
 
 - versão ou dependência calculada pelo script: `JavaLanguageVersion.of(jdkVersion)`, `if`, loops;
-- `[bundles]` do version catalog (`libs.bundles.web`), cujos arrays podem ocupar várias linhas,
-  e catálogos com outro nome declarados no `settings.gradle`;
+- catálogos com outro nome declarados no `settings.gradle` (os `[bundles]` do catálogo padrão
+  eram desta lista até serem lidos, ver a seção 3);
 - multi-módulo (`settings.gradle` com `include`), igual ao Maven na época; resolvido no
   [ADR 0015](0015-multi-module.md);
 - `kotlin { jvmToolchain(21) }`, que é configuração de projeto Kotlin.
@@ -90,7 +96,7 @@ do arquivo de build trocado.
   AST que ainda precisaria ser interpretada. As expressões regulares cobrem as formas que os
   geradores escrevem, que é o que um aluno tem.
 - **Uma biblioteca de TOML** para o version catalog. Leria o arquivo inteiro, bundles inclusive,
-  mas seria uma dependência nova para uma tabela que cabe em duas expressões regulares. Na
+  mas seria uma dependência nova para duas tabelas que cabem em poucas expressões regulares. Na
   primeira versão deste ADR o catalog ficou de fora por esse motivo; a leitura linha a linha
   resolveu sem a dependência.
 

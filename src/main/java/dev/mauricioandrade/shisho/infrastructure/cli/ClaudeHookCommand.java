@@ -34,7 +34,8 @@ public final class ClaudeHookCommand implements Callable<Integer> {
 
     /** PostToolUse: exit code 2 shows standard error to Claude. */
     static final int EXIT_SHOW_CLAUDE = 2;
-    private static final List<String> BUILD_FILES = List.of("pom.xml", "build.gradle.kts", "build.gradle");
+    private static final List<String> BUILD_FILES = List.of("pom.xml", "build.gradle.kts", "build.gradle", "settings.gradle.kts",
+            "settings.gradle");
 
     private final AnalyzeProject analyzeProject;
     private final Messages messages;
@@ -96,14 +97,20 @@ public final class ClaudeHookCommand implements Callable<Integer> {
         return Optional.of(file.toAbsolutePath().normalize());
     }
 
-    /** The nearest directory above the file with a Maven or Gradle build. */
+    /**
+     * The nearest directory above the file with a Maven or Gradle build, or, when that is a module,
+     * the root of the multi-module project: the topmost of the directories with a build right above
+     * it. A module alone would be analyzed without the rest of the architecture.
+     */
     private static Optional<Path> projectRoot(Path file) {
-        for (Path directory = file.getParent(); directory != null; directory = directory.getParent()) {
-            if (hasBuild(directory)) {
-                return Optional.of(directory);
-            }
+        Path directory = file.getParent();
+        while (directory != null && !hasBuild(directory)) {
+            directory = directory.getParent();
         }
-        return Optional.empty();
+        while (directory != null && directory.getParent() != null && hasBuild(directory.getParent())) {
+            directory = directory.getParent();
+        }
+        return Optional.ofNullable(directory);
     }
 
     private static boolean hasBuild(Path directory) {

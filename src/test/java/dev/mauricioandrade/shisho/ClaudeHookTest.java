@@ -56,6 +56,20 @@ class ClaudeHookTest {
     }
 
     @Test
+    void analyzesAModuleTogetherWithTheRestOfTheProject() throws IOException {
+        copy(MESSY, project.resolve("app"));
+        Files.writeString(project.resolve("pom.xml"), """
+                <project><modelVersion>4.0.0</modelVersion><artifactId>loja</artifactId><packaging>pom</packaging>
+                <modules><module>app</module></modules></project>
+                """);
+
+        assertThat(hook(json(project.resolve("app").resolve(CONTROLLER).toString(), "/"))).isEqualTo(2);
+        assertThat(err()).contains("[field-injection]");
+        assertThat(err().replaceAll("\\s+", " ").strip()).as("the root of the multi-module project")
+                .endsWith("--sensei " + project);
+    }
+
+    @Test
     void leavesTheSuggestionsOut() throws IOException {
         copy(MESSY, project);
 

@@ -68,7 +68,8 @@ catálogo (um bundle, um erro de digitação) é ignorado, e `platform(libs...)`
 - versão ou dependência calculada pelo script: `JavaLanguageVersion.of(jdkVersion)`, `if`, loops;
 - `[bundles]` do version catalog (`libs.bundles.web`), cujos arrays podem ocupar várias linhas,
   e catálogos com outro nome declarados no `settings.gradle`;
-- multi-módulo (`settings.gradle` com `include`), igual ao Maven hoje;
+- multi-módulo (`settings.gradle` com `include`), igual ao Maven na época; resolvido no
+  [ADR 0015](0015-multi-module.md);
 - `kotlin { jvmToolchain(21) }`, que é configuração de projeto Kotlin.
 
 Nesses casos o Shishō faz o mesmo que faz com um parent remoto no Maven: assume Java 21 e diz

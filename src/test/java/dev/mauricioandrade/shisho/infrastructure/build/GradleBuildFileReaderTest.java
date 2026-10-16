@@ -238,7 +238,6 @@ class GradleBuildFileReaderTest {
                     implementation(libs.spring.boot.starter.web)
                     compileOnly(libs.lombok)
                     implementation(libs.springdoc.webmvc)
-                    implementation(libs.bundles.web)
                     implementation(libs.not.in.the.catalog)
                 }
                 """);
@@ -247,6 +246,37 @@ class GradleBuildFileReaderTest {
                 new Dependency("org.springframework.boot", "spring-boot-starter-web"),
                 new Dependency("org.projectlombok", "lombok"),
                 new Dependency("org.springdoc", "springdoc-openapi-starter-webmvc-ui"));
+    }
+
+    @Test
+    void readsTheLibrariesOfABundle() throws IOException {
+        Files.createDirectories(project.resolve("gradle"));
+        Files.writeString(project.resolve("gradle/libs.versions.toml"), """
+                [bundles]
+                web = [
+                    "spring-boot-starter-web", # the bundles may come before the libraries
+                    "springdoc_webmvc",
+                    "not-a-library",
+                ]
+                ops = ["spring-boot-starter-actuator"]
+
+                [libraries]
+                spring-boot-starter-web = { module = "org.springframework.boot:spring-boot-starter-web" }
+                spring-boot-starter-actuator = { module = "org.springframework.boot:spring-boot-starter-actuator" }
+                springdoc_webmvc = { group = "org.springdoc", name = "springdoc-openapi-starter-webmvc-ui" }
+                """);
+        writeKotlin("""
+                dependencies {
+                    implementation(libs.bundles.web)
+                    implementation(libs.bundles.ops)
+                    implementation(libs.bundles.unknown)
+                }
+                """);
+
+        assertThat(reader.read(project).orElseThrow().dependencies()).containsExactly(
+                new Dependency("org.springframework.boot", "spring-boot-starter-web"),
+                new Dependency("org.springdoc", "springdoc-openapi-starter-webmvc-ui"),
+                new Dependency("org.springframework.boot", "spring-boot-starter-actuator"));
     }
 
     @Test

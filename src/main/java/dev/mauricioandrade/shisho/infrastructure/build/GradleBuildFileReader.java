@@ -22,8 +22,8 @@ import java.util.stream.Stream;
  * Reads the Java version and dependencies from a {@code build.gradle.kts} or {@code build.gradle},
  * and from the scripts of the projects that {@code settings.gradle(.kts)} includes. The script is never run: it is code from an untrusted project, and running
  * it would need Gradle and the network. The reader recognizes the literal forms that Spring
- * Initializr, code.quarkus.io and the Gradle docs write, plus the libraries of the default version
- * catalog; a version or a dependency computed by the script (a variable, an {@code if}) is not seen.
+ * Initializr, code.quarkus.io and the Gradle docs write, plus the libraries and bundles of the
+ * default version catalog; a version or a dependency computed by the script (a variable, an {@code if}) is not seen.
  * See {@code docs/adr/0013-gradle.md} and {@code docs/adr/0015-multi-module.md}.
  */
 public final class GradleBuildFileReader implements BuildFileReader {
@@ -70,7 +70,7 @@ public final class GradleBuildFileReader implements BuildFileReader {
      */
     @Override
     public Optional<BuildInfo> read(Path projectRoot) {
-        Map<String, Dependency> catalog = VersionCatalog.libraries(projectRoot);
+        Map<String, List<Dependency>> catalog = VersionCatalog.dependencies(projectRoot);
         Optional<Path> settings = existing(projectRoot, Path.of(""), SETTINGS);
         List<BuildInfo> modules = settings.stream()
                 .flatMap(file -> included(projectRoot, file))
@@ -81,7 +81,7 @@ public final class GradleBuildFileReader implements BuildFileReader {
                 .or(() -> settings.map(file -> new BuildInfo(file, Optional.empty(), List.of(), modules)));
     }
 
-    private static Optional<BuildInfo> script(Path projectRoot, Path directory, Map<String, Dependency> catalog) {
+    private static Optional<BuildInfo> script(Path projectRoot, Path directory, Map<String, List<Dependency>> catalog) {
         return existing(projectRoot, directory, SCRIPTS).map(script -> {
             String code = withoutComments(readScript(projectRoot.resolve(script)));
             return new BuildInfo(script, javaVersion(projectRoot.resolve(script), code), dependencies(code, catalog));
@@ -142,9 +142,9 @@ public final class GradleBuildFileReader implements BuildFileReader {
 
     /**
      * Only the top-level {@code dependencies} block: {@code buildscript}'s holds Gradle plugins. An
-     * accessor missing from {@code catalog} (a bundle, a typo) is skipped.
+     * accessor missing from {@code catalog} (a typo, another catalog) is skipped.
      */
-    private static List<Dependency> dependencies(String code, Map<String, Dependency> catalog) {
+    private static List<Dependency> dependencies(String code, Map<String, List<Dependency>> catalog) {
         List<Dependency> dependencies = new ArrayList<>();
         Matcher block = DEPENDENCIES_BLOCK.matcher(code);
         while (block.find()) {
@@ -160,8 +160,8 @@ public final class GradleBuildFileReader implements BuildFileReader {
                     dependencies.add(new Dependency(dependency.group("group"), dependency.group("artifact")));
                 } else if (dependency.group("mapGroup") != null) {
                     dependencies.add(new Dependency(dependency.group("mapGroup"), dependency.group("mapArtifact")));
-                } else if (catalog.containsKey(dependency.group("accessor"))) {
-                    dependencies.add(catalog.get(dependency.group("accessor")));
+                } else if (dependency.group("accessor") != null) {
+                    dependencies.addAll(catalog.getOrDefault(dependency.group("accessor"), List.of()));
                 }
             }
         }

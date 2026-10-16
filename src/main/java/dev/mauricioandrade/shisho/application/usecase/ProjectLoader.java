@@ -50,7 +50,7 @@ final class ProjectLoader {
      */
     LoadedProject load(Path projectRoot, Consumer<ProjectConfig> checkConfig) {
         Optional<BuildInfo> build = buildFileReader.read(projectRoot);
-        Optional<JavaVersion> declaredVersion = build.flatMap(BuildInfo::javaVersion);
+        Optional<JavaVersion> declaredVersion = build.flatMap(BuildInfo::lowestJavaVersion);
         JavaVersion javaVersion = declaredVersion.orElse(JavaVersion.BASELINE);
         if (!javaVersion.isAtLeast(JavaVersion.BASELINE)) {
             throw new AnalysisException("analysis.error.unsupported-java-version", javaVersion, JavaVersion.BASELINE);

@@ -98,10 +98,10 @@ public final class ClassifyArchitectureService implements ClassifyArchitecture {
         if (name.contains(".")) {
             return project.classes().stream().flatMap(unit -> unit.imports().stream())
                     .anyMatch(declaration -> declaration.name().startsWith(name))
-                    || project.build().stream().flatMap(build -> build.dependencies().stream())
+                    || project.build().stream().flatMap(build -> build.allDependencies().stream())
                     .anyMatch(dependency -> dependency.groupId().startsWith(name));
         }
-        return project.build().stream().flatMap(build -> build.dependencies().stream())
+        return project.build().stream().flatMap(build -> build.allDependencies().stream())
                 .anyMatch(dependency -> dependency.artifactId().startsWith(name));
     }
 

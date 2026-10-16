@@ -38,20 +38,30 @@ final class KataTestSupport {
 
     /** A project with no classes and a {@code pom.xml} declaring these {@code groupId:artifactId} pairs. */
     static List<Lesson> evaluateBuild(ProjectKata kata, String... dependencies) {
-        return kata.evaluate(new ProjectModel(new JavaVersion(25), Optional.of(build(dependencies)), List.of()));
+        return kata.evaluate(new ProjectModel(new JavaVersion(25), Optional.of(pom(dependencies)), List.of()));
     }
 
     /** A project made of {@code source} and a {@code pom.xml} declaring these {@code groupId:artifactId} pairs. */
     static List<Lesson> evaluate(ProjectKata kata, String source, String... dependencies) {
-        return kata.evaluate(new ProjectModel(new JavaVersion(25), Optional.of(build(dependencies)), classes(source)));
+        return kata.evaluate(new ProjectModel(new JavaVersion(25), Optional.of(pom(dependencies)), classes(source)));
     }
 
-    private static BuildInfo build(String... dependencies) {
+    /** A project with no classes and {@code build}, such as a multi-module one. */
+    static List<Lesson> evaluate(ProjectKata kata, BuildInfo build) {
+        return kata.evaluate(new ProjectModel(new JavaVersion(25), Optional.of(build), List.of()));
+    }
+
+    /** A build in {@code file} declaring these {@code groupId:artifactId} pairs, without modules. */
+    static BuildInfo build(String file, String... dependencies) {
         List<Dependency> declared = Arrays.stream(dependencies)
                 .map(dependency -> dependency.split(":"))
                 .map(parts -> new Dependency(parts[0], parts[1]))
                 .toList();
-        return new BuildInfo(Path.of("pom.xml"), Optional.of(new JavaVersion(25)), declared);
+        return new BuildInfo(Path.of(file), Optional.of(new JavaVersion(25)), declared);
+    }
+
+    private static BuildInfo pom(String... dependencies) {
+        return build("pom.xml", dependencies);
     }
 
     static List<ClassUnit> classes(String source) {

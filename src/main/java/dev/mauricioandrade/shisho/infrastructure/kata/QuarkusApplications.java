@@ -7,11 +7,13 @@ import dev.mauricioandrade.shisho.domain.model.Lesson;
 
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Quarkus applications, recognized by any {@code io.quarkus} dependency in the build. A bean
  * imports nothing from Quarkus ({@code @ApplicationScoped} and {@code @Inject} come from Jakarta),
- * so the build is the only place that tells. See {@code docs/adr/0012-quarkus.md}.
+ * so the build is the only place that tells. In a multi-module build, any module counts. See
+ * {@code docs/adr/0012-quarkus.md}.
  */
 final class QuarkusApplications {
 
@@ -21,16 +23,21 @@ final class QuarkusApplications {
     static final String QUARKUS = "io.quarkus";
 
     static boolean isQuarkusApplication(BuildInfo build) {
-        return build.dependencies().stream().anyMatch(dependency -> dependency.groupId().equals(QUARKUS));
+        return build.allDependencies().stream().anyMatch(dependency -> dependency.groupId().equals(QUARKUS));
     }
 
     /** A REST server: Quarkus REST or RESTEasy Classic, and not only their clients. */
     static boolean isWebApplication(BuildInfo build) {
-        return build.dependencies().stream()
+        return restServer(build).isPresent();
+    }
+
+    /** The REST server extension of the build or of one of its modules. */
+    static Optional<Dependency> restServer(BuildInfo build) {
+        return build.allDependencies().stream()
                 .filter(dependency -> dependency.groupId().equals(QUARKUS))
-                .map(Dependency::artifactId)
-                .anyMatch(artifact -> (artifact.startsWith("quarkus-rest") || artifact.startsWith("quarkus-resteasy"))
-                        && !artifact.contains("client"));
+                .filter(dependency -> (dependency.artifactId().startsWith("quarkus-rest") || dependency.artifactId().startsWith("quarkus-resteasy"))
+                        && !dependency.artifactId().contains("client"))
+                .findFirst();
     }
 
     /**

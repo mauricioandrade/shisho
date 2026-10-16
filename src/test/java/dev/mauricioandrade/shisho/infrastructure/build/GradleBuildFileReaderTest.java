@@ -265,6 +265,53 @@ class GradleBuildFileReaderTest {
         assertThat(reader.read(project).orElseThrow().dependencies()).containsExactly(new Dependency("io.quarkus", "quarkus-rest"));
     }
 
+    @Test
+    void readsTheProjectsTheSettingsInclude() throws IOException {
+        Files.writeString(project.resolve("settings.gradle.kts"), """
+                rootProject.name = "loja"
+                include(
+                    "dominio",
+                    ":app:web", // the application
+                )
+                // include("antigo")
+                include("..")
+                includeBuild("plugins")
+                """);
+        Files.createDirectories(project.resolve("gradle"));
+        Files.writeString(project.resolve("gradle/libs.versions.toml"), """
+                [libraries]
+                spring-boot-starter-web = { module = "org.springframework.boot:spring-boot-starter-web" }
+                """);
+        Files.createDirectories(project.resolve("dominio"));
+        Files.writeString(project.resolve("dominio/build.gradle.kts"), "java { toolchain { languageVersion = JavaLanguageVersion.of(25) } }");
+        Files.createDirectories(project.resolve("app/web"));
+        Files.writeString(project.resolve("app/web/build.gradle"), """
+                dependencies { implementation libs.spring.boot.starter.web }
+                """);
+        Files.createDirectories(project.resolve("antigo"));
+        Files.writeString(project.resolve("antigo/build.gradle"), "dependencies { implementation 'commented:out' }");
+
+        BuildInfo build = reader.read(project).orElseThrow();
+
+        assertThat(build.file()).as("a root without a script of its own").isEqualTo(Path.of("settings.gradle.kts"));
+        assertThat(build.modules()).extracting(BuildInfo::file)
+                .containsExactly(Path.of("dominio/build.gradle.kts"), Path.of("app/web/build.gradle"));
+        assertThat(build.fileDeclaring(new Dependency("org.springframework.boot", "spring-boot-starter-web")))
+                .as("the catalog is the root's").isEqualTo(Path.of("app/web/build.gradle"));
+        assertThat(build.lowestJavaVersion()).contains(new JavaVersion(25));
+    }
+
+    @Test
+    void aSingleProjectWithSettingsHasNoModules() throws IOException {
+        Files.writeString(project.resolve("settings.gradle"), "rootProject.name = 'loja'");
+        writeGroovy("dependencies { implementation 'io.quarkus:quarkus-rest' }");
+
+        BuildInfo build = reader.read(project).orElseThrow();
+
+        assertThat(build.file()).isEqualTo(Path.of("build.gradle"));
+        assertThat(build.modules()).isEmpty();
+    }
+
     private Optional<JavaVersion> javaVersion() {
         return reader.read(project).orElseThrow().javaVersion();
     }

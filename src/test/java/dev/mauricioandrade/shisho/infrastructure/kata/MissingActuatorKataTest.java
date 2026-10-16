@@ -1,9 +1,13 @@
 package dev.mauricioandrade.shisho.infrastructure.kata;
 
+import dev.mauricioandrade.shisho.domain.model.BuildInfo;
 import org.junit.jupiter.api.Test;
 
 import java.nio.file.Path;
+import java.util.List;
+import java.util.Optional;
 
+import static dev.mauricioandrade.shisho.infrastructure.kata.KataTestSupport.build;
 import static dev.mauricioandrade.shisho.infrastructure.kata.KataTestSupport.evaluate;
 import static dev.mauricioandrade.shisho.infrastructure.kata.KataTestSupport.evaluateBuild;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -36,6 +40,24 @@ class MissingActuatorKataTest {
                 assertThat(lesson.messageKey()).isEqualTo("kata.missing-actuator.lesson.quarkus"));
         assertThat(evaluateBuild(kata, "io.quarkus:quarkus-resteasy")).hasSize(1);
         assertThat(evaluateBuild(kata, "io.quarkus:quarkus-rest", "io.quarkus:quarkus-smallrye-health")).isEmpty();
+    }
+
+    @Test
+    void pointsToTheModuleThatIsTheApplication() {
+        BuildInfo multiModule = new BuildInfo(Path.of("pom.xml"), Optional.empty(), List.of(), List.of(
+                build("dominio/pom.xml"), build("app/pom.xml", "org.springframework.boot:spring-boot-starter-web")));
+
+        assertThat(evaluate(kata, multiModule)).singleElement().satisfies(lesson ->
+                assertThat(lesson.file()).isEqualTo(Path.of("app/pom.xml")));
+    }
+
+    @Test
+    void theActuatorInheritedFromTheParentCounts() {
+        BuildInfo multiModule = new BuildInfo(Path.of("pom.xml"), Optional.empty(),
+                build("pom.xml", "org.springframework.boot:spring-boot-starter-actuator").dependencies(),
+                List.of(build("app/pom.xml", "org.springframework.boot:spring-boot-starter-web")));
+
+        assertThat(evaluate(kata, multiModule)).isEmpty();
     }
 
     @Test

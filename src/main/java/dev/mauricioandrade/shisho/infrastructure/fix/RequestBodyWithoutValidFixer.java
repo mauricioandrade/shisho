@@ -47,7 +47,7 @@ final class RequestBodyWithoutValidFixer implements Fixer {
     private static boolean hasBeanValidation(BuildInfo build) {
         return build.dependsOn("org.springframework.boot", "spring-boot-starter-validation")
                 || build.dependsOn("io.quarkus", "quarkus-hibernate-validator")
-                || build.dependencies().stream().anyMatch(dependency ->
+                || build.allDependencies().stream().anyMatch(dependency ->
                         dependency.groupId().equals("jakarta.validation") || dependency.groupId().equals("org.hibernate.validator"));
     }
 

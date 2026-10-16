@@ -1,13 +1,16 @@
 package dev.mauricioandrade.shisho.infrastructure.kata;
 
 import dev.mauricioandrade.shisho.domain.model.AvoidedDependency;
+import dev.mauricioandrade.shisho.domain.model.BuildInfo;
 import dev.mauricioandrade.shisho.domain.model.Dependency;
 import dev.mauricioandrade.shisho.infrastructure.catalog.MarkdownCatalogRepository;
 import org.junit.jupiter.api.Test;
 
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Optional;
 
+import static dev.mauricioandrade.shisho.infrastructure.kata.KataTestSupport.build;
 import static dev.mauricioandrade.shisho.infrastructure.kata.KataTestSupport.evaluate;
 import static dev.mauricioandrade.shisho.infrastructure.kata.KataTestSupport.evaluateBuild;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -30,6 +33,15 @@ class AvoidedDependencyKataTest {
                     assertThat(lesson.arguments()).containsExactly(
                             "Springfox", "io.springfox:springfox-swagger2", "sem versão nova desde 2020", "springdoc-openapi");
                 });
+    }
+
+    @Test
+    void pointsToTheModuleThatDeclaresIt() {
+        BuildInfo multiModule = new BuildInfo(Path.of("pom.xml"), Optional.empty(), List.of(), List.of(
+                build("dominio/pom.xml"), build("api/pom.xml", "io.springfox:springfox-swagger2")));
+
+        assertThat(evaluate(kata, multiModule)).singleElement().satisfies(lesson ->
+                assertThat(lesson.file()).isEqualTo(Path.of("api/pom.xml")));
     }
 
     @Test

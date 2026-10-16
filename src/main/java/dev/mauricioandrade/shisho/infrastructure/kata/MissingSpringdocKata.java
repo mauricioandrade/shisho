@@ -1,5 +1,6 @@
 package dev.mauricioandrade.shisho.infrastructure.kata;
 
+import dev.mauricioandrade.shisho.domain.model.Dependency;
 import dev.mauricioandrade.shisho.domain.model.JavaVersion;
 import dev.mauricioandrade.shisho.domain.model.Lesson;
 import dev.mauricioandrade.shisho.domain.model.ProjectKata;
@@ -7,6 +8,7 @@ import dev.mauricioandrade.shisho.domain.model.ProjectModel;
 import dev.mauricioandrade.shisho.domain.model.Severity;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Stream;
 
 /**
@@ -38,12 +40,13 @@ final class MissingSpringdocKata implements ProjectKata {
     public List<Lesson> evaluate(ProjectModel project) {
         return project.build().stream()
                 .flatMap(build -> {
-                    if (WebApplications.isWebApplication(build)
-                            && build.dependencies().stream().noneMatch(dependency -> dependency.groupId().equals(SPRINGDOC))) {
-                        return Stream.of(lesson(build.file(), 0));
+                    Optional<Dependency> starter = WebApplications.webStarter(build);
+                    if (starter.isPresent() && build.allDependencies().stream().noneMatch(dependency -> dependency.groupId().equals(SPRINGDOC))) {
+                        return Stream.of(lesson(build.fileDeclaring(starter.get()), 0));
                     }
-                    if (QuarkusApplications.isWebApplication(build) && !build.dependsOn(QuarkusApplications.QUARKUS, SMALLRYE_OPENAPI)) {
-                        return Stream.of(QuarkusApplications.lesson(this, build.file(), 0));
+                    Optional<Dependency> server = QuarkusApplications.restServer(build);
+                    if (server.isPresent() && !build.dependsOn(QuarkusApplications.QUARKUS, SMALLRYE_OPENAPI)) {
+                        return Stream.of(QuarkusApplications.lesson(this, build.fileDeclaring(server.get()), 0));
                     }
                     return Stream.empty();
                 })

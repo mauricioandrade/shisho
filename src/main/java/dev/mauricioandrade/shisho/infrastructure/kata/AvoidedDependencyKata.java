@@ -39,7 +39,7 @@ final class AvoidedDependencyKata implements ProjectKata {
     public List<Lesson> evaluate(ProjectModel project) {
         return project.build().stream().flatMap(build -> avoided.stream().flatMap(dependency -> dependency.coordinates().stream()
                         .filter(coordinates -> declares(build, coordinates))
-                        .map(coordinates -> lesson(build.file(), 0, dependency.name(),
+                        .map(coordinates -> lesson(build.fileDeclaring(coordinates), 0, dependency.name(),
                                 coordinates.groupId() + ":" + coordinates.artifactId(),
                                 dependency.summary(), dependency.alternative()))))
                 .toList();

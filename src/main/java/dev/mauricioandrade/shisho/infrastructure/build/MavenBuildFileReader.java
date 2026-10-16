@@ -21,17 +21,20 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 /**
- * Reads the Java version and dependencies from a single-module {@code pom.xml}. Only what the
- * pom declares locally is considered: a remote parent (such as {@code spring-boot-starter-parent})
- * is never downloaded.
+ * Reads the Java version and dependencies from a {@code pom.xml} and from the poms of its modules
+ * ({@code <modules>}, or Maven 4's {@code <subprojects>}), nested ones included. Only what each pom
+ * declares locally is considered: a remote parent (such as {@code spring-boot-starter-parent}) is
+ * never downloaded. See {@code docs/adr/0015-multi-module.md}.
  */
 public final class MavenBuildFileReader implements BuildFileReader {
 
@@ -47,7 +50,36 @@ public final class MavenBuildFileReader implements BuildFileReader {
             return Optional.empty();
         }
         Element project = parse(pom);
-        return Optional.of(new BuildInfo(Path.of(POM), javaVersion(pom, project), dependencies(project)));
+        List<BuildInfo> modules = new ArrayList<>();
+        addModules(projectRoot, Path.of(""), project, new HashSet<>(Set.of(Path.of(""))), modules);
+        return Optional.of(new BuildInfo(Path.of(POM), javaVersion(pom, project), dependencies(project), modules));
+    }
+
+    /**
+     * The modules of {@code project}, whose pom is in {@code directory}, and theirs, in the order the
+     * poms list them. A module outside the project, or one already read, is skipped: the poms come
+     * from an untrusted project, and two poms may list each other.
+     */
+    private static void addModules(Path projectRoot, Path directory, Element project, Set<Path> read, List<BuildInfo> modules) {
+        List<String> names = Stream.concat(listed(project, "modules", "module"), listed(project, "subprojects", "subproject")).toList();
+        for (String name : names) {
+            Path module = directory.resolve(name).normalize();
+            Path pom = projectRoot.resolve(module).resolve(POM);
+            if (module.isAbsolute() || module.startsWith("..") || !Files.isRegularFile(pom) || !read.add(module)) {
+                continue;
+            }
+            Element element = parse(pom);
+            modules.add(new BuildInfo(module.resolve(POM), javaVersion(pom, element), dependencies(element)));
+            addModules(projectRoot, module, element, read, modules);
+        }
+    }
+
+    /** The directories in {@code <section><item>...</item></section>}. */
+    private static Stream<String> listed(Element project, String section, String item) {
+        return child(project, section).stream()
+                .flatMap(list -> children(list, item).stream())
+                .map(element -> element.getTextContent().strip())
+                .filter(name -> !name.isEmpty());
     }
 
     /**

@@ -89,6 +89,43 @@ class ShishoBootstrapTest {
     }
 
     @Test
+    void aMultiModuleProjectIsAnalyzedAsAWhole(@TempDir Path temp) throws IOException {
+        Path project = temp.resolve("loja");
+        copyFixture("aluno-baguncado", project.resolve("app"));
+        Files.createDirectories(project.resolve("dominio/src/main/java/com/exemplo/loja/dominio"));
+        Files.writeString(project.resolve("dominio/pom.xml"), """
+                <project><modelVersion>4.0.0</modelVersion><artifactId>dominio</artifactId></project>
+                """);
+        Files.writeString(project.resolve("dominio/src/main/java/com/exemplo/loja/dominio/Preco.java"), """
+                package com.exemplo.loja.dominio;
+
+                public record Preco(long centavos) {
+                    public Preco {
+                        System.out.println(centavos);
+                    }
+                }
+                """);
+        Files.writeString(project.resolve("pom.xml"), """
+                <project><modelVersion>4.0.0</modelVersion><artifactId>loja</artifactId><packaging>pom</packaging>
+                <modules><module>dominio</module><module>app</module></modules></project>
+                """);
+
+        assertThat(run("analyze", project.toString())).isEqualTo(1);
+        assertThat(out())
+                .contains("análise de loja  (Java 21)")
+                .contains("Arquitetura: Camadas técnicas (Layered)")
+                .contains("(20 lições: 1 grave, 10 médias, 6 leves, 3 sugestões)");
+
+        Path sarif = temp.resolve("shisho.sarif");
+        assertThat(run("analyze", "--format", "SARIF", "--output", sarif.toString(), project.toString())).isEqualTo(1);
+        assertThat(Files.readString(sarif)).as("each lesson in the file of its module")
+                .contains("\"uri\": \"app/pom.xml\"")
+                .contains("\"uri\": \"dominio/src/main/java/com/exemplo/loja/dominio/Preco.java\"")
+                .contains("\"uri\": \"app/src/main/java/com/exemplo/loja/controller/UsuarioController.java\"")
+                .doesNotContain("\"uri\": \"pom.xml\"");
+    }
+
+    @Test
     void judgesAnOverengineeredProject() {
         assertThat(run("analyze", FIXTURES + "aluno-astronauta")).isZero();
         assertThat(out())

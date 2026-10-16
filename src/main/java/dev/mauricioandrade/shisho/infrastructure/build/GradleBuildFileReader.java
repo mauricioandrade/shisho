@@ -19,17 +19,25 @@ import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 /**
- * Reads the Java version and dependencies from a single-module {@code build.gradle.kts} or
- * {@code build.gradle}. The script is never run: it is code from an untrusted project, and running
+ * Reads the Java version and dependencies from a {@code build.gradle.kts} or {@code build.gradle},
+ * and from the scripts of the projects that {@code settings.gradle(.kts)} includes. The script is never run: it is code from an untrusted project, and running
  * it would need Gradle and the network. The reader recognizes the literal forms that Spring
  * Initializr, code.quarkus.io and the Gradle docs write, plus the libraries of the default version
  * catalog; a version or a dependency computed by the script (a variable, an {@code if}) is not seen.
- * See {@code docs/adr/0013-gradle.md}.
+ * See {@code docs/adr/0013-gradle.md} and {@code docs/adr/0015-multi-module.md}.
  */
 public final class GradleBuildFileReader implements BuildFileReader {
 
     /** When a project has both, the Kotlin DSL is read. */
     private static final List<String> SCRIPTS = List.of("build.gradle.kts", "build.gradle");
+
+    private static final List<String> SETTINGS = List.of("settings.gradle.kts", "settings.gradle");
+
+    /** {@code include("a", "b:c")}, over several lines in Kotlin, or {@code include 'a', 'b'} in Groovy. */
+    private static final Pattern INCLUDE = Pattern.compile("\\binclude\\b\\s*(\\([^)]*\\)|[^\\n]*)");
+
+    /** A project path in an {@code include}: {@code ":lib:core"} is the directory {@code lib/core}. */
+    private static final Pattern PROJECT_PATH = Pattern.compile("['\"]:?([\\w.-]+(?::[\\w.-]+)*)['\"]");
 
     /** {@code options.release = 21} or {@code options.release.set(21)} on {@code JavaCompile}. */
     private static final Pattern RELEASE = Pattern.compile("\\boptions\\.release(?:\\s*=\\s*|\\.set\\(\\s*)(\\d+)");
@@ -56,16 +64,53 @@ public final class GradleBuildFileReader implements BuildFileReader {
 
     private static final Pattern DEPENDENCIES_BLOCK = Pattern.compile("\\bdependencies\\s*\\{");
 
+    /**
+     * A multi-project root may have no script of its own, only the settings: the build is then the
+     * settings file, with the included projects as modules.
+     */
     @Override
     public Optional<BuildInfo> read(Path projectRoot) {
-        return SCRIPTS.stream()
-                .filter(script -> Files.isRegularFile(projectRoot.resolve(script)))
-                .findFirst()
-                .map(script -> {
-                    String code = withoutComments(readScript(projectRoot.resolve(script)));
-                    return new BuildInfo(Path.of(script), javaVersion(projectRoot.resolve(script), code),
-                            dependencies(code, VersionCatalog.libraries(projectRoot)));
-                });
+        Map<String, Dependency> catalog = VersionCatalog.libraries(projectRoot);
+        Optional<Path> settings = existing(projectRoot, Path.of(""), SETTINGS);
+        List<BuildInfo> modules = settings.stream()
+                .flatMap(file -> included(projectRoot, file))
+                .flatMap(directory -> script(projectRoot, directory, catalog).stream())
+                .toList();
+        return script(projectRoot, Path.of(""), catalog)
+                .map(root -> new BuildInfo(root.file(), root.javaVersion(), root.dependencies(), modules))
+                .or(() -> settings.map(file -> new BuildInfo(file, Optional.empty(), List.of(), modules)));
+    }
+
+    private static Optional<BuildInfo> script(Path projectRoot, Path directory, Map<String, Dependency> catalog) {
+        return existing(projectRoot, directory, SCRIPTS).map(script -> {
+            String code = withoutComments(readScript(projectRoot.resolve(script)));
+            return new BuildInfo(script, javaVersion(projectRoot.resolve(script), code), dependencies(code, catalog));
+        });
+    }
+
+    /** The first of {@code names} that exists in {@code directory}, relative to the project root. */
+    private static Optional<Path> existing(Path projectRoot, Path directory, List<String> names) {
+        return names.stream()
+                .map(directory::resolve)
+                .filter(file -> Files.isRegularFile(projectRoot.resolve(file)))
+                .findFirst();
+    }
+
+    /** The directories of the included projects, in the order of the settings, inside the project. */
+    private static Stream<Path> included(Path projectRoot, Path settings) {
+        String code = withoutComments(readScript(projectRoot.resolve(settings)));
+        List<Path> directories = new ArrayList<>();
+        Matcher include = INCLUDE.matcher(code);
+        while (include.find()) {
+            Matcher path = PROJECT_PATH.matcher(include.group(1));
+            while (path.find()) {
+                Path directory = Path.of(path.group(1).replace(':', '/')).normalize();
+                if (!directory.startsWith("..") && !directories.contains(directory)) {
+                    directories.add(directory);
+                }
+            }
+        }
+        return directories.stream();
     }
 
     /**

@@ -194,6 +194,41 @@ class MavenBuildFileReaderTest {
                         assertThat(e.messageKey()).isEqualTo(messageKey));
     }
 
+    @Test
+    void readsEveryModuleWithItsOwnFile() throws IOException {
+        writePom(properties("<maven.compiler.release>25</maven.compiler.release>") + """
+                <modules>
+                    <module>dominio</module>
+                    <module>app</module>
+                    <module>../fora</module>
+                    <module>sem-pom</module>
+                </modules>
+                <dependencies><dependency><groupId>org.slf4j</groupId><artifactId>slf4j-api</artifactId></dependency></dependencies>
+                """);
+        writePom("dominio", "");
+        writePom("app", properties("<maven.compiler.release>21</maven.compiler.release>") + """
+                <subprojects><subproject>web</subproject><subproject>../dominio</subproject></subprojects>
+                """);
+        writePom("app/web", """
+                <modules><module>../..</module></modules>
+                <dependencies><dependency>
+                    <groupId>org.springframework.boot</groupId><artifactId>spring-boot-starter-web</artifactId>
+                </dependency></dependencies>
+                """);
+
+        BuildInfo build = reader.read(project).orElseThrow();
+
+        assertThat(build.modules()).as("outside the project, without a pom, or read already: skipped")
+                .extracting(BuildInfo::file)
+                .containsExactly(Path.of("dominio/pom.xml"), Path.of("app/pom.xml"), Path.of("app/web/pom.xml"));
+        assertThat(build.dependencies()).containsExactly(new Dependency("org.slf4j", "slf4j-api"));
+        assertThat(build.dependsOn("org.springframework.boot", "spring-boot-starter-web")).as("declared in a module").isTrue();
+        assertThat(build.fileDeclaring(new Dependency("org.springframework.boot", "spring-boot-starter-web")))
+                .isEqualTo(Path.of("app/web/pom.xml"));
+        assertThat(build.javaVersion()).contains(new JavaVersion(25));
+        assertThat(build.lowestJavaVersion()).as("the app module compiles at 21").contains(new JavaVersion(21));
+    }
+
     private void writePom(String body) throws IOException {
         Files.writeString(project.resolve("pom.xml"), """
                 <?xml version="1.0" encoding="UTF-8"?>
@@ -204,6 +239,16 @@ class MavenBuildFileReaderTest {
                     <version>1</version>
                 %s</project>
                 """.formatted(body));
+    }
+
+    private void writePom(String module, String body) throws IOException {
+        Files.createDirectories(project.resolve(module));
+        Files.writeString(project.resolve(module).resolve("pom.xml"), """
+                <project xmlns="http://maven.apache.org/POM/4.0.0">
+                    <modelVersion>4.0.0</modelVersion>
+                    <artifactId>%s</artifactId>
+                %s</project>
+                """.formatted(module.replace('/', '-'), body));
     }
 
     private static String properties(String content) {

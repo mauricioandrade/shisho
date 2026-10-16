@@ -1,5 +1,6 @@
 package dev.mauricioandrade.shisho.infrastructure.kata;
 
+import dev.mauricioandrade.shisho.domain.model.Dependency;
 import dev.mauricioandrade.shisho.domain.model.JavaVersion;
 import dev.mauricioandrade.shisho.domain.model.Lesson;
 import dev.mauricioandrade.shisho.domain.model.ProjectKata;
@@ -7,11 +8,13 @@ import dev.mauricioandrade.shisho.domain.model.ProjectModel;
 import dev.mauricioandrade.shisho.domain.model.Severity;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Stream;
 
 /**
  * A Spring Boot web application whose build does not declare the actuator starter, or a Quarkus
- * one without {@code quarkus-smallrye-health}.
+ * one without {@code quarkus-smallrye-health}. The lesson goes to the build that declares the web
+ * server, the module that is the application.
  */
 final class MissingActuatorKata implements ProjectKata {
 
@@ -37,11 +40,13 @@ final class MissingActuatorKata implements ProjectKata {
     public List<Lesson> evaluate(ProjectModel project) {
         return project.build().stream()
                 .flatMap(build -> {
-                    if (WebApplications.isWebApplication(build) && !build.dependsOn(WebApplications.SPRING_BOOT, ACTUATOR)) {
-                        return Stream.of(lesson(build.file(), 0));
+                    Optional<Dependency> starter = WebApplications.webStarter(build);
+                    if (starter.isPresent() && !build.dependsOn(WebApplications.SPRING_BOOT, ACTUATOR)) {
+                        return Stream.of(lesson(build.fileDeclaring(starter.get()), 0));
                     }
-                    if (QuarkusApplications.isWebApplication(build) && !build.dependsOn(QuarkusApplications.QUARKUS, SMALLRYE_HEALTH)) {
-                        return Stream.of(QuarkusApplications.lesson(this, build.file(), 0));
+                    Optional<Dependency> server = QuarkusApplications.restServer(build);
+                    if (server.isPresent() && !build.dependsOn(QuarkusApplications.QUARKUS, SMALLRYE_HEALTH)) {
+                        return Stream.of(QuarkusApplications.lesson(this, build.fileDeclaring(server.get()), 0));
                     }
                     return Stream.empty();
                 })

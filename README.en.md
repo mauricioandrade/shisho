@@ -109,6 +109,7 @@ the modules):
 | `shisho analyze --shoshin ./my-project` | explains the concepts in the code: records, dependency injection, Strategy… |
 | `shisho analyze --format html --output r.html ./my-project` | HTML report (or `sarif`, for GitHub) |
 | `shisho fix ./my-project` | shows the automatic fixes; `--apply` writes them |
+| `shisho baseline ./my-project` | records today's lessons; from then on, `analyze` shows and fails only on new ones |
 | `shisho crud --arquitetura layered ./my-project Product name:String` | creates a CRUD that explains every file |
 | `shisho ask ./my-project "where do I start?"` | a local LLM explains the verdict (needs Ollama) |
 | `/plugin install shisho --marketplace mauricioandrade/shisho` | in Claude Code: the Shishō checks every file Claude edits |
@@ -572,7 +573,7 @@ The exit code is designed for CI and does not depend on the format:
 | Code | Meaning |
 |---|---|
 | 0 | no severe lesson |
-| 1 | at least one **GRAVE** (severe) lesson |
+| 1 | at least one **GRAVE** (severe) lesson (with a baseline, a new GRAVE lesson) |
 | 2 | invalid input (missing path or argument, an `--output` that cannot be written, an unknown `SHISHO_IDIOMA`; in `crud`, an architecture nothing pays for) |
 | 3 | the project could not be analyzed (e.g. Java below 8, invalid `shisho.yaml`); in `fix --apply`, a file that could not be written; in `ask`, Ollama down or the model not installed |
 
@@ -598,6 +599,27 @@ jobs:
 Lessons show up as code scanning alerts and pull request annotations; the terminal report goes
 to the job summary. The action installs Java 25 and builds the Shishō from its own source. Since
 that changes the job's Java, **run it in a job separate** from your project's build.
+
+### On an existing project: the baseline
+
+On an old project, the first analysis often brings dozens of lessons, and a single GRAVE one fails
+the job. To adopt the Shishō without fixing everything first, record today's lessons and commit the
+file:
+
+```bash
+shisho baseline .
+git add shisho-baseline.yaml
+```
+
+From then on, `analyze` (and the action, and the Claude Code hook) shows only the **new** lessons, and
+exit code 1 comes only from a new GRAVE lesson. The known ones still count toward the rank, are folded
+away in the HTML report and go to the SARIF marked `unchanged`. `fix` still fixes all of them. When
+someone fixes a lesson in the baseline, the report says so; run `shisho baseline` again so the debt
+only goes down.
+
+A lesson is recognized by its kata, its file and what it points at (the field, the type), never by
+its line: moving code inside the file does not make it new. Renaming the file does. See
+[ADR 0023](docs/adr/0023-baseline.md).
 
 ![Naoya Zen'in, from Jujutsu Kaisen, eyes closed and unmoved, while Choso shouts behind him](docs/anime/github-actions.gif)
 
@@ -678,6 +700,7 @@ as its notes, which `install.sh` then downloads. Why it works this way: [ADR 001
 - [x] **Phase 19**: self-invocation: a `this.save()` that skips the proxy ([ADR 0020](docs/adr/0020-self-invocation.md))
 - [x] **Phase 20**: JPA katas: fetching, the entity's constructor and transactions on controllers ([ADR 0021](docs/adr/0021-jpa-katas.md))
 - [x] **Phase 21**: performance: parallel parsing and analysis twice as fast on large projects ([ADR 0022](docs/adr/0022-performance.md))
+- [x] **Phase 22**: baseline: adopt the Shishō on an existing project and fail only on new lessons ([ADR 0023](docs/adr/0023-baseline.md))
 - [ ] **Next**: other stacks, reusing the architecture catalog
 
 ![Sung Jinwoo, from Solo Leveling, striking with a dagger among stone statues](docs/anime/roadmap.gif)

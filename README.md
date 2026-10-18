@@ -106,6 +106,7 @@ módulos):
 | `shisho analyze --shoshin ./meu-projeto` | explica os conceitos do código: record, injeção de dependência, Strategy… |
 | `shisho analyze --format html --output r.html ./meu-projeto` | relatório HTML (ou `sarif`, para o GitHub) |
 | `shisho fix ./meu-projeto` | mostra as correções automáticas; `--apply` grava |
+| `shisho baseline ./meu-projeto` | grava as lições de hoje; daí em diante, o `analyze` mostra e reprova só as novas |
 | `shisho crud --arquitetura layered ./meu-projeto Produto nome:String` | cria um CRUD que explica cada arquivo |
 | `shisho ask ./meu-projeto "por onde começo?"` | um LLM local explica o veredito (precisa do Ollama) |
 | `/plugin install shisho --marketplace mauricioandrade/shisho` | no Claude Code: o Shishō confere cada arquivo que o Claude edita |
@@ -556,7 +557,7 @@ O código de saída foi pensado para CI e não depende do formato:
 | Código | Significado |
 |---|---|
 | 0 | nenhuma lição grave |
-| 1 | há pelo menos uma lição **GRAVE** |
+| 1 | há pelo menos uma lição **GRAVE** (com baseline, uma lição grave nova) |
 | 2 | entrada inválida (caminho inexistente, argumento faltando, `--output` que não pode ser gravado, `SHISHO_IDIOMA` desconhecido; no `crud`, uma arquitetura que nada no contexto paga) |
 | 3 | o projeto não pôde ser analisado (ex.: Java abaixo do 8, `shisho.yaml` inválido); no `fix --apply`, um arquivo que não pôde ser gravado; no `ask`, o Ollama fora do ar ou o modelo não instalado |
 
@@ -583,6 +584,26 @@ As lições aparecem como alertas no code scanning e anotações no pull request
 terminal vai para o resumo do job. A action instala o Java 25 e compila o Shishō a partir do
 código dela mesma. Como isso troca o Java do job, **rode-a num job separado** do build do seu
 projeto.
+
+### Num projeto que já existe: a baseline
+
+Num projeto antigo, a primeira análise costuma trazer dezenas de lições, e uma só grave já reprova
+o job. Para adotar o Shishō sem consertar tudo antes, grave as lições de hoje e versione o arquivo:
+
+```bash
+shisho baseline .
+git add shisho-baseline.yaml
+```
+
+Daí em diante, o `analyze` (e a action, e o hook do Claude Code) mostra só as lições **novas**, e o
+código de saída 1 só vem de uma lição grave nova. As conhecidas continuam contando na graduação, ficam
+recolhidas no relatório HTML e vão para o SARIF marcadas como `unchanged`. O `fix` continua corrigindo
+todas. Quando alguém corrige uma lição da baseline, o relatório avisa; rode `shisho baseline` de novo
+para a dívida só diminuir.
+
+Uma lição é reconhecida pela kata, pelo arquivo e pelo que ela aponta (o campo, o tipo), nunca pela
+linha: mover o código dentro do arquivo não a torna nova. Renomear o arquivo torna. Ver o
+[ADR 0023](docs/adr/0023-baseline.md).
 
 ![Naoya Zen'in, de Jujutsu Kaisen, de olhos fechados e impassível, enquanto Choso grita atrás dele](docs/anime/github-actions.gif)
 
@@ -664,6 +685,7 @@ que assim: [ADR 0010](docs/adr/0010-release.md).
 - [x] **Fase 19** — auto-invocação: `this.salvar()` que escapa do proxy ([ADR 0020](docs/adr/0020-self-invocation.md))
 - [x] **Fase 20** — katas de JPA: fetch, construtor da entidade e transação no controller ([ADR 0021](docs/adr/0021-jpa-katas.md))
 - [x] **Fase 21** — desempenho: parse em paralelo e a análise 2× mais rápida em projetos grandes ([ADR 0022](docs/adr/0022-performance.md))
+- [x] **Fase 22** — baseline: adotar o Shishō num projeto existente e reprovar só as lições novas ([ADR 0023](docs/adr/0023-baseline.md))
 - [ ] **Depois** — outras stacks, reaproveitando o catálogo de arquiteturas
 
 ![Sung Jinwoo, de Solo Leveling, atacando com uma adaga em meio a estátuas de pedra](docs/anime/roadmap.gif)

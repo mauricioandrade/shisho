@@ -12,10 +12,15 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 
-/** A class that looks like a DTO (by package or by name suffix) but is not a record. */
+/**
+ * A class that looks like a DTO (by package or by name suffix) but is not a record. A builder is
+ * mutable by design, so it is never one; and in a DTO package, a class without instance state (a
+ * mapper, a constants holder) holds no data to transfer.
+ */
 final class DtoNotRecordKata implements ClassKata {
 
     private static final Set<String> DTO_PACKAGES = Set.of("request", "response", "dto", "dtos", "requisicao", "resposta");
+    private static final String BUILDER = "Builder";
     private static final List<String> DTO_SUFFIXES = List.of("Request", "Response", "Dto", "DTO", "Requisicao", "Resposta");
 
     @Override
@@ -42,8 +47,11 @@ final class DtoNotRecordKata implements ClassKata {
     }
 
     private static boolean looksLikeDto(ClassUnit unit) {
+        if (unit.name().endsWith(BUILDER)) {
+            return false;
+        }
         boolean inDtoPackage = Arrays.stream(unit.packageName().split("\\."))
                 .anyMatch(segment -> DTO_PACKAGES.contains(segment.toLowerCase(Locale.ROOT)));
-        return inDtoPackage || DTO_SUFFIXES.stream().anyMatch(unit.name()::endsWith);
+        return inDtoPackage && !unit.stateNames().isEmpty() || DTO_SUFFIXES.stream().anyMatch(unit.name()::endsWith);
     }
 }

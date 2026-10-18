@@ -26,7 +26,7 @@ class DtoNotRecordKataTest {
         assertThat(evaluate(kata, """
                 package app.api.dto;
 
-                class Address {}
+                class Address { private String street; }
                 """)).singleElement().satisfies(lesson -> {
             assertThat(lesson.line()).isEqualTo(3);
             assertThat(lesson.arguments()).containsExactly("Address");
@@ -42,6 +42,21 @@ class DtoNotRecordKataTest {
                 interface PageResponse {}
                 enum StatusDto { ACTIVE }
                 """)).extracting(Lesson::kataId).isEmpty();
+    }
+
+    @Test
+    void ignoresBuildersAndStatelessClassesInDtoPackages() {
+        assertThat(evaluate(kata, """
+                package app.api.dto;
+
+                record PetDetails(String name) {
+                    static final class PetDetailsBuilder { private String name; }
+                }
+                class UserDtoBuilder { private String name; }
+                class UserMapper {
+                    static PetDetails toDetails(Object pet) { return null; }
+                }
+                """)).as("a builder is mutable by design; a mapper carries no data").isEmpty();
     }
 
     @Test

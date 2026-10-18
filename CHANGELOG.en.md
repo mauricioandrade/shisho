@@ -12,6 +12,12 @@ release, in Portuguese ([CHANGELOG.md](CHANGELOG.md)) and English. The format fo
 - **JPA katas**: `entity-without-default-constructor` (GRAVE), `eager-collection`,
   `to-one-without-lazy` and `transactional-controller` ([ADR 0021](docs/adr/0021-jpa-katas.md)).
 
+### Changed
+
+- **Performance**: files are parsed in parallel, and the analysis is twice as fast on a project of
+  4 thousand files and 25–30% faster on one of a few hundred, with the same result
+  ([ADR 0022](docs/adr/0022-performance.md)).
+
 ## [0.2.0] - 2026-10-18
 
 ### Heads up

@@ -13,6 +13,12 @@ comportamento.
 - **Katas de JPA**: `entity-without-default-constructor` (GRAVE), `eager-collection`,
   `to-one-without-lazy` e `transactional-controller` ([ADR 0021](docs/adr/0021-jpa-katas.md)).
 
+### Mudou
+
+- **Desempenho**: os arquivos são parseados em paralelo, e a análise ficou 2× mais rápida num
+  projeto de 4 mil arquivos e 25–30% num de algumas centenas, com o mesmo resultado
+  ([ADR 0022](docs/adr/0022-performance.md)).
+
 ## [0.2.0] - 2026-10-18
 
 ### Atenção

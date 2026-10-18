@@ -160,7 +160,7 @@ Each lesson says what is wrong, what goes wrong because of it and how to fix it.
 | Kata | Severity | What it flags | Why it matters |
 |---|---|---|---|
 | `field-injection` | GRAVE | `@Autowired`/`@Inject` on a field (in Quarkus, only `@Autowired`) | `new` creates an incomplete object, and the test needs Spring |
-| `unproxyable-method` | GRAVE | `@Transactional`, `@Async` or `@Cacheable` on a `private`, `static` or `final` method (on Boot 2, not `public`) | the proxy cannot reach the method, and the annotation is silently ignored |
+| `unproxyable-method` | GRAVE | `@Transactional`, `@Async` or `@Cacheable` on a `private`, `static` or `final` method (on Boot 2, not `public`), or called from inside its own class | the proxy cannot reach the method, and the annotation is silently ignored |
 | `lombok-constructor` | MEDIA | `@RequiredArgsConstructor`/`@AllArgsConstructor` | the dependencies vanish from the code, and the tenth one slips in unnoticed |
 | `non-final-dependency` | MEDIA | injected dependency without `final` | any method can replace it after construction |
 | `system-out` | MEDIA | `System.out`, `System.err`, `printStackTrace()` | no level or timestamp, and outside the log aggregator |
@@ -671,6 +671,7 @@ as its notes, which `install.sh` then downloads. Why it works this way: [ADR 001
   [ADR 0018](docs/adr/0018-java-8-and-javax.md))
 - [x] **Phase 18**: new katas: `unproxyable-method`, `swallowed-exception` and
   `entity-with-lombok-data` ([ADR 0019](docs/adr/0019-new-katas.md))
+- [x] **Phase 19**: self-invocation: a `this.save()` that skips the proxy ([ADR 0020](docs/adr/0020-self-invocation.md))
 - [ ] **Next**: other stacks, reusing the architecture catalog
 
 ![Sung Jinwoo, from Solo Leveling, striking with a dagger among stone statues](docs/anime/roadmap.gif)

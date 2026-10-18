@@ -155,7 +155,7 @@ Graduação: 3º kyū  (8 lições: 1 grave, 4 médias, 3 leves)
 | Kata | Severidade | O que aponta | Por que importa |
 |---|---|---|---|
 | `field-injection` | GRAVE | `@Autowired`/`@Inject` em campo (no Quarkus, só `@Autowired`) | `new` cria o objeto incompleto, e o teste precisa de Spring |
-| `unproxyable-method` | GRAVE | `@Transactional`, `@Async` ou `@Cacheable` em método `private`, `static` ou `final` (no Boot 2, não `public`) | o proxy não alcança o método, e a anotação é ignorada em silêncio |
+| `unproxyable-method` | GRAVE | `@Transactional`, `@Async` ou `@Cacheable` em método `private`, `static` ou `final` (no Boot 2, não `public`), ou chamado de dentro da própria classe | o proxy não alcança o método, e a anotação é ignorada em silêncio |
 | `lombok-constructor` | MEDIA | `@RequiredArgsConstructor`/`@AllArgsConstructor` | as dependências somem do código, e a décima entra sem ninguém notar |
 | `non-final-dependency` | MEDIA | dependência injetada sem `final` | qualquer método pode trocá-la depois da construção |
 | `system-out` | MEDIA | `System.out`, `System.err`, `printStackTrace()` | sem nível nem horário, e fora do agregador de logs |
@@ -657,6 +657,7 @@ que assim: [ADR 0010](docs/adr/0010-release.md).
   [ADR 0018](docs/adr/0018-java-8-and-javax.md))
 - [x] **Fase 18** — katas novas: `unproxyable-method`, `swallowed-exception` e
   `entity-with-lombok-data` ([ADR 0019](docs/adr/0019-new-katas.md))
+- [x] **Fase 19** — auto-invocação: `this.salvar()` que escapa do proxy ([ADR 0020](docs/adr/0020-self-invocation.md))
 - [ ] **Depois** — outras stacks, reaproveitando o catálogo de arquiteturas
 
 ![Sung Jinwoo, de Solo Leveling, atacando com uma adaga em meio a estátuas de pedra](docs/anime/roadmap.gif)

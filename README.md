@@ -9,7 +9,7 @@ Começando por Java, com Spring Boot e Quarkus.
 [![CI](https://github.com/mauricioandrade/shisho/actions/workflows/ci.yml/badge.svg)](https://github.com/mauricioandrade/shisho/actions/workflows/ci.yml)
 [![Release](https://img.shields.io/github/v/release/mauricioandrade/shisho?label=release)](https://github.com/mauricioandrade/shisho/releases)
 ![Roda em Java 25](https://img.shields.io/badge/roda%20em-Java%2025-orange?logo=openjdk)
-![Analisa Java 17+](https://img.shields.io/badge/analisa-Java%2017%2B-blue?logo=openjdk)
+![Analisa Java 8+](https://img.shields.io/badge/analisa-Java%208%2B-blue?logo=openjdk)
 ![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3%20%7C%204-6DB33F?logo=springboot&logoColor=white)
 ![Quarkus](https://img.shields.io/badge/Quarkus-3-4695EB?logo=quarkus&logoColor=white)
 [![Licença Apache 2.0](https://img.shields.io/badge/licen%C3%A7a-Apache%202.0-green)](LICENSE)
@@ -96,7 +96,7 @@ O código analisado pode estar em português ou em inglês: o Shishō reconhece 
 
 ## ⚡ Uso rápido
 
-Aponte para a raiz de um projeto Maven ou Gradle com Java 17 ou superior (num multi-módulo, a raiz que lista os
+Aponte para a raiz de um projeto Maven ou Gradle com Java 8 ou superior (num multi-módulo, a raiz que lista os
 módulos):
 
 | Comando | O que faz |
@@ -395,6 +395,8 @@ Criados 8 arquivos. Rode shisho analyze para conferir: o código gerado passa em
   arquiteturas saem do jeito do Quarkus: resource Jakarta REST, `PanacheRepository`, `@Inject` em
   campo package-private e um `@ServerExceptionMapper` para os 404. Um projeto do code.quarkus.io
   sem código ainda não tem pacote, então o primeiro `crud` pede `--pacote`.
+- **Java 17 e `jakarta`.** O código gerado é do Spring Boot 3 e do Quarkus 3. Num projeto abaixo do
+  Java 17, ou que ainda importa `javax.persistence` e companhia, o `crud` recusa e diz o que migrar.
 
 ![Joseph Joestar, de JoJo's Bizarre Adventure, correndo enquanto alguém grita "Run away!"](docs/anime/never-overwrites.gif)
 
@@ -506,7 +508,7 @@ você, em vez de reescrever o código só para calar a kata. Por que assim:
 
 ## ☕ Versões do Java
 
-O Shishō roda em **Java 25** e analisa projetos a partir do **Java 17**. Ele lê a versão do seu
+O Shishō roda em **Java 25** e analisa projetos a partir do **Java 8**. Ele lê a versão do seu
 projeto e **só cobra o que ela permite**. O que só existe numa versão mais nova vira sugestão,
 sem tirar nota:
 
@@ -516,8 +518,12 @@ i INFO   [prefer-scoped-values]  NotificacaoService.java:11
 ```
 
 Do mesmo jeito, num projeto 17, trocar o pool de threads por virtual threads aparece como o que o
-21 traria. Se o build não declara versão (herdada de um parent remoto, por exemplo), o Shishō
+21 traria, e num projeto 11 o DTO que devia ser record aparece como o que o 16 traria. Se o build não declara versão (herdada de um parent remoto, por exemplo), o Shishō
 assume 21 e avisa.
+
+Projetos Spring Boot 2 (e Quarkus 2) são reconhecidos pelos imports `javax.*`: o `shisho fix`
+importa `javax.validation.Valid`, e nenhuma lição recomenda o que só o Boot 3 tem
+([ADR 0018](docs/adr/0018-java-8-and-javax.md)).
 
 Recursos em preview nunca são recomendados. O que o Shishō sabe sobre cada versão fica em
 [`catalog/java-features`](catalog/java-features).
@@ -543,7 +549,7 @@ O código de saída foi pensado para CI e não depende do formato:
 | 0 | nenhuma lição grave |
 | 1 | há pelo menos uma lição **GRAVE** |
 | 2 | entrada inválida (caminho inexistente, argumento faltando, `--output` que não pode ser gravado, `SHISHO_IDIOMA` desconhecido; no `crud`, uma arquitetura que nada no contexto paga) |
-| 3 | o projeto não pôde ser analisado (ex.: Java abaixo do 17, `shisho.yaml` inválido); no `fix --apply`, um arquivo que não pôde ser gravado; no `ask`, o Ollama fora do ar ou o modelo não instalado |
+| 3 | o projeto não pôde ser analisado (ex.: Java abaixo do 8, `shisho.yaml` inválido); no `fix --apply`, um arquivo que não pôde ser gravado; no `ask`, o Ollama fora do ar ou o modelo não instalado |
 
 ## 🚦 No GitHub Actions
 
@@ -639,8 +645,9 @@ que assim: [ADR 0010](docs/adr/0010-release.md).
   ([ADR 0015](docs/adr/0015-multi-module.md))
 - [x] **Fase 16** — calibração com projetos reais (petclinic, JHipster, buckpal, quickstarts do
   Quarkus...): seis falsos positivos e um falso negativo corrigidos ([ADR 0016](docs/adr/0016-real-projects.md))
-- [x] **Fase 17** — projetos em Java 17: o que precisa do 21 vira sugestão de migração
-  ([ADR 0017](docs/adr/0017-java-17.md))
+- [x] **Fase 17** — projetos a partir do Java 8 e do Spring Boot 2: o que precisa de uma versão
+  mais nova vira sugestão de migração ([ADR 0017](docs/adr/0017-java-17.md),
+  [ADR 0018](docs/adr/0018-java-8-and-javax.md))
 - [ ] **Depois** — outras stacks, reaproveitando o catálogo de arquiteturas
 
 ![Sung Jinwoo, de Solo Leveling, atacando com uma adaga em meio a estátuas de pedra](docs/anime/roadmap.gif)

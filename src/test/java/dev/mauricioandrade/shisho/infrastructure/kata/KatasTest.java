@@ -67,7 +67,7 @@ class KatasTest {
                         tuple(controller, 19, "request-body-without-valid", Severity.MEDIA),
                         tuple(controller, 20, "system-out", Severity.MEDIA),
                         tuple(controller, 24, "entity-in-controller", Severity.MEDIA),
-                        tuple(request, 3, "dto-not-record", Severity.LEVE),
+                        tuple(request, 5, "dto-not-record", Severity.LEVE),
                         tuple(email, 14, "prefer-configuration-properties", Severity.LEVE),
                         tuple(notificacao, 11, "prefer-scoped-values", Severity.INFO),
                         tuple(notificacao, 13, "prefer-virtual-threads", Severity.INFO),

@@ -1,24 +1,36 @@
 package dev.mauricioandrade.shisho.infrastructure.kata;
 
-import dev.mauricioandrade.shisho.domain.model.ClassKata;
 import dev.mauricioandrade.shisho.domain.model.ClassUnit;
+import dev.mauricioandrade.shisho.domain.model.ClassUnit.Annotation;
 import dev.mauricioandrade.shisho.domain.model.ClassUnit.Parameter;
 import dev.mauricioandrade.shisho.domain.model.JavaVersion;
 import dev.mauricioandrade.shisho.domain.model.Lesson;
+import dev.mauricioandrade.shisho.domain.model.ProjectKata;
+import dev.mauricioandrade.shisho.domain.model.ProjectModel;
 import dev.mauricioandrade.shisho.domain.model.Severity;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
  * A request body without {@code @Valid}/{@code @Validated}, for bodies that have something to validate:
- * Spring's {@code @RequestBody}, or the body of a Jakarta REST resource method (Quarkus).
+ * Spring's {@code @RequestBody}, or the body of a Jakarta REST resource method (Quarkus). A body
+ * whose type is a class of the project is flagged only if that class declares a constraint: without
+ * one, {@code @Valid} would check nothing. A type from outside the project is flagged, since its
+ * annotations cannot be seen.
  */
-final class RequestBodyWithoutValidKata implements ClassKata {
+final class RequestBodyWithoutValidKata implements ProjectKata {
 
     private static final Set<String> REQUEST_BODY = Set.of("RequestBody");
     private static final Set<String> VALIDATION = Set.of("Valid", "Validated");
+    private static final Set<String> CONSTRAINT = Set.of("Constraint");
+    private static final List<String> VALIDATION_PACKAGES = List.of("jakarta.validation", "javax.validation", "org.hibernate.validator");
+    private static final Pattern TYPE_NAME = Pattern.compile("[\\w$.]+");
 
     @Override
     public String id() {
@@ -36,27 +48,95 @@ final class RequestBodyWithoutValidKata implements ClassKata {
     }
 
     @Override
-    public List<Lesson> evaluate(ClassUnit unit) {
+    public List<Lesson> evaluate(ProjectModel project) {
+        Constraints constraints = new Constraints(project.classes());
+        return project.classes().stream()
+                .flatMap(unit -> evaluate(unit, constraints))
+                .toList();
+    }
+
+    private Stream<Lesson> evaluate(ClassUnit unit, Constraints constraints) {
         Stream<Lesson> spring = unit.methods().stream()
                 .flatMap(method -> method.parameters().stream())
-                .filter(RequestBodyWithoutValidKata::lacksValidation)
+                .filter(parameter -> lacksValidation(parameter, constraints))
                 .flatMap(parameter -> Annotations.find(parameter.annotations(), REQUEST_BODY)
-                        .map(annotation -> lesson(unit, annotation.line(), parameter.type()))
+                        .map(annotation -> lesson(unit.file(), annotation.line(), parameter.type()))
                         .stream());
         Stream<Lesson> jakartaRest = unit.methods().stream()
                 .filter(JakartaRest::isResourceMethod)
                 .flatMap(method -> JakartaRest.body(unit, method).stream())
-                .filter(RequestBodyWithoutValidKata::lacksValidation)
+                .filter(parameter -> lacksValidation(parameter, constraints))
                 .map(parameter -> QuarkusApplications.lesson(this, unit.file(), parameter.line(), parameter.type()));
-        return Stream.concat(spring, jakartaRest).toList();
+        return Stream.concat(spring, jakartaRest);
     }
 
-    private static boolean lacksValidation(Parameter parameter) {
-        return !Annotations.has(parameter.annotations(), VALIDATION) && hasStructuredBody(parameter);
+    private static boolean lacksValidation(Parameter parameter, Constraints constraints) {
+        return !Annotations.has(parameter.annotations(), VALIDATION) && hasStructuredBody(parameter)
+                && constraints.mayHave(parameter.type());
     }
 
     private static boolean hasStructuredBody(Parameter parameter) {
         String type = parameter.type();
         return !type.equals("String") && !type.equals("byte[]") && !type.equals("Map") && !type.startsWith("Map<");
+    }
+
+    /** Which classes of the project, by simple name, declare a Bean Validation constraint. */
+    private static final class Constraints {
+
+        private final Map<String, List<ClassUnit>> classes;
+        private final Set<String> customConstraints;
+
+        Constraints(List<ClassUnit> units) {
+            classes = units.stream().collect(Collectors.groupingBy(ClassUnit::name));
+            customConstraints = units.stream()
+                    .filter(unit -> unit.kind() == ClassUnit.Kind.ANNOTATION && Annotations.has(unit.annotations(), CONSTRAINT))
+                    .map(ClassUnit::name)
+                    .collect(Collectors.toSet());
+        }
+
+        /**
+         * False only when every name in {@code type} that is a class of the project ({@code UserDto}
+         * in {@code List<UserDto>}) declares no constraint; true when none is.
+         */
+        boolean mayHave(String type) {
+            List<String> known = TYPE_NAME.matcher(type).results()
+                    .map(match -> match.group().substring(match.group().lastIndexOf('.') + 1))
+                    .filter(classes::containsKey)
+                    .toList();
+            return known.isEmpty() || known.stream().anyMatch(name -> declares(name, new HashSet<>()));
+        }
+
+        /** A constraint in the class, in a class of the same name or in one it extends. */
+        private boolean declares(String name, Set<String> visited) {
+            if (!visited.add(name)) {
+                return false;
+            }
+            return classes.getOrDefault(name, List.of()).stream().anyMatch(unit -> declaresItself(unit)
+                    || unit.supertypes().stream().anyMatch(supertype -> declares(supertype, visited)));
+        }
+
+        /**
+         * Read through the file's imports: a file importing from Bean Validation uses it. A
+         * constraint written fully qualified or declared in the project counts as well.
+         */
+        private boolean declaresItself(ClassUnit unit) {
+            return unit.imports().stream().anyMatch(declaration -> isValidation(declaration.name()))
+                    || annotations(unit).anyMatch(annotation -> isValidation(annotation.name())
+                            || customConstraints.contains(annotation.simpleName()));
+        }
+
+        private static Stream<Annotation> annotations(ClassUnit unit) {
+            return Stream.of(
+                    unit.annotations().stream(),
+                    unit.fields().stream().flatMap(field -> field.annotations().stream()),
+                    unit.constructors().stream().flatMap(constructor -> constructor.parameters().stream())
+                            .flatMap(parameter -> parameter.annotations().stream()),
+                    unit.methods().stream().flatMap(method -> method.annotations().stream()))
+                    .flatMap(stream -> stream);
+        }
+
+        private static boolean isValidation(String name) {
+            return VALIDATION_PACKAGES.stream().anyMatch(name::startsWith);
+        }
     }
 }

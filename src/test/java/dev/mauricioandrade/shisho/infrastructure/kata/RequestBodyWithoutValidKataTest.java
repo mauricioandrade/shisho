@@ -69,4 +69,65 @@ class RequestBodyWithoutValidKataTest {
                 }
                 """)).isEmpty();
     }
+
+    @Test
+    void ignoresProjectBodiesWithoutConstraints() {
+        assertThat(evaluate(kata, """
+                @RestController
+                class AccountController {
+                    void changePassword(@RequestBody PasswordChange change) {}
+                    void changeAll(@RequestBody List<PasswordChange> changes) {}
+                }
+
+                class PasswordChange {
+                    private String currentPassword;
+                    private String newPassword;
+                }
+                """)).as("@Valid would check nothing").isEmpty();
+    }
+
+    @Test
+    void flagsProjectBodiesWithConstraints() {
+        assertThat(evaluate(kata, """
+                @RestController
+                class OrderController {
+                    void create(@RequestBody CreateOrder order) {}
+                    void rename(@RequestBody Rename rename) {}
+                    void register(@RequestBody ManagedUser user) {}
+                }
+
+                record CreateOrder(@jakarta.validation.constraints.NotBlank String customer) {}
+
+                class Rename {
+                    @ValidName String name;
+                }
+
+                @Constraint(validatedBy = NameValidator.class)
+                @interface ValidName {}
+
+                class ManagedUser extends User {}
+
+                class User {
+                    @javax.validation.constraints.Email String email;
+                }
+                """)).extracting(lesson -> lesson.arguments().getFirst())
+                .as("a fully qualified constraint, one of the project, or one inherited")
+                .containsExactly("CreateOrder", "Rename", "ManagedUser");
+    }
+
+    @Test
+    void aFileImportingBeanValidationHasConstraints() {
+        assertThat(evaluate(kata, """
+                import jakarta.validation.constraints.*;
+
+                @RestController
+                class OrderController {
+                    void create(@RequestBody CreateOrder order) {}
+                }
+
+                class CreateOrder {
+                    @NotBlank String customer;
+                }
+                """)).hasSize(1);
+    }
 }

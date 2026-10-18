@@ -1,7 +1,10 @@
 package com.exemplo.loja.dto;
 
+import jakarta.validation.constraints.NotBlank;
+
 public class UsuarioRequest {
 
+    @NotBlank
     private String nome;
 
     public String getNome() {

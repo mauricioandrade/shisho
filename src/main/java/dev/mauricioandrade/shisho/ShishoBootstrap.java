@@ -1,6 +1,7 @@
 package dev.mauricioandrade.shisho;
 
 import dev.mauricioandrade.shisho.application.usecase.AnalyzeProjectService;
+import dev.mauricioandrade.shisho.application.usecase.RecordBaselineService;
 import dev.mauricioandrade.shisho.application.usecase.ClassifyArchitectureService;
 import dev.mauricioandrade.shisho.application.usecase.FixProjectService;
 import dev.mauricioandrade.shisho.application.usecase.GenerateCrudService;
@@ -17,10 +18,12 @@ import dev.mauricioandrade.shisho.infrastructure.cli.AnalyzeCommand;
 import dev.mauricioandrade.shisho.infrastructure.cli.ClaudeHookCommand;
 import dev.mauricioandrade.shisho.infrastructure.concept.ConceptDetectors;
 import dev.mauricioandrade.shisho.infrastructure.cli.AskCommand;
+import dev.mauricioandrade.shisho.infrastructure.cli.BaselineCommand;
 import dev.mauricioandrade.shisho.infrastructure.cli.CrudCommand;
 import dev.mauricioandrade.shisho.infrastructure.cli.FixCommand;
 import dev.mauricioandrade.shisho.infrastructure.cli.ReportWriterFactory;
 import dev.mauricioandrade.shisho.infrastructure.cli.ShishoCommand;
+import dev.mauricioandrade.shisho.infrastructure.config.YamlBaselineFile;
 import dev.mauricioandrade.shisho.infrastructure.config.YamlProjectConfigReader;
 import dev.mauricioandrade.shisho.infrastructure.i18n.Language;
 import dev.mauricioandrade.shisho.infrastructure.i18n.Messages;
@@ -79,6 +82,7 @@ public final class ShishoBootstrap {
 
         MarkdownCatalogRepository catalog = MarkdownCatalogRepository.bundled(language.get().catalogTranslation());
         ClassifyArchitecture classifyArchitecture = new ClassifyArchitectureService(catalog, Detectors.all());
+        YamlBaselineFile baselineFile = new YamlBaselineFile();
         AnalyzeProject analyzeProject = new AnalyzeProjectService(
                 BuildFileReaders.all(),
                 new YamlProjectConfigReader(),
@@ -87,7 +91,8 @@ public final class ShishoBootstrap {
                 classifyArchitecture,
                 new RankCalculator(),
                 catalog.concepts(),
-                ConceptDetectors.all());
+                ConceptDetectors.all(),
+                baselineFile);
 
         ReportWriterFactory reportWriters = (format, destination, sensei, shoshin) -> switch (format) {
             case TERMINAL -> new TerminalReportWriter(destination, messages, sensei ? catalog.kataGuides() : List.of(),
@@ -103,6 +108,7 @@ public final class ShishoBootstrap {
         CommandLine commandLine = new CommandLine(new ShishoCommand())
                 .addSubcommand(new AnalyzeCommand(analyzeProject, reportWriters, messages, out, err))
                 .addSubcommand(new FixCommand(fixProject, messages, out, err))
+                .addSubcommand(new BaselineCommand(new RecordBaselineService(analyzeProject, baselineFile), messages, out, err))
                 .addSubcommand(new AskCommand(analyzeProject, new SenseiPrompt(messages, catalog.architectures()),
                         OllamaLlmProvider::new, messages, out, err))
                 .addSubcommand(new CrudCommand(generateCrud, messages, out, err))

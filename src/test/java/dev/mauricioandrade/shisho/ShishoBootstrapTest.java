@@ -261,6 +261,38 @@ class ShishoBootstrapTest {
     }
 
     @Test
+    void aBaselineLetsOnlyNewGraveLessonsFail(@TempDir Path copy) throws IOException {
+        copyFixture("aluno-baguncado", copy);
+
+        assertThat(run("baseline", copy.toString())).isZero();
+        assertThat(out()).startsWith("Baseline gravada em shisho-baseline.yaml: ");
+        out.reset();
+
+        assertThat(run("analyze", copy.toString())).isZero();
+        assertThat(out()).contains("conhecidas da baseline não foram mostradas.").doesNotContain("✗ GRAVE");
+        out.reset();
+
+        Files.writeString(copy.resolve("src/main/java/com/exemplo/loja/Novo.java"), """
+                package com.exemplo.loja;
+
+                import org.springframework.beans.factory.annotation.Autowired;
+                import org.springframework.stereotype.Service;
+
+                @Service
+                public class Novo {
+                    @Autowired
+                    private Object dependencia;
+                }
+                """);
+        assertThat(run("analyze", copy.toString())).isEqualTo(1);
+        assertThat(out()).contains("✗ GRAVE  [field-injection]  Novo.java:8");
+        out.reset();
+
+        assertThat(run("fix", copy.toString())).isZero();
+        assertThat(out()).as("the fix still sees the known lessons").contains("Correções possíveis: ");
+    }
+
+    @Test
     void showsUsageInPortugueseWithoutArguments() {
         assertThat(run()).isZero();
         assertThat(out()).startsWith("Uso: shisho").contains("Comandos:", "analyze");

@@ -10,6 +10,7 @@ import dev.mauricioandrade.shisho.domain.model.Severity;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -35,7 +36,12 @@ final class DtoNotRecordKata implements ClassKata {
 
     @Override
     public JavaVersion minJavaVersion() {
-        return JavaVersion.MINIMUM;
+        return new JavaVersion(16);
+    }
+
+    @Override
+    public Optional<String> javaFeature() {
+        return Optional.of("records");
     }
 
     @Override

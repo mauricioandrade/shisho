@@ -8,6 +8,7 @@ import dev.mauricioandrade.shisho.domain.model.Lesson;
 import dev.mauricioandrade.shisho.domain.model.Severity;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 /** A class, not a record, annotated with {@code @ConfigurationProperties}: bound through setters. */
@@ -27,7 +28,12 @@ final class ConfigurationPropertiesNotRecordKata implements ClassKata {
 
     @Override
     public JavaVersion minJavaVersion() {
-        return JavaVersion.MINIMUM;
+        return new JavaVersion(16);
+    }
+
+    @Override
+    public Optional<String> javaFeature() {
+        return Optional.of("records");
     }
 
     @Override

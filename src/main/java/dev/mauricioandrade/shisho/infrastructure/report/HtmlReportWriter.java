@@ -110,15 +110,18 @@ public final class HtmlReportWriter implements ReportWriter {
     private void lessons(Analysis analysis, StringBuilder html) {
         html.append("<section>\n<h2>").append(escape(texts.text("html.lessons"))).append("</h2>\n");
         if (analysis.lessons().isEmpty()) {
-            html.append("<p class=\"empty\">").append(escape(texts.text("html.no-lessons"))).append("</p>\n");
+            String empty = analysis.baseline().isPresent() ? "html.no-new-lessons" : "html.no-lessons";
+            html.append("<p class=\"empty\">").append(escape(texts.text(empty))).append("</p>\n");
         }
-        Map<Path, List<Lesson>> byFile = analysis.lessons().stream()
-                .collect(Collectors.groupingBy(Lesson::file, LinkedHashMap::new, Collectors.toList()));
-        byFile.forEach((file, lessons) -> {
-            html.append("<article>\n<h3><code>").append(escape(slashes(file))).append("</code></h3>\n<ol>\n");
-            lessons.forEach(lesson -> lesson(lesson, html));
-            html.append("</ol>\n</article>\n");
+        byFile(analysis.lessons(), html);
+        analysis.baseline().filter(baseline -> !baseline.known().isEmpty()).ifPresent(baseline -> {
+            html.append("<details class=\"known\">\n<summary>")
+                    .append(escape(texts.text("report.baseline.known", baseline.known().size()))).append("</summary>\n");
+            byFile(baseline.known(), html);
+            html.append("</details>\n");
         });
+        analysis.baseline().filter(baseline -> baseline.fixed() > 0).ifPresent(baseline -> html.append("<p class=\"muted\">")
+                .append(escape(texts.text("report.baseline.fixed", baseline.fixed()))).append("</p>\n"));
         if (!analysis.unparseableFiles().isEmpty()) {
             html.append("<h3>").append(escape(texts.text("html.unparseable"))).append("</h3>\n<ul class=\"unparseable\">\n");
             for (SourceFile.Unparseable file : analysis.unparseableFiles()) {
@@ -127,6 +130,16 @@ public final class HtmlReportWriter implements ReportWriter {
             html.append("</ul>\n");
         }
         html.append("</section>\n");
+    }
+
+    private void byFile(List<Lesson> lessons, StringBuilder html) {
+        Map<Path, List<Lesson>> byFile = lessons.stream()
+                .collect(Collectors.groupingBy(Lesson::file, LinkedHashMap::new, Collectors.toList()));
+        byFile.forEach((file, inFile) -> {
+            html.append("<article>\n<h3><code>").append(escape(slashes(file))).append("</code></h3>\n<ol>\n");
+            inFile.forEach(lesson -> lesson(lesson, html));
+            html.append("</ol>\n</article>\n");
+        });
     }
 
     private void lesson(Lesson lesson, StringBuilder html) {
@@ -145,7 +158,7 @@ public final class HtmlReportWriter implements ReportWriter {
     }
 
     private void guides(Analysis analysis, StringBuilder html) {
-        List<KataGuide> guides = texts.guides(analysis);
+        List<KataGuide> guides = texts.guides(analysis.allLessons());
         if (guides.isEmpty()) {
             return;
         }
@@ -262,6 +275,8 @@ public final class HtmlReportWriter implements ReportWriter {
             .badge-info { background: var(--info); }
             code { font: .875em ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
             .empty { font-size: 1.125rem; }
+            .known { margin-top: 16px; }
+            .known > summary { cursor: pointer; color: var(--muted); }
             .before-after { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px; }
             .snippet { min-width: 0; }
             .guide > h4 { margin: 16px 0 6px; font-size: .75rem; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }

@@ -2,6 +2,7 @@ package dev.mauricioandrade.shisho.infrastructure.report;
 
 import dev.mauricioandrade.shisho.domain.model.Analysis;
 import dev.mauricioandrade.shisho.domain.model.ArchitectureMatch;
+import dev.mauricioandrade.shisho.domain.model.Baseline;
 import dev.mauricioandrade.shisho.domain.model.KataGuide;
 import dev.mauricioandrade.shisho.domain.model.KataGuide.Snippet;
 import dev.mauricioandrade.shisho.domain.model.Lesson;
@@ -17,10 +18,13 @@ import java.io.PrintStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.file.Path;
+import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 /**
@@ -33,6 +37,8 @@ public final class SarifReportWriter implements ReportWriter {
     static final String INFORMATION_URI = "https://github.com/mauricioandrade/shisho";
     private static final String SCHEMA = "https://json.schemastore.org/sarif-2.1.0.json";
     private static final String SOURCE_ROOT = "%SRCROOT%";
+    private static final String BASELINE_NEW = "new";
+    private static final String BASELINE_UNCHANGED = "unchanged";
 
     private final PrintStream out;
     private final ReportTexts texts;
@@ -51,7 +57,7 @@ public final class SarifReportWriter implements ReportWriter {
         Map<String, Object> run = new LinkedHashMap<>();
         run.put("tool", Map.of("driver", driver(analysis)));
         run.put("invocations", List.of(invocation(analysis)));
-        run.put("results", analysis.lessons().stream().map(lesson -> result(analysis, lesson)).toList());
+        run.put("results", results(analysis));
         run.put("properties", properties(analysis));
 
         Map<String, Object> sarif = new LinkedHashMap<>();
@@ -63,7 +69,7 @@ public final class SarifReportWriter implements ReportWriter {
     }
 
     private Map<String, Object> driver(Analysis analysis) {
-        Map<String, Lesson> firstByRule = analysis.lessons().stream()
+        Map<String, Lesson> firstByRule = analysis.allLessons().stream()
                 .collect(Collectors.toMap(Lesson::kataId, lesson -> lesson, (first, _) -> first, LinkedHashMap::new));
         Map<String, Object> driver = new LinkedHashMap<>();
         driver.put("name", "Shishō");
@@ -132,12 +138,32 @@ public final class SarifReportWriter implements ReportWriter {
         return notification;
     }
 
-    private Map<String, Object> result(Analysis analysis, Lesson lesson) {
+    /**
+     * Every lesson, the baseline's known ones included, so that code scanning does not close their
+     * alerts as fixed; with a baseline, each result says whether it is {@code new} or
+     * {@code unchanged}.
+     */
+    private List<Map<String, Object>> results(Analysis analysis) {
+        if (analysis.baseline().isEmpty()) {
+            return analysis.lessons().stream().map(lesson -> result(analysis, lesson, Optional.empty())).toList();
+        }
+        Baseline.Comparison baseline = analysis.baseline().get();
+        return Stream.concat(
+                        baseline.fresh().stream().map(lesson -> Map.entry(lesson, BASELINE_NEW)),
+                        baseline.known().stream().map(lesson -> Map.entry(lesson, BASELINE_UNCHANGED)))
+                .sorted(Comparator.comparing((Map.Entry<Lesson, String> entry) -> entry.getKey().file().toString())
+                        .thenComparingInt(entry -> entry.getKey().line()))
+                .map(entry -> result(analysis, entry.getKey(), Optional.of(entry.getValue())))
+                .toList();
+    }
+
+    private Map<String, Object> result(Analysis analysis, Lesson lesson, Optional<String> baselineState) {
         Map<String, Object> result = new LinkedHashMap<>();
         result.put("ruleId", lesson.kataId());
         result.put("level", level(lesson.severity()));
         result.put("message", Map.of("text", texts.explanation(lesson)));
         result.put("locations", List.of(location(analysis, lesson.file(), lesson.line())));
+        baselineState.ifPresent(state -> result.put("baselineState", state));
         result.put("properties", Map.of("severity", lesson.severity().name()));
         return result;
     }

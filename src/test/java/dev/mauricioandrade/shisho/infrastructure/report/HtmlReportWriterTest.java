@@ -1,5 +1,6 @@
 package dev.mauricioandrade.shisho.infrastructure.report;
 
+import dev.mauricioandrade.shisho.domain.model.Baseline;
 import dev.mauricioandrade.shisho.domain.model.Analysis;
 import dev.mauricioandrade.shisho.domain.model.ArchitectureMatch;
 import dev.mauricioandrade.shisho.domain.model.ArchitectureProfile;
@@ -123,6 +124,19 @@ class HtmlReportWriterTest {
 
     private static Lesson lesson(String kata, Severity severity, String file, int line, Object... arguments) {
         return new Lesson(kata, severity, Path.of(file), line, "kata." + kata + ".lesson", List.of(arguments));
+    }
+
+    @Test
+    void foldsTheKnownLessonsAway() {
+        Lesson known = lesson("system-out", Severity.MEDIA, "src/main/java/app/Legado.java", 7, "System.out");
+        Analysis analysis = new Analysis(Path.of("loja"), "loja", new JavaVersion(21), true, Optional.empty(), Optional.empty(),
+                List.of(), List.of(), 96, Rank.forScore(96), List.of(), Optional.of(new Baseline.Comparison(List.of(), List.of(known), 0)));
+
+        String html = render(analysis, new Messages(Messages.DEFAULT_LOCALE));
+
+        assertThat(html).contains("Nenhuma lição nova desde a baseline.",
+                "<details class=\"known\">\n<summary>1 lição conhecida da baseline não foi mostrada.</summary>",
+                "src/main/java/app/Legado.java");
     }
 
     private static String render(Analysis analysis, Messages messages) {

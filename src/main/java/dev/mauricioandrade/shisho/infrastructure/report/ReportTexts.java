@@ -12,6 +12,7 @@ import dev.mauricioandrade.shisho.domain.model.Verdict;
 import dev.mauricioandrade.shisho.infrastructure.i18n.Messages;
 
 import java.util.LinkedHashMap;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -34,7 +35,11 @@ public final class ReportTexts {
      * the example of that lesson's variant.
      */
     List<KataGuide> guides(Analysis analysis) {
-        return analysis.lessons().stream()
+        return guides(analysis.lessons());
+    }
+
+    List<KataGuide> guides(List<Lesson> lessons) {
+        return lessons.stream()
                 .collect(Collectors.toMap(Lesson::kataId, lesson -> lesson, (first, _) -> first, LinkedHashMap::new))
                 .values().stream()
                 .flatMap(lesson -> guide(lesson).stream())
@@ -128,6 +133,20 @@ public final class ReportTexts {
                         text(key, architecture.name(), String.join(", ", adequate.justifications())), List.of(), Optional.empty());
             }
         };
+    }
+
+    /** What the baseline hid and what was fixed since it was recorded; nothing without a baseline. */
+    List<String> baseline(Analysis analysis) {
+        List<String> lines = new ArrayList<>();
+        analysis.baseline().ifPresent(baseline -> {
+            if (!baseline.known().isEmpty()) {
+                lines.add(text("report.baseline.known", baseline.known().size()));
+            }
+            if (baseline.fixed() > 0) {
+                lines.add(text("report.baseline.fixed", baseline.fixed()));
+            }
+        });
+        return lines;
     }
 
     public String summary(Analysis analysis) {

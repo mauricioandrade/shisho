@@ -1,5 +1,6 @@
 package dev.mauricioandrade.shisho.infrastructure.report;
 
+import dev.mauricioandrade.shisho.domain.model.Baseline;
 import dev.mauricioandrade.shisho.application.usecase.AnalyzeProjectService;
 import dev.mauricioandrade.shisho.application.usecase.ClassifyArchitectureService;
 import dev.mauricioandrade.shisho.application.usecase.RankCalculator;
@@ -285,6 +286,24 @@ class TerminalReportWriterTest {
                 .write(analysis(true, List.of(), List.of()));
 
         assertThat(buffer.toString(StandardCharsets.UTF_8)).contains("Nenhum conceito do catálogo apareceu neste código.");
+    }
+
+    @Test
+    void saysWhatTheBaselineHidAndWhatWasFixedBeforeTheRank() {
+        Lesson fresh = lesson("field-injection", Severity.GRAVE, 14, "repository");
+        Lesson known = lesson("system-out", Severity.MEDIA, 30, "System.out");
+        Analysis analysis = new Analysis(Path.of("loja"), "loja", new JavaVersion(21), true, Optional.empty(), Optional.empty(),
+                List.of(fresh), List.of(), 86, Rank.forScore(86), List.of(),
+                Optional.of(new Baseline.Comparison(List.of(fresh), List.of(known), 2)));
+
+        assertThat(render(analysis, PORTUGUESE))
+                .contains("[field-injection]")
+                .doesNotContain("[system-out]")
+                .endsWith("""
+                        1 lição conhecida da baseline não foi mostrada.
+                        2 lições da baseline foram corrigidas: rode shisho baseline para atualizá-la.
+                        Graduação: 1º kyū  (1 lição: 1 grave, 0 médias, 0 leves)
+                        """);
     }
 
     private static String render(Analysis analysis, Messages messages) {

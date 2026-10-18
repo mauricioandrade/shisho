@@ -80,6 +80,7 @@ public final class TerminalReportWriter implements ReportWriter {
             verdict(texts.verdict(match)).forEach(out::println);
             out.println();
         });
+        texts.baseline(analysis).forEach(out::println);
         out.println(texts.summary(analysis));
     }
 

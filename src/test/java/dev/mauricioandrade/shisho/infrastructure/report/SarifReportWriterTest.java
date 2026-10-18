@@ -1,5 +1,6 @@
 package dev.mauricioandrade.shisho.infrastructure.report;
 
+import dev.mauricioandrade.shisho.domain.model.Baseline;
 import dev.mauricioandrade.shisho.domain.model.Analysis;
 import dev.mauricioandrade.shisho.domain.model.ArchitectureMatch;
 import dev.mauricioandrade.shisho.domain.model.ArchitectureProfile;
@@ -229,6 +230,23 @@ class SarifReportWriterTest {
                 new Lesson("system-out", Severity.MEDIA, Path.of("src/main/java/A.java"), 2, "kata.system-out.lesson", List.of("System.out.println"))));
 
         assertThat(render(analysis)).contains("\"uri\": \"src/main/java/A.java\"").contains("\"level\": \"warning\"");
+    }
+
+    @Test
+    void keepsTheKnownLessonsAndMarksWhichAreNew() {
+        Lesson fresh = new Lesson("system-out", Severity.MEDIA, Path.of("B.java"), 2, "kata.system-out.lesson", List.of("System.out"));
+        Lesson known = new Lesson("field-injection", Severity.GRAVE, Path.of("A.java"), 9, "kata.field-injection.lesson", List.of("x"));
+        Analysis plain = analysis(WORKSPACE, List.of(fresh));
+        Analysis analysis = new Analysis(plain.projectRoot(), plain.projectName(), plain.javaVersion(), true, plain.build(),
+                plain.architecture(), List.of(fresh), plain.unparseableFiles(), plain.score(), plain.rank(), List.of(),
+                Optional.of(new Baseline.Comparison(List.of(fresh), List.of(known), 0)));
+
+        String sarif = render(analysis);
+
+        assertThat(sarif.indexOf("\"baselineState\": \"unchanged\"")).isPositive()
+                .isLessThan(sarif.indexOf("\"baselineState\": \"new\""));
+        assertThat(sarif).contains("\"id\": \"field-injection\"");
+        assertThat(render(plain)).doesNotContain("baselineState");
     }
 
     private static Analysis analysis(Path root, List<Lesson> lessons) {

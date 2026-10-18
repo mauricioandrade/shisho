@@ -616,9 +616,11 @@ nada no build exige que você o use.
 do Shishō? Rode o script de novo. Um teste garante que o projeto da demo continua contando a
 mesma história.
 
-**Publicar uma versão** é criar a tag: `git tag v0.1.0 && git push origin v0.1.0`. O workflow
-[`release.yml`](.github/workflows/release.yml) compila com essa versão, roda todos os testes e
-publica o `shisho.jar` e o checksum numa GitHub Release, que o `install.sh` passa a baixar. Por
+**Publicar uma versão** é escrever a seção dela no [`CHANGELOG.md`](CHANGELOG.md) e no
+[`CHANGELOG.en.md`](CHANGELOG.en.md) e criar a tag: `git tag v0.2.0 && git push origin v0.2.0`. O
+workflow [`release.yml`](.github/workflows/release.yml) compila com essa versão, roda todos os
+testes e publica o `shisho.jar` e o checksum numa GitHub Release, com a seção do changelog como
+notas, e o `install.sh` passa a baixá-la. Por
 que assim: [ADR 0010](docs/adr/0010-release.md).
 
 ## 📍 Roadmap

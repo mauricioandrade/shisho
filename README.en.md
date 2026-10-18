@@ -632,10 +632,11 @@ build requires it.
 Shishō's output change? Run the script again. A test makes sure the demo project still tells the
 same story.
 
-**Publishing a version** means creating the tag: `git tag v0.1.0 && git push origin v0.1.0`. The
-[`release.yml`](.github/workflows/release.yml) workflow builds with that version, runs every test
-and publishes `shisho.jar` and its checksum in a GitHub Release, which `install.sh` then
-downloads. Why it works this way: [ADR 0010](docs/adr/0010-release.md).
+**Publishing a version** means writing its section in [`CHANGELOG.md`](CHANGELOG.md) and
+[`CHANGELOG.en.md`](CHANGELOG.en.md) and creating the tag: `git tag v0.2.0 && git push origin v0.2.0`.
+The [`release.yml`](.github/workflows/release.yml) workflow builds with that version, runs every
+test and publishes `shisho.jar` and its checksum in a GitHub Release, with the changelog section
+as its notes, which `install.sh` then downloads. Why it works this way: [ADR 0010](docs/adr/0010-release.md).
 
 ## 📍 Roadmap
 

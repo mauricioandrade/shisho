@@ -409,8 +409,8 @@ Created 8 files. Run shisho analyze to check: the generated code passes every ka
   on a package-private field and a `@ServerExceptionMapper` for the 404s. A code.quarkus.io
   project with no code has no package yet, so the first `crud` asks for `--pacote`.
 - **Java 17 and `jakarta`.** The generated code is Spring Boot 3 and Quarkus 3 code. On a project
-  below Java 17, or one that still imports `javax.persistence` and friends, `crud` refuses and
-  says what to migrate.
+  below Java 17, one that still imports `javax.persistence` and friends, or one whose build pins
+  Spring Boot 2, `crud` refuses and says what to migrate.
 
 ![Joseph Joestar, from JoJo's Bizarre Adventure, running while someone shouts "Run away!"](docs/anime/never-overwrites.gif)
 
@@ -538,7 +538,8 @@ would bring, and on a Java 11 project a DTO that should be a record shows up as 
 bring. If the build states no version (inherited from a remote parent, say), the Shishō
 assumes 21 and says so.
 
-Spring Boot 2 (and Quarkus 2) projects are recognized by their `javax.*` imports: `shisho fix`
+Spring Boot 2 (and Quarkus 2) projects are recognized by the version their build pins (the
+`<parent>`, the Gradle plugin) or, without one, by their `javax.*` imports: `shisho fix`
 imports `javax.validation.Valid`, and no lesson recommends what only Boot 3 has
 ([ADR 0018](docs/adr/0018-java-8-and-javax.md)).
 

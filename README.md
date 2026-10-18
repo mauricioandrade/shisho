@@ -396,7 +396,8 @@ Criados 8 arquivos. Rode shisho analyze para conferir: o código gerado passa em
   campo package-private e um `@ServerExceptionMapper` para os 404. Um projeto do code.quarkus.io
   sem código ainda não tem pacote, então o primeiro `crud` pede `--pacote`.
 - **Java 17 e `jakarta`.** O código gerado é do Spring Boot 3 e do Quarkus 3. Num projeto abaixo do
-  Java 17, ou que ainda importa `javax.persistence` e companhia, o `crud` recusa e diz o que migrar.
+  Java 17, que ainda importa `javax.persistence` e companhia, ou cujo build fixa o Spring Boot 2, o
+  `crud` recusa e diz o que migrar.
 
 ![Joseph Joestar, de JoJo's Bizarre Adventure, correndo enquanto alguém grita "Run away!"](docs/anime/never-overwrites.gif)
 
@@ -521,7 +522,8 @@ Do mesmo jeito, num projeto 17, trocar o pool de threads por virtual threads apa
 21 traria, e num projeto 11 o DTO que devia ser record aparece como o que o 16 traria. Se o build não declara versão (herdada de um parent remoto, por exemplo), o Shishō
 assume 21 e avisa.
 
-Projetos Spring Boot 2 (e Quarkus 2) são reconhecidos pelos imports `javax.*`: o `shisho fix`
+Projetos Spring Boot 2 (e Quarkus 2) são reconhecidos pela versão que o build fixa (o `<parent>`,
+o plugin do Gradle) ou, sem ela, pelos imports `javax.*`: o `shisho fix`
 importa `javax.validation.Valid`, e nenhuma lição recomenda o que só o Boot 3 tem
 ([ADR 0018](docs/adr/0018-java-8-and-javax.md)).
 

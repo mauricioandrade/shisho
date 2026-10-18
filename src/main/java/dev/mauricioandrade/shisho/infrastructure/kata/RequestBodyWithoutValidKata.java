@@ -33,6 +33,19 @@ final class RequestBodyWithoutValidKata implements ProjectKata {
     private static final List<String> VALIDATION_PACKAGES = List.of("jakarta.validation", "javax.validation", "org.hibernate.validator");
     private static final Pattern TYPE_NAME = Pattern.compile("[\\w$.]+");
 
+    /**
+     * Types with nothing for {@code @Valid} to check: JDK values, dates and collections, and the
+     * framework's raw bodies. A body made only of them ({@code Set<Long>}, {@code Long[]},
+     * {@code Map<String, Object>}) has no constraint anywhere.
+     */
+    private static final Set<String> UNSTRUCTURED = Set.of(
+            "String", "Object", "Integer", "Long", "Short", "Byte", "Double", "Float", "Boolean", "Character",
+            "int", "long", "short", "byte", "double", "float", "boolean", "char",
+            "BigDecimal", "BigInteger", "UUID", "LocalDate", "LocalDateTime", "LocalTime", "Instant",
+            "OffsetDateTime", "ZonedDateTime", "Duration",
+            "List", "Set", "Collection", "Iterable", "Map", "Optional",
+            "MultipartFile", "JsonNode");
+
     @Override
     public String id() {
         return "request-body-without-valid";
@@ -78,8 +91,12 @@ final class RequestBodyWithoutValidKata implements ProjectKata {
     }
 
     private static boolean hasStructuredBody(Parameter parameter) {
-        String type = parameter.type();
-        return !type.equals("String") && !type.equals("byte[]") && !type.equals("Map") && !type.startsWith("Map<");
+        return !simpleNames(parameter.type()).allMatch(UNSTRUCTURED::contains);
+    }
+
+    /** The simple names in a type: {@code List} and {@code UserDto} in {@code java.util.List<UserDto>}. */
+    private static Stream<String> simpleNames(String type) {
+        return TYPE_NAME.matcher(type).results().map(match -> match.group().substring(match.group().lastIndexOf('.') + 1));
     }
 
     /** Which classes of the project, by simple name, declare a Bean Validation constraint. */
@@ -101,10 +118,7 @@ final class RequestBodyWithoutValidKata implements ProjectKata {
          * in {@code List<UserDto>}) declares no constraint; true when none is.
          */
         boolean mayHave(String type) {
-            List<String> known = TYPE_NAME.matcher(type).results()
-                    .map(match -> match.group().substring(match.group().lastIndexOf('.') + 1))
-                    .filter(classes::containsKey)
-                    .toList();
+            List<String> known = simpleNames(type).filter(classes::containsKey).toList();
             return known.isEmpty() || known.stream().anyMatch(name -> declares(name, new HashSet<>()));
         }
 

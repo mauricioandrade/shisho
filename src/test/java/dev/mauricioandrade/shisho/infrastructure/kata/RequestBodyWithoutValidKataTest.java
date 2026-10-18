@@ -79,6 +79,10 @@ class RequestBodyWithoutValidKataTest {
                     void raw(@RequestBody String payload) {}
                     void bytes(@RequestBody byte[] payload) {}
                     void map(@RequestBody Map<String, Object> payload) {}
+                    void ids(@RequestBody Set<Long> ids) {}
+                    void names(@RequestBody java.util.List<String> names) {}
+                    void array(@RequestBody Long[] ids) {}
+                    void upload(@RequestBody MultipartFile file) {}
                 }
                 """)).isEmpty();
     }

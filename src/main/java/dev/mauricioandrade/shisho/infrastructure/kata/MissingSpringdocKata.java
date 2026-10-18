@@ -14,7 +14,7 @@ import java.util.stream.Stream;
 /**
  * A Spring Boot web application with no springdoc-openapi in the build, or a Quarkus one without
  * {@code quarkus-smallrye-openapi}. Only a suggestion: not every API is public, and some document
- * their contract another way.
+ * their contract another way. An application whose controllers only render views has no API.
  */
 final class MissingSpringdocKata implements ProjectKata {
 
@@ -41,7 +41,7 @@ final class MissingSpringdocKata implements ProjectKata {
         return project.build().stream()
                 .flatMap(build -> {
                     Optional<Dependency> starter = WebApplications.webStarter(build);
-                    if (starter.isPresent() && build.allDependencies().stream().noneMatch(dependency -> dependency.groupId().equals(SPRINGDOC))) {
+                    if (starter.isPresent() && !WebApplications.rendersViewsOnly(project.classes()) && build.allDependencies().stream().noneMatch(dependency -> dependency.groupId().equals(SPRINGDOC))) {
                         return Stream.of(lesson(build.fileDeclaring(starter.get()), 0));
                     }
                     Optional<Dependency> server = QuarkusApplications.restServer(build);

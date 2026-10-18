@@ -18,9 +18,6 @@ import java.util.Set;
  */
 final class MissingControllerAdviceKata implements ProjectKata {
 
-    private static final Set<String> REST_CONTROLLER = Set.of("RestController");
-    private static final Set<String> CONTROLLER = Set.of("Controller");
-    private static final Set<String> RESPONSE_BODY = Set.of("ResponseBody");
     private static final Set<String> ADVICE = Set.of("ControllerAdvice", "RestControllerAdvice");
     private static final String EXCEPTION_MAPPER = "ExceptionMapper";
     private static final Set<String> SERVER_EXCEPTION_MAPPER = Set.of("ServerExceptionMapper");
@@ -46,24 +43,13 @@ final class MissingControllerAdviceKata implements ProjectKata {
             return List.of();
         }
         return project.classes().stream()
-                .filter(unit -> answersWithData(unit) || JakartaRest.isResource(unit))
+                .filter(unit -> WebApplications.answersWithData(unit) || JakartaRest.isResource(unit))
                 .findFirst()
-                .map(controller -> answersWithData(controller)
+                .map(controller -> WebApplications.answersWithData(controller)
                         ? lesson(controller.file(), controller.line(), controller.name())
                         : QuarkusApplications.lesson(this, controller.file(), controller.line(), controller.name()))
                 .stream()
                 .toList();
-    }
-
-    /** A {@code @RestController}, or a {@code @Controller} with a method whose return is the response body. */
-    private static boolean answersWithData(ClassUnit unit) {
-        if (Annotations.has(unit.annotations(), REST_CONTROLLER)) {
-            return true;
-        }
-        return Annotations.has(unit.annotations(), CONTROLLER)
-                && (Annotations.has(unit.annotations(), RESPONSE_BODY)
-                        || unit.methods().stream().anyMatch(method -> Annotations.has(method.annotations(), RESPONSE_BODY)
-                                || method.returnType().startsWith("ResponseEntity")));
     }
 
     private static boolean handlesErrors(ClassUnit unit) {

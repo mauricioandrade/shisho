@@ -24,6 +24,26 @@ class MissingSpringdocKataTest {
     }
 
     @Test
+    void ignoresApplicationsWhoseControllersOnlyRenderViews() {
+        String web = "org.springframework.boot:spring-boot-starter-web";
+        assertThat(evaluate(kata, """
+                @Controller
+                class OwnerController {
+                    String list(Model model) { return "owners/list"; }
+                }
+                """, web)).as("no API to document").isEmpty();
+        assertThat(evaluate(kata, """
+                @Controller
+                class OwnerController {
+                    String list(Model model) { return "owners/list"; }
+                }
+
+                @RestController
+                class OwnerApi {}
+                """, web)).hasSize(1);
+    }
+
+    @Test
     void acceptsAnySpringdocArtifact() {
         assertThat(evaluateBuild(kata,
                 "org.springframework.boot:spring-boot-starter-web",

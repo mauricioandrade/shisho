@@ -26,6 +26,7 @@ public final class Katas {
                 new RequestBodyWithoutValidKata(),
                 new DtoNotRecordKata(),
                 new EntityInControllerKata(),
+                new EntityWithLombokDataKata(),
                 new TransactionalReadOnlyKata(),
                 new UnproxyableMethodKata(),
                 new MissingControllerAdviceKata(),

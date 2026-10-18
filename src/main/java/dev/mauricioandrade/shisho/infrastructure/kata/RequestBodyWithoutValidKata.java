@@ -22,7 +22,8 @@ import java.util.stream.Stream;
  * Spring's {@code @RequestBody}, or the body of a Jakarta REST resource method (Quarkus). A body
  * whose type is a class of the project is flagged only if that class declares a constraint: without
  * one, {@code @Valid} would check nothing. A type from outside the project is flagged, since its
- * annotations cannot be seen.
+ * annotations cannot be seen. The lesson's second argument is the {@code @Valid} to import,
+ * {@code javax} or {@code jakarta}, for {@code shisho fix}.
  */
 final class RequestBodyWithoutValidKata implements ProjectKata {
 
@@ -50,23 +51,24 @@ final class RequestBodyWithoutValidKata implements ProjectKata {
     @Override
     public List<Lesson> evaluate(ProjectModel project) {
         Constraints constraints = new Constraints(project.classes());
+        String valid = JavaxProjects.valid(project.classes());
         return project.classes().stream()
-                .flatMap(unit -> evaluate(unit, constraints))
+                .flatMap(unit -> evaluate(unit, constraints, valid))
                 .toList();
     }
 
-    private Stream<Lesson> evaluate(ClassUnit unit, Constraints constraints) {
+    private Stream<Lesson> evaluate(ClassUnit unit, Constraints constraints, String valid) {
         Stream<Lesson> spring = unit.methods().stream()
                 .flatMap(method -> method.parameters().stream())
                 .filter(parameter -> lacksValidation(parameter, constraints))
                 .flatMap(parameter -> Annotations.find(parameter.annotations(), REQUEST_BODY)
-                        .map(annotation -> lesson(unit.file(), annotation.line(), parameter.type()))
+                        .map(annotation -> lesson(unit.file(), annotation.line(), parameter.type(), valid))
                         .stream());
         Stream<Lesson> jakartaRest = unit.methods().stream()
                 .filter(JakartaRest::isResourceMethod)
                 .flatMap(method -> JakartaRest.body(unit, method).stream())
                 .filter(parameter -> lacksValidation(parameter, constraints))
-                .map(parameter -> QuarkusApplications.lesson(this, unit.file(), parameter.line(), parameter.type()));
+                .map(parameter -> QuarkusApplications.lesson(this, unit.file(), parameter.line(), parameter.type(), valid));
         return Stream.concat(spring, jakartaRest);
     }
 

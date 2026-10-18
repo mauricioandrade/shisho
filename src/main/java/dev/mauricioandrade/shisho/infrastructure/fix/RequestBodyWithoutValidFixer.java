@@ -11,13 +11,11 @@ import java.util.Optional;
 
 /**
  * Adds {@code @Valid} before the request body ({@code @RequestBody} in Spring, the unannotated
- * parameter in Jakarta REST), importing {@code jakarta.validation.Valid}
- * when needed. Only when the build declares Bean Validation: without it the import would not
+ * parameter in Jakarta REST), importing the {@code @Valid} the lesson names
+ * ({@code jakarta.validation.Valid}, or {@code javax.validation.Valid} on Spring Boot 2) when needed. Only when the build declares Bean Validation: without it the import would not
  * compile, and the annotations of the DTO would still not be checked.
  */
 final class RequestBodyWithoutValidFixer implements Fixer {
-
-    private static final String VALID = "jakarta.validation.Valid";
 
     @Override
     public String kataId() {
@@ -38,8 +36,9 @@ final class RequestBodyWithoutValidFixer implements Fixer {
                 .findFirst()
                 .map(parameter -> () -> {
                     parameter.getAnnotations().addFirst(new MarkerAnnotationExpr("Valid"));
-                    if (!importsValid(unit)) {
-                        unit.addImport(VALID);
+                    String valid = (String) lesson.arguments().get(1);
+                    if (!importsValid(unit, valid)) {
+                        unit.addImport(valid);
                     }
                 });
     }
@@ -48,12 +47,14 @@ final class RequestBodyWithoutValidFixer implements Fixer {
         return build.dependsOn("org.springframework.boot", "spring-boot-starter-validation")
                 || build.dependsOn("io.quarkus", "quarkus-hibernate-validator")
                 || build.allDependencies().stream().anyMatch(dependency ->
-                        dependency.groupId().equals("jakarta.validation") || dependency.groupId().equals("org.hibernate.validator"));
+                        dependency.groupId().equals("jakarta.validation") || dependency.groupId().equals("javax.validation")
+                                || dependency.groupId().equals("org.hibernate.validator"));
     }
 
-    private static boolean importsValid(CompilationUnit unit) {
+    private static boolean importsValid(CompilationUnit unit, String valid) {
+        String validationPackage = valid.substring(0, valid.lastIndexOf('.'));
         return unit.getImports().stream().anyMatch(declaration -> declaration.isAsterisk()
-                ? declaration.getNameAsString().equals("jakarta.validation")
+                ? declaration.getNameAsString().equals(validationPackage)
                 : declaration.getName().getIdentifier().equals("Valid"));
     }
 }

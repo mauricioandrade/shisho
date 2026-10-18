@@ -20,8 +20,21 @@ class RequestBodyWithoutValidKataTest {
                 }
                 """)).singleElement().satisfies(lesson -> {
             assertThat(lesson.line()).isEqualTo(5);
-            assertThat(lesson.arguments()).containsExactly("CreateOrderRequest");
+            assertThat(lesson.arguments()).containsExactly("CreateOrderRequest", "jakarta.validation.Valid");
         });
+    }
+
+    @Test
+    void namesTheJavaxValidOfASpringBoot2Project() {
+        assertThat(evaluate(kata, """
+                import javax.persistence.Entity;
+
+                @RestController
+                class OrderController {
+                    void create(@RequestBody CreateOrderRequest request) {}
+                }
+                """)).singleElement().satisfies(lesson ->
+                assertThat(lesson.arguments()).containsExactly("CreateOrderRequest", "javax.validation.Valid"));
     }
 
     @Test
@@ -53,7 +66,7 @@ class RequestBodyWithoutValidKataTest {
                 }
                 """)).singleElement().satisfies(lesson -> {
             assertThat(lesson.line()).isEqualTo(6);
-            assertThat(lesson.arguments()).containsExactly("CreateOrderRequest");
+            assertThat(lesson.arguments()).containsExactly("CreateOrderRequest", "jakarta.validation.Valid");
             assertThat(lesson.messageKey()).isEqualTo("kata.request-body-without-valid.lesson.quarkus");
         });
     }

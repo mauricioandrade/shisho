@@ -49,6 +49,21 @@ class RequestBodyWithoutValidFixerTest {
     }
 
     @Test
+    void importsJavaxValidOnSpringBoot2() {
+        FixTestSupport.write(root, "src/main/java/app/Order.java", """
+                package app;
+
+                import javax.persistence.Entity;
+
+                @Entity
+                class Order {}
+                """);
+
+        assertThat(fixed(root, CONTROLLER)).as("javax.persistence: Spring Boot 2, where jakarta.validation does not exist")
+                .hasValueSatisfying(source -> assertThat(source).contains("import javax.validation.Valid;").doesNotContain("jakarta"));
+    }
+
+    @Test
     void keepsAnExistingImport() {
         assertThat(fixed(root, CONTROLLER.replace("import org.springframework.web.bind.annotation.*;",
                 "import jakarta.validation.Valid;\nimport org.springframework.web.bind.annotation.*;")))

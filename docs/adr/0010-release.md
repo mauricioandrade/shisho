@@ -18,11 +18,14 @@ O workflow `release.yml` roda a cada tag `v*` (por exemplo, `v0.1.0`):
 
 1. compila com a versão da tag (`mvn -Drevision=0.1.0 verify`) e roda todos os testes;
 2. confere que o jar responde `--version` com essa versão;
-3. publica a release com o `shisho.jar` e o `shisho.jar.sha256`, com as notas geradas a partir
-   dos commits.
+3. publica a release com o `shisho.jar` e o `shisho.jar.sha256`. As notas são a seção da versão no
+   `CHANGELOG.md` e no `CHANGELOG.en.md`, uma depois da outra; sem essa seção, o workflow falha
+   antes de compilar. Na 0.1.x, as notas eram geradas a partir dos commits, mas sem pull requests
+   o GitHub só gera um link de comparação.
 
 A versão do pom passa a ser `${revision}`, o recurso do Maven para versões definidas no build.
-No dia a dia ela continua `0.1.0-SNAPSHOT`, e só o workflow passa outra. O `--version` lê a
+No dia a dia ela é a próxima versão com `-SNAPSHOT` (depois da 0.2.0, `0.3.0-SNAPSHOT`), e só o
+workflow passa outra. O `--version` lê a
 versão do `MANIFEST` do jar, então mostra a da release sem mudança de código.
 
 A publicação usa o `gh`, que já vem nos runners do GitHub, com o token do próprio workflow: nada

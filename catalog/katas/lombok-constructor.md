@@ -32,6 +32,10 @@ configurado, trocar pode não valer o esforço. Se for manter, prefira `@Require
 a `@AllArgsConstructor`, que põe no construtor todo campo, inclusive os que não são
 dependências. Se for trocar, o `shisho fix` escreve o construtor por você.
 
+A kata só olha beans (`@Service`, `@Component`, `@ApplicationScoped`...). Numa classe de dados com
+`@Data` e `@AllArgsConstructor`, o construtor guarda dados, não dependências; ali a pergunta é se
+ela devia ser um record, e quem faz essa pergunta é a `dto-not-record`.
+
 ## Antes
 
 ```java

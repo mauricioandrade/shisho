@@ -27,6 +27,10 @@ set up, switching may not be worth the effort. If you keep it, prefer `@Required
 over `@AllArgsConstructor`, which puts every field in the constructor, including the ones that
 are not dependencies. If you switch, `shisho fix` writes the constructor for you.
 
+The kata only looks at beans (`@Service`, `@Component`, `@ApplicationScoped`...). In a data class
+with `@Data` and `@AllArgsConstructor`, the constructor holds data, not dependencies; there the
+question is whether it should be a record, and `dto-not-record` is the one asking it.
+
 ## Before
 
 ```java

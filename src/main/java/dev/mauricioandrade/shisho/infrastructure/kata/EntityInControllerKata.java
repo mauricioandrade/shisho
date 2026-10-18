@@ -41,7 +41,7 @@ final class EntityInControllerKata implements ProjectKata {
 
     @Override
     public JavaVersion minJavaVersion() {
-        return JavaVersion.BASELINE;
+        return JavaVersion.MINIMUM;
     }
 
     @Override

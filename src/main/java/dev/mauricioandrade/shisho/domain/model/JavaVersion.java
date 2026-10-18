@@ -7,8 +7,17 @@ import java.util.regex.Pattern;
 /** A Java feature release, such as 21 or 25. Legacy {@code 1.x} notation maps to {@code x}. */
 public record JavaVersion(int feature) implements Comparable<JavaVersion> {
 
-    /** The oldest version the Shishō analyzes. */
-    public static final JavaVersion BASELINE = new JavaVersion(21);
+    /**
+     * The oldest version the Shishō analyzes, an LTS and Spring Boot 3's minimum. A kata that needs
+     * no particular language feature declares it as its {@code minJavaVersion}.
+     */
+    public static final JavaVersion MINIMUM = new JavaVersion(17);
+
+    /**
+     * The version assumed when the build does not state one, as with a version inherited from a
+     * remote parent: the LTS a new project starts with.
+     */
+    public static final JavaVersion ASSUMED = new JavaVersion(21);
 
     private static final Pattern NOTATION = Pattern.compile("(?:1\\.)?([1-9]\\d*)");
 

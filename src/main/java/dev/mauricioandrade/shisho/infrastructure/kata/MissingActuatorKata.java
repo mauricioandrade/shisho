@@ -33,7 +33,7 @@ final class MissingActuatorKata implements ProjectKata {
 
     @Override
     public JavaVersion minJavaVersion() {
-        return JavaVersion.BASELINE;
+        return JavaVersion.MINIMUM;
     }
 
     @Override

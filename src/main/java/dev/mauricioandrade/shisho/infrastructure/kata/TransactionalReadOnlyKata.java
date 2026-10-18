@@ -37,7 +37,7 @@ final class TransactionalReadOnlyKata implements ClassKata {
 
     @Override
     public JavaVersion minJavaVersion() {
-        return JavaVersion.BASELINE;
+        return JavaVersion.MINIMUM;
     }
 
     @Override

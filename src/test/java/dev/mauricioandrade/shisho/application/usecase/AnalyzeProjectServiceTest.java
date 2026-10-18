@@ -92,7 +92,7 @@ class AnalyzeProjectServiceTest {
 
             @Override
             public JavaVersion minJavaVersion() {
-                return JavaVersion.BASELINE;
+                return JavaVersion.MINIMUM;
             }
 
             @Override
@@ -130,8 +130,8 @@ class AnalyzeProjectServiceTest {
     void assumesBaselineWhenTheVersionIsNotDeclared() {
         Analysis analysis = service(root -> Optional.empty()).analyze(ROOT);
 
-        assertThat(parser.languageLevels).containsExactly(JavaVersion.BASELINE);
-        assertThat(analysis.javaVersion()).isEqualTo(JavaVersion.BASELINE);
+        assertThat(parser.languageLevels).containsExactly(JavaVersion.ASSUMED);
+        assertThat(analysis.javaVersion()).isEqualTo(JavaVersion.ASSUMED);
         assertThat(analysis.javaVersionDeclared()).isFalse();
     }
 
@@ -231,11 +231,11 @@ class AnalyzeProjectServiceTest {
     }
 
     @Test
-    void refusesProjectsBelowTheBaseline() {
-        assertThatThrownBy(() -> service(version(17)).analyze(ROOT))
+    void refusesProjectsBelowTheMinimum() {
+        assertThatThrownBy(() -> service(version(11)).analyze(ROOT))
                 .isInstanceOfSatisfying(AnalysisException.class, e -> {
                     assertThat(e.messageKey()).isEqualTo("analysis.error.unsupported-java-version");
-                    assertThat(e.arguments()).containsExactly(new JavaVersion(17), JavaVersion.BASELINE);
+                    assertThat(e.arguments()).containsExactly(new JavaVersion(11), JavaVersion.MINIMUM);
                 });
         assertThat(parser.languageLevels).isEmpty();
     }

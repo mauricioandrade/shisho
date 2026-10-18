@@ -34,7 +34,7 @@ final class MissingControllerAdviceKata implements ProjectKata {
 
     @Override
     public JavaVersion minJavaVersion() {
-        return JavaVersion.BASELINE;
+        return JavaVersion.MINIMUM;
     }
 
     @Override

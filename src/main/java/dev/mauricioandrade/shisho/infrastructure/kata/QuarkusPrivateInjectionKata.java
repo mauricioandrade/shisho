@@ -30,7 +30,7 @@ final class QuarkusPrivateInjectionKata implements ProjectKata {
 
     @Override
     public JavaVersion minJavaVersion() {
-        return JavaVersion.BASELINE;
+        return JavaVersion.MINIMUM;
     }
 
     @Override

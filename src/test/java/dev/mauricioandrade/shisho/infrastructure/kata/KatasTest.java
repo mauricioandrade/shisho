@@ -4,6 +4,7 @@ import dev.mauricioandrade.shisho.application.usecase.AnalyzeProjectService;
 import dev.mauricioandrade.shisho.application.usecase.ClassifyArchitectureService;
 import dev.mauricioandrade.shisho.application.usecase.RankCalculator;
 import dev.mauricioandrade.shisho.domain.model.JavaFeature;
+import dev.mauricioandrade.shisho.domain.model.JavaVersion;
 import dev.mauricioandrade.shisho.domain.model.Kata;
 import dev.mauricioandrade.shisho.domain.model.Lesson;
 import dev.mauricioandrade.shisho.domain.model.Severity;
@@ -44,6 +45,14 @@ class KatasTest {
             assertThat(feature.status()).as(kata.id()).isEqualTo(JavaFeature.Status.FINAL);
             assertThat(kata.minJavaVersion()).as(kata.id()).isEqualTo(feature.since());
         });
+    }
+
+    @Test
+    void katasWithoutAJavaFeatureRunOnEveryAnalyzedVersion() {
+        assertThat(Katas.all(MarkdownCatalogRepository.bundled().avoidedDependencies()))
+                .filteredOn(kata -> kata.javaFeature().isEmpty())
+                .as("a kata below its minJavaVersion only says what an upgrade would bring")
+                .allSatisfy(kata -> assertThat(kata.minJavaVersion()).as(kata.id()).isEqualTo(JavaVersion.MINIMUM));
     }
 
     @Test

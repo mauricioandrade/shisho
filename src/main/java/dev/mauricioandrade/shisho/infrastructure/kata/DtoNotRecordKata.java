@@ -35,7 +35,7 @@ final class DtoNotRecordKata implements ClassKata {
 
     @Override
     public JavaVersion minJavaVersion() {
-        return JavaVersion.BASELINE;
+        return JavaVersion.MINIMUM;
     }
 
     @Override

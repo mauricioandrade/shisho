@@ -34,7 +34,7 @@ final class ProjectLoader {
     }
 
     /**
-     * @param javaVersionDeclared false when the build did not state a version and {@link JavaVersion#BASELINE} was assumed
+     * @param javaVersionDeclared false when the build did not state a version and {@link JavaVersion#ASSUMED} was assumed
      */
     record LoadedProject(ProjectModel model, ProjectConfig config, boolean javaVersionDeclared, List<SourceFile.Unparseable> unparseable) {
 
@@ -46,14 +46,14 @@ final class ProjectLoader {
     /**
      * @param checkConfig validates the configuration before the sources are parsed, so a typo
      *                    fails fast
-     * @throws AnalysisException if the project's Java version is below {@link JavaVersion#BASELINE}
+     * @throws AnalysisException if the project's Java version is below {@link JavaVersion#MINIMUM}
      */
     LoadedProject load(Path projectRoot, Consumer<ProjectConfig> checkConfig) {
         Optional<BuildInfo> build = buildFileReader.read(projectRoot);
         Optional<JavaVersion> declaredVersion = build.flatMap(BuildInfo::lowestJavaVersion);
-        JavaVersion javaVersion = declaredVersion.orElse(JavaVersion.BASELINE);
-        if (!javaVersion.isAtLeast(JavaVersion.BASELINE)) {
-            throw new AnalysisException("analysis.error.unsupported-java-version", javaVersion, JavaVersion.BASELINE);
+        JavaVersion javaVersion = declaredVersion.orElse(JavaVersion.ASSUMED);
+        if (!javaVersion.isAtLeast(JavaVersion.MINIMUM)) {
+            throw new AnalysisException("analysis.error.unsupported-java-version", javaVersion, JavaVersion.MINIMUM);
         }
         ProjectConfig config = configReader.read(projectRoot);
         checkConfig.accept(config);

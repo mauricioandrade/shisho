@@ -22,9 +22,11 @@ Spring 6 started accepting `protected` and package-private methods in class-base
 
 Never: the annotation has no effect on that method, so either the annotation goes or the method
 changes. The same trap appears when one method of the bean calls another annotated method of the
-**same class** (`this.save()`): the call does not go through the proxy. The kata does not see that
-case, because the model does not say which method each call comes from; the way out is the same,
-moving the annotated method to another bean.
+**same class** (`save()` or `this.save()`): the call goes straight to the object, without going
+through the proxy, and the kata flags it too. For `@Transactional`, it only flags when the caller
+is not in a transaction yet (neither the method nor the class has `@Transactional`), or when the
+called method asks for a `propagation` of its own, such as `REQUIRES_NEW`, which never holds from
+inside. The usual way out is moving the annotated method to another bean and calling it there.
 
 The kata does not run on Quarkus: since Quarkus 3, an interceptor annotation on a `private` method
 fails the build, and ArC intercepts `static` methods.

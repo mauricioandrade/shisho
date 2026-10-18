@@ -114,7 +114,7 @@ class ShishoBootstrapTest {
         assertThat(out())
                 .contains("análise de loja  (Java 21)")
                 .contains("Arquitetura: Camadas técnicas (Layered)")
-                .contains("(20 lições: 1 grave, 10 médias, 6 leves, 3 sugestões)");
+                .contains("(21 lições: 2 graves, 10 médias, 6 leves, 3 sugestões)");
 
         Path sarif = temp.resolve("shisho.sarif");
         assertThat(run("analyze", "--format", "SARIF", "--output", sarif.toString(), project.toString())).isEqualTo(1);
@@ -256,8 +256,8 @@ class ShishoBootstrapTest {
         out.reset();
         assertThat(run("fix", "--apply", copy.toString())).isZero();
         assertThat(Files.readString(copy.resolve(service))).contains("    private final PedidoRepository pedidoRepository;");
-        assertThat(run("analyze", copy.toString())).isZero();
-        assertThat(out()).doesNotContain("[non-final-dependency]");
+        assertThat(run("analyze", copy.toString())).as("contar() is still called from inside: no safe automatic fix").isEqualTo(1);
+        assertThat(out()).doesNotContain("[non-final-dependency]").contains("[unproxyable-method]");
     }
 
     @Test

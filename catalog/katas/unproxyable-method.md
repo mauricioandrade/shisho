@@ -24,8 +24,11 @@ Spring 6 passou a aceitar `protected` e package-private nos proxies de classe.
 
 Nunca: a anotação nesse método não tem efeito, então ou ela sai, ou o método muda. A mesma
 armadilha aparece quando um método do bean chama outro método anotado da **mesma classe**
-(`this.salvar()`): a chamada não passa pelo proxy. A kata não vê esse caso, porque o modelo não diz
-de que método parte cada chamada; a saída é a mesma, mover o método anotado para outro bean.
+(`salvar()` ou `this.salvar()`): a chamada vai direto ao objeto, sem passar pelo proxy, e a kata
+também acusa. No `@Transactional`, ela só acusa quando quem chama ainda não está numa transação
+(nem o método, nem a classe têm `@Transactional`), ou quando o método chamado pede uma
+`propagation` própria, como `REQUIRES_NEW`, que por dentro nunca vale. A saída comum é mover o
+método anotado para outro bean e chamá-lo por lá.
 
 No Quarkus a kata não roda: desde o Quarkus 3, uma anotação de interceptor num método `private`
 faz o build falhar, e o ArC intercepta métodos `static`.

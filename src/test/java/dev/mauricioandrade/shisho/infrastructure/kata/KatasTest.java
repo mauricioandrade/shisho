@@ -83,6 +83,7 @@ class KatasTest {
                         tuple(pedido, 3, "dependency-rule", Severity.MEDIA),
                         tuple(pedido, 13, "non-final-dependency", Severity.MEDIA),
                         tuple(pedido, 19, "transactional-read-only", Severity.LEVE),
+                        tuple(pedido, 25, "unproxyable-method", Severity.GRAVE),
                         tuple(usuario, 13, "lombok-constructor", Severity.MEDIA),
                         tuple(usuario, 16, "non-final-dependency", Severity.MEDIA),
                         tuple(usuario, 18, "value-outside-constructor", Severity.LEVE),

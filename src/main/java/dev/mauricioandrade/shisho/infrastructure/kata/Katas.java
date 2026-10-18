@@ -21,6 +21,7 @@ public final class Katas {
                 new LombokConstructorKata(),
                 new NonFinalDependencyKata(),
                 new SystemOutKata(),
+                new SwallowedExceptionKata(),
                 new ValueOutsideConstructorKata(),
                 new RequestBodyWithoutValidKata(),
                 new DtoNotRecordKata(),

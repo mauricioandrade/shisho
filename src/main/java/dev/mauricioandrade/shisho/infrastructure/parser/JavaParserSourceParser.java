@@ -78,11 +78,17 @@ public final class JavaParserSourceParser implements SourceParser {
     private static final List<String> SOURCE_SET_LANGUAGES = List.of("java", "groovy", "kotlin", "scala", "resources");
     private static final String JAVA_EXTENSION = ".java";
 
+    /**
+     * Files are parsed in parallel. A {@link JavaParser} is not thread-safe and is costly to create
+     * (it reuses its generated parser between calls), so each thread keeps one. The list keeps the
+     * files' order, so the result does not depend on the scheduling.
+     */
     @Override
     public List<SourceFile> parse(Path projectRoot, JavaVersion languageLevel) {
-        JavaParser parser = new JavaParser(new ParserConfiguration().setLanguageLevel(languageLevel(languageLevel)));
-        return productionSources(projectRoot).stream()
-                .map(file -> parse(parser, projectRoot, file))
+        LanguageLevel level = languageLevel(languageLevel);
+        ThreadLocal<JavaParser> parsers = ThreadLocal.withInitial(() -> new JavaParser(new ParserConfiguration().setLanguageLevel(level)));
+        return productionSources(projectRoot).parallelStream()
+                .map(file -> parse(parsers.get(), projectRoot, file))
                 .toList();
     }
 

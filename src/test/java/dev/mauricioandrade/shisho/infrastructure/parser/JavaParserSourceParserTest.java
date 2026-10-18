@@ -19,6 +19,7 @@ import org.junit.jupiter.api.io.TempDir;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -115,6 +116,20 @@ class JavaParserSourceParserTest {
 
             assertThat(parser.parse(project, JAVA_21)).as("sources straight under src stay").extracting(SourceFile::file)
                     .containsExactly(Path.of("legacy/src/com/acme/Legacy.java"), Path.of("src/main/java/app/App.java"));
+        }
+
+        @Test
+        void keepsThePathOrderWhenParsingInParallel() throws IOException {
+            List<Path> expected = new ArrayList<>();
+            for (int i = 0; i < 200; i++) {
+                String name = "C%03d".formatted(i);
+                write("src/main/java/app/" + name + ".java", "package app; class " + name + " { void a() {} }");
+                expected.add(Path.of("src/main/java/app/" + name + ".java"));
+            }
+
+            for (int run = 0; run < 3; run++) {
+                assertThat(parser.parse(project, JAVA_21)).extracting(SourceFile::file).containsExactlyElementsOf(expected);
+            }
         }
 
         @Test

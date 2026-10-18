@@ -13,6 +13,7 @@ import java.nio.file.Path;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.entry;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class MavenBuildFileReaderTest {
@@ -227,6 +228,39 @@ class MavenBuildFileReaderTest {
                 .isEqualTo(Path.of("app/web/pom.xml"));
         assertThat(build.javaVersion()).contains(new JavaVersion(25));
         assertThat(build.lowestJavaVersion()).as("the app module compiles at 21").contains(new JavaVersion(21));
+    }
+
+    @Test
+    void readsTheVersionsOfTheParentAndOfImportedBoms() throws IOException {
+        writePom("""
+                <parent>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-starter-parent</artifactId>
+                    <version>2.2.0.RELEASE</version>
+                </parent>
+                <properties>
+                    <quarkus.platform.group-id>io.quarkus.platform</quarkus.platform.group-id>
+                    <quarkus.platform.version>3.15.1</quarkus.platform.version>
+                </properties>
+                <dependencyManagement><dependencies>
+                    <dependency>
+                        <groupId>${quarkus.platform.group-id}</groupId><artifactId>quarkus-bom</artifactId>
+                        <version>${quarkus.platform.version}</version><type>pom</type><scope>import</scope>
+                    </dependency>
+                    <dependency>
+                        <groupId>com.example</groupId><artifactId>managed</artifactId><version>1.0</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>org.example</groupId><artifactId>remote-bom</artifactId>
+                        <version>${defined.elsewhere}</version><scope>import</scope>
+                    </dependency>
+                </dependencies></dependencyManagement>
+                """);
+
+        BuildInfo build = reader.read(project).orElseThrow();
+
+        assertThat(build.platformVersions()).as("a managed version is not a platform; an unknown property is not a version")
+                .containsOnly(entry("org.springframework.boot", "2.2.0.RELEASE"), entry("io.quarkus.platform", "3.15.1"));
     }
 
     @Test

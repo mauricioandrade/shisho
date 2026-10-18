@@ -85,6 +85,16 @@ public final class GradleBuildFileReader implements BuildFileReader {
             + "|group\\s*[:=]\\s*(?<q2>['\"])(?<mapGroup>[\\w.-]+)\\k<q2>\\s*,\\s*name\\s*[:=]\\s*(?<q3>['\"])(?<mapArtifact>[\\w.-]+)\\k<q3>"
             + "|(?<accessor>[A-Za-z]\\w*\\.[\\w.]+))");
 
+    /**
+     * Versions pinned for a platform: {@code id("org.springframework.boot") version "3.3.0"} in
+     * {@code plugins}, {@code platform("io.quarkus.platform:quarkus-bom:3.15.1")}, or the
+     * {@code classpath} of an older {@code buildscript}. The plugin id of Spring Boot and of Quarkus
+     * is their groupId. A version built from a variable ({@code "$springBootVersion"}) is not seen.
+     */
+    private static final List<Pattern> PLATFORM_VERSIONS = List.of(
+            Pattern.compile("\\bid\\s*\\(?\\s*['\"]([\\w.-]+)['\"]\\s*\\)?\\s*version\\s*\\(?\\s*['\"]([^'\"$]+)['\"]"),
+            Pattern.compile("\\b(?:enforcedPlatform|platform|classpath)\\s*\\(?\\s*['\"]([\\w.-]+):[\\w.-]+:([^'\"$]+)['\"]"));
+
     /** BOMs, like {@code dependencyManagement} in Maven: they manage versions, they add no library. */
     private static final Set<String> PLATFORMS = Set.of("platform", "enforcedPlatform");
 
@@ -111,7 +121,7 @@ public final class GradleBuildFileReader implements BuildFileReader {
                 .map(plugin -> build(projectRoot, plugin, catalog));
         List<BuildInfo> modules = Stream.concat(projects, conventions).toList();
         return script(projectRoot, Path.of(""), catalog)
-                .map(root -> new BuildInfo(root.file(), root.javaVersion(), root.dependencies(), modules))
+                .map(root -> new BuildInfo(root.file(), root.javaVersion(), root.dependencies(), modules, root.platformVersions()))
                 .or(() -> settings.map(file -> new BuildInfo(file, Optional.empty(), List.of(), modules)));
     }
 
@@ -121,7 +131,8 @@ public final class GradleBuildFileReader implements BuildFileReader {
 
     private static BuildInfo build(Path projectRoot, Path script, Map<String, List<Dependency>> catalog) {
         String code = withoutComments(readScript(projectRoot.resolve(script)));
-        return new BuildInfo(script, javaVersion(projectRoot.resolve(script), code), dependencies(code, catalog));
+        return new BuildInfo(script, javaVersion(projectRoot.resolve(script), code), dependencies(code, catalog), List.of(),
+                platformVersions(code));
     }
 
     /**
@@ -140,6 +151,17 @@ public final class GradleBuildFileReader implements BuildFileReader {
             }
         });
         return catalogs;
+    }
+
+    private static Map<String, String> platformVersions(String code) {
+        Map<String, String> versions = new HashMap<>();
+        for (Pattern pattern : PLATFORM_VERSIONS) {
+            Matcher platform = pattern.matcher(code);
+            while (platform.find()) {
+                versions.putIfAbsent(platform.group(1), platform.group(2));
+            }
+        }
+        return versions;
     }
 
     /** The directories of the builds the settings include, inside the project. */

@@ -13,6 +13,7 @@ import java.nio.file.Path;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.entry;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class GradleBuildFileReaderTest {
@@ -476,6 +477,33 @@ class GradleBuildFileReaderTest {
         Files.writeString(project.resolve("buildSrc/src/main/kotlin/java-conventions.gradle.kts"), "dependencies { implementation(\"io.quarkus:quarkus-rest\") }");
 
         assertThat(reader.read(project).orElseThrow().dependsOn("io.quarkus", "quarkus-rest")).isTrue();
+    }
+
+    @Test
+    void readsTheVersionsOfPluginsPlatformsAndTheBuildscript() throws IOException {
+        writeKotlin("""
+                plugins {
+                    java
+                    id("org.springframework.boot") version "3.3.0"
+                    id("io.spring.dependency-management") version("1.1.6")
+                }
+                dependencies {
+                    implementation(enforcedPlatform("io.quarkus.platform:quarkus-bom:3.15.1"))
+                    implementation(platform("com.example:bom:$bomVersion"))
+                }
+                """);
+        assertThat(reader.read(project).orElseThrow().platformVersions()).as("a version from a variable is not seen")
+                .containsOnly(entry("org.springframework.boot", "3.3.0"), entry("io.spring.dependency-management", "1.1.6"),
+                        entry("io.quarkus.platform", "3.15.1"));
+
+        writeGroovy("""
+                buildscript {
+                    dependencies { classpath 'org.springframework.boot:spring-boot-gradle-plugin:2.7.18' }
+                }
+                apply plugin: 'org.springframework.boot'
+                """);
+        Files.delete(project.resolve("build.gradle.kts"));
+        assertThat(reader.read(project).orElseThrow().platformVersion("org.springframework.boot")).contains("2.7.18");
     }
 
     @Test

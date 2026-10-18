@@ -52,7 +52,7 @@ public final class MavenBuildFileReader implements BuildFileReader {
         Element project = parse(pom);
         List<BuildInfo> modules = new ArrayList<>();
         addModules(projectRoot, Path.of(""), project, new HashSet<>(Set.of(Path.of(""))), modules);
-        return Optional.of(new BuildInfo(Path.of(POM), javaVersion(pom, project), dependencies(project), modules));
+        return Optional.of(new BuildInfo(Path.of(POM), javaVersion(pom, project), dependencies(project), modules, platformVersions(project)));
     }
 
     /**
@@ -72,7 +72,7 @@ public final class MavenBuildFileReader implements BuildFileReader {
                 continue;
             }
             Element element = parse(pom);
-            modules.add(new BuildInfo(module.resolve(POM), javaVersion(pom, element), dependencies(element)));
+            modules.add(new BuildInfo(module.resolve(POM), javaVersion(pom, element), dependencies(element), List.of(), platformVersions(element)));
             addModules(projectRoot, module, element, read, modules);
         }
     }
@@ -146,6 +146,28 @@ public final class MavenBuildFileReader implements BuildFileReader {
                 .filter(plugin -> text(plugin, "artifactId").filter(COMPILER_PLUGIN::equals).isPresent())
                 .findFirst()
                 .flatMap(plugin -> child(plugin, "configuration"));
+    }
+
+    /**
+     * The {@code <parent>} ({@code spring-boot-starter-parent}) and the BOMs imported in
+     * {@code <dependencyManagement>} ({@code quarkus-bom}), by groupId. A version left as a
+     * placeholder the pom does not define is skipped.
+     */
+    private static Map<String, String> platformVersions(Element project) {
+        Map<String, String> properties = properties(project);
+        Stream<Element> parent = child(project, "parent").stream();
+        Stream<Element> boms = child(project, "dependencyManagement")
+                .flatMap(management -> child(management, "dependencies"))
+                .stream()
+                .flatMap(section -> children(section, "dependency").stream())
+                .filter(dependency -> text(dependency, "scope").filter("import"::equals).isPresent());
+        Map<String, String> versions = new HashMap<>();
+        Stream.concat(parent, boms).forEach(platform -> text(platform, "groupId").ifPresent(groupId ->
+                text(platform, "version")
+                        .map(version -> resolve(version, properties))
+                        .filter(version -> !PLACEHOLDER.matcher(version).find())
+                        .ifPresent(version -> versions.putIfAbsent(resolve(groupId, properties), version))));
+        return versions;
     }
 
     private static List<Dependency> dependencies(Element project) {

@@ -35,6 +35,7 @@ public final class Katas {
                 new TransactionalControllerKata(),
                 new DestructiveSchemaGenerationKata(),
                 new SqlLoggingKata(),
+                new HardcodedSecretKata(),
                 new MissingControllerAdviceKata(),
                 new MissingActuatorKata(),
                 new MissingSpringdocKata(),

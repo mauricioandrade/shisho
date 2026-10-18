@@ -30,6 +30,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 class KataGuidesTest {
 
     private static final String QUARKUS = "quarkus";
+    private static final String PROPERTIES = "properties";
+    private static final String SPRING_JPA = "org.springframework.boot:spring-boot-starter-data-jpa";
+    private static final String QUARKUS_JPA = "io.quarkus:quarkus-hibernate-orm";
     private static final List<Kata> KATAS = Katas.all(MarkdownCatalogRepository.bundled().avoidedDependencies());
 
     private final Map<String, KataGuide> guides = guides(Optional.empty());
@@ -63,6 +66,36 @@ class KataGuidesTest {
                     assertThat(quarkusLessons(kata, example.before().code())).as("Antes (Quarkus)").isNotEmpty()
                             .allSatisfy(lesson -> assertThat(lesson.messageKey()).isEqualTo("kata." + kata.id() + ".lesson.quarkus"));
                     assertThat(quarkusLessons(kata, example.after().code())).as("Depois (Quarkus)").isEmpty();
+                })));
+    }
+
+    /** Settings examples run against a JPA application, the kind every settings kata is about. */
+    @TestFactory
+    Stream<DynamicTest> theKataFlagsTheSettingsBeforeAndAcceptsTheSettingsAfter() {
+        return Stream.of(guides, englishGuides).flatMap(language -> KATAS.stream()
+                .filter(kata -> language.get(kata.id()).before().language().equals(PROPERTIES))
+                .map(kata -> DynamicTest.dynamicTest(kata.id() + (language == guides ? "" : " (en)"), () -> {
+                    KataGuide guide = language.get(kata.id());
+                    ProjectKata settingsKata = (ProjectKata) kata;
+                    assertThat(KataTestSupport.evaluateSettings(settingsKata, guide.before().code(), SPRING_JPA)).as("Antes").isNotEmpty()
+                            .allSatisfy(lesson -> assertThat(lesson.kataId()).isEqualTo(kata.id()));
+                    assertThat(KataTestSupport.evaluateSettings(settingsKata, guide.after().code(), SPRING_JPA)).as("Depois").isEmpty();
+                })));
+    }
+
+    @TestFactory
+    Stream<DynamicTest> inQuarkusTheKataFlagsTheSettingsBeforeAndAcceptsTheSettingsAfter() {
+        return Stream.of(guides, englishGuides).flatMap(language -> KATAS.stream()
+                .filter(kata -> language.get(kata.id()).variants().containsKey(QUARKUS))
+                .filter(kata -> language.get(kata.id()).variants().get(QUARKUS).before().language().equals(PROPERTIES))
+                .map(kata -> DynamicTest.dynamicTest(kata.id() + (language == guides ? "" : " (en)"), () -> {
+                    Example example = language.get(kata.id()).variants().get(QUARKUS);
+                    ProjectKata settingsKata = (ProjectKata) kata;
+                    assertThat(KataTestSupport.evaluateSettings(settingsKata, example.before().code(), QUARKUS_JPA)).as("Antes (Quarkus)")
+                            .isNotEmpty()
+                            .allSatisfy(lesson -> assertThat(lesson.messageKey()).isEqualTo("kata." + kata.id() + ".lesson.quarkus"));
+                    assertThat(KataTestSupport.evaluateSettings(settingsKata, example.after().code(), QUARKUS_JPA)).as("Depois (Quarkus)")
+                            .isEmpty();
                 })));
     }
 

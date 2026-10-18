@@ -33,6 +33,7 @@ public final class Katas {
                 new TransactionalReadOnlyKata(),
                 new UnproxyableMethodKata(),
                 new TransactionalControllerKata(),
+                new DestructiveSchemaGenerationKata(),
                 new MissingControllerAdviceKata(),
                 new MissingActuatorKata(),
                 new MissingSpringdocKata(),

@@ -58,6 +58,9 @@ public final class GenerateCrudService implements GenerateCrud {
     public CrudPlan plan(Path projectRoot, CrudRequest request) {
         LoadedProject loaded = projectLoader.load(projectRoot, config -> { });
         ProjectModel project = loaded.model();
+        if (!project.javaVersion().isAtLeast(MINIMUM_JAVA)) {
+            throw new ScaffoldException("crud.error.java-version", project.javaVersion(), MINIMUM_JAVA);
+        }
         Optional<ProjectContext> context = loaded.config().context();
         Optional<String> knownBasePackage = request.basePackage().or(() -> basePackage(project));
         Optional<ArchitectureProfile> detected = classifyArchitecture.classify(project, context)

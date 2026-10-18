@@ -8,10 +8,10 @@ import java.util.regex.Pattern;
 public record JavaVersion(int feature) implements Comparable<JavaVersion> {
 
     /**
-     * The oldest version the Shishō analyzes, an LTS and Spring Boot 3's minimum. A kata that needs
-     * no particular language feature declares it as its {@code minJavaVersion}.
+     * The oldest version the Shishō analyzes, Spring Boot 2's minimum. A kata that needs no
+     * particular language feature declares it as its {@code minJavaVersion}.
      */
-    public static final JavaVersion MINIMUM = new JavaVersion(17);
+    public static final JavaVersion MINIMUM = new JavaVersion(8);
 
     /**
      * The version assumed when the build does not state one, as with a version inherited from a

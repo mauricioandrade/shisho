@@ -161,10 +161,10 @@ class ShishoBootstrapTest {
 
     @Test
     void exitsWithThreeWhenTheProjectCannotBeAnalyzed(@TempDir Path project) throws IOException {
-        Files.writeString(project.resolve("pom.xml"), "<project><properties><java.version>11</java.version></properties></project>");
+        Files.writeString(project.resolve("pom.xml"), "<project><properties><java.version>1.7</java.version></properties></project>");
 
         assertThat(run("analyze", project.toString())).isEqualTo(3);
-        assertThat(err()).isEqualTo("O projeto usa Java 11; o Shishō analisa Java 17 ou superior.\n");
+        assertThat(err()).isEqualTo("O projeto usa Java 7; o Shishō analisa Java 8 ou superior.\n");
     }
 
     @Test

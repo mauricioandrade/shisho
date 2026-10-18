@@ -4,6 +4,8 @@ import dev.mauricioandrade.shisho.domain.exception.ScaffoldException;
 import dev.mauricioandrade.shisho.domain.model.CrudPlan;
 import dev.mauricioandrade.shisho.domain.model.CrudRequest;
 import dev.mauricioandrade.shisho.domain.model.GeneratedFile;
+import dev.mauricioandrade.shisho.domain.model.JavaVersion;
+import dev.mauricioandrade.shisho.domain.port.in.GenerateCrud;
 import dev.mauricioandrade.shisho.infrastructure.build.MavenBuildFileReader;
 import dev.mauricioandrade.shisho.infrastructure.catalog.MarkdownCatalogRepository;
 import dev.mauricioandrade.shisho.infrastructure.config.YamlProjectConfigReader;
@@ -168,6 +170,20 @@ class GenerateCrudServiceTest {
                 .containsExactly(List.of("quarkus-hibernate-validator"), List.of("quarkus-hibernate-orm-panache"));
         assertThat(plan.files()).extracting(GeneratedFile::file)
                 .contains(Path.of("src/main/java/com/loja/resource/UsuarioResource.java"));
+    }
+
+    @Test
+    void refusesProjectsBelowTheJavaTheTemplatesNeed(@TempDir Path project) throws IOException {
+        copy("initializr", project);
+        Path pom = project.resolve("pom.xml");
+        Files.writeString(pom, Files.readString(pom).replace("<java.version>21<", "<java.version>11<"));
+
+        assertThatExceptionOfType(ScaffoldException.class)
+                .isThrownBy(() -> service.plan(project, request(Optional.of("layered"))))
+                .satisfies(e -> {
+                    assertThat(e.messageKey()).isEqualTo("crud.error.java-version");
+                    assertThat(e.arguments()).containsExactly(new JavaVersion(11), GenerateCrud.MINIMUM_JAVA);
+                });
     }
 
     @Test

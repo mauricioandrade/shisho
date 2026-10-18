@@ -232,10 +232,10 @@ class AnalyzeProjectServiceTest {
 
     @Test
     void refusesProjectsBelowTheMinimum() {
-        assertThatThrownBy(() -> service(version(11)).analyze(ROOT))
+        assertThatThrownBy(() -> service(version(7)).analyze(ROOT))
                 .isInstanceOfSatisfying(AnalysisException.class, e -> {
                     assertThat(e.messageKey()).isEqualTo("analysis.error.unsupported-java-version");
-                    assertThat(e.arguments()).containsExactly(new JavaVersion(11), JavaVersion.MINIMUM);
+                    assertThat(e.arguments()).containsExactly(new JavaVersion(7), JavaVersion.MINIMUM);
                 });
         assertThat(parser.languageLevels).isEmpty();
     }

@@ -229,6 +229,34 @@ class MavenBuildFileReaderTest {
         assertThat(build.lowestJavaVersion()).as("the app module compiles at 21").contains(new JavaVersion(21));
     }
 
+    @Test
+    void readsTheModulesOfEveryProfile() throws IOException {
+        writePom("""
+                <modules><module>dominio</module></modules>
+                <profiles>
+                    <profile>
+                        <id>web</id>
+                        <modules><module>app</module><module>dominio</module></modules>
+                        <dependencies><dependency><groupId>org.slf4j</groupId><artifactId>slf4j-api</artifactId></dependency></dependencies>
+                    </profile>
+                </profiles>
+                """);
+        writePom("dominio", "");
+        writePom("app", """
+                <dependencies><dependency>
+                    <groupId>org.springframework.boot</groupId><artifactId>spring-boot-starter-web</artifactId>
+                </dependency></dependencies>
+                """);
+
+        BuildInfo build = reader.read(project).orElseThrow();
+
+        assertThat(build.modules()).as("active or not, a profile's module is analyzed")
+                .extracting(BuildInfo::file)
+                .containsExactly(Path.of("dominio/pom.xml"), Path.of("app/pom.xml"));
+        assertThat(build.dependsOn("org.springframework.boot", "spring-boot-starter-web")).isTrue();
+        assertThat(build.dependencies()).as("a profile's own dependencies are conditional").isEmpty();
+    }
+
     private void writePom(String body) throws IOException {
         Files.writeString(project.resolve("pom.xml"), """
                 <?xml version="1.0" encoding="UTF-8"?>

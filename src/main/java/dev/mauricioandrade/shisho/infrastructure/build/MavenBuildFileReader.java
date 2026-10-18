@@ -32,8 +32,8 @@ import java.util.stream.Stream;
 
 /**
  * Reads the Java version and dependencies from a {@code pom.xml} and from the poms of its modules
- * ({@code <modules>}, or Maven 4's {@code <subprojects>}), nested ones included. Only what each pom
- * declares locally is considered: a remote parent (such as {@code spring-boot-starter-parent}) is
+ * ({@code <modules>}, or Maven 4's {@code <subprojects>}), nested ones and those of any
+ * {@code <profile>} included. Only what each pom declares locally is considered: a remote parent (such as {@code spring-boot-starter-parent}) is
  * never downloaded. See {@code docs/adr/0015-multi-module.md}.
  */
 public final class MavenBuildFileReader implements BuildFileReader {
@@ -57,11 +57,14 @@ public final class MavenBuildFileReader implements BuildFileReader {
 
     /**
      * The modules of {@code project}, whose pom is in {@code directory}, and theirs, in the order the
-     * poms list them. A module outside the project, or one already read, is skipped: the poms come
+     * poms list them. A profile's modules count whether or not it is active: their code is analyzed
+     * anyway, so their dependencies must be known too. A module outside the project, or one already read, is skipped: the poms come
      * from an untrusted project, and two poms may list each other.
      */
     private static void addModules(Path projectRoot, Path directory, Element project, Set<Path> read, List<BuildInfo> modules) {
-        List<String> names = Stream.concat(listed(project, "modules", "module"), listed(project, "subprojects", "subproject")).toList();
+        List<String> names = Stream.concat(Stream.of(project), profiles(project))
+                .flatMap(owner -> Stream.concat(listed(owner, "modules", "module"), listed(owner, "subprojects", "subproject")))
+                .toList();
         for (String name : names) {
             Path module = directory.resolve(name).normalize();
             Path pom = projectRoot.resolve(module).resolve(POM);
@@ -74,9 +77,13 @@ public final class MavenBuildFileReader implements BuildFileReader {
         }
     }
 
+    private static Stream<Element> profiles(Element project) {
+        return child(project, "profiles").stream().flatMap(profiles -> children(profiles, "profile").stream());
+    }
+
     /** The directories in {@code <section><item>...</item></section>}. */
-    private static Stream<String> listed(Element project, String section, String item) {
-        return child(project, section).stream()
+    private static Stream<String> listed(Element owner, String section, String item) {
+        return child(owner, section).stream()
                 .flatMap(list -> children(list, item).stream())
                 .map(element -> element.getTextContent().strip())
                 .filter(name -> !name.isEmpty());

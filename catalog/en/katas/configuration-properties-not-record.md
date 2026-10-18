@@ -19,6 +19,10 @@ A class with setters still works; the gain is immutability, not correctness. It 
 when the properties are bound to an object created in a `@Bean` method, because constructor
 binding only works with `@EnableConfigurationProperties` or `@ConfigurationPropertiesScan`.
 
+In Spring Boot 2.2 to 2.5, the record still needs `@ConstructorBinding` on the class; from 2.6
+on, a record with a single constructor does without it. Below Java 16 there are no records: the
+kata becomes a suggestion for after the upgrade.
+
 ## Before
 
 ```java

@@ -22,6 +22,10 @@ Uma classe com setters continua funcionando; o ganho é imutabilidade, não corr
 constructor binding só funciona com `@EnableConfigurationProperties` ou
 `@ConfigurationPropertiesScan`.
 
+No Spring Boot 2.2 a 2.5, o record ainda precisa de `@ConstructorBinding` na classe; a partir do
+2.6, um record com um construtor só dispensa a anotação. Abaixo do Java 16 não há record: a kata
+vira sugestão para depois da migração.
+
 ## Antes
 
 ```java

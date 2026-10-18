@@ -29,6 +29,10 @@ A `@Controller` that only returns view names (Thymeleaf, JSP) is not counted by 
 errors become pages through Spring Boot's `error` view, and ProblemDetail is an API response. One
 method with `@ResponseBody` or returning `ResponseEntity` is enough for it to count.
 
+Spring Boot 2 has no `ProblemDetail`: the advice returns a record of its own with the same fields
+(`status`, `title`, `detail`), and the move to Boot 3 swaps that record for the ready-made class.
+The kata recognizes Boot 2 by its `javax.*` imports and does not mention `ProblemDetail` there.
+
 ## Before
 
 ```java

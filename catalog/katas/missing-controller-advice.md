@@ -33,6 +33,10 @@ Um `@Controller` que só devolve nomes de view (Thymeleaf, JSP) a kata não cont
 viram páginas pela view `error` do Spring Boot, e ProblemDetail é resposta de API. Basta um método
 com `@ResponseBody` ou que devolva `ResponseEntity` para ele contar.
 
+No Spring Boot 2 não existe `ProblemDetail`: o advice devolve um record próprio com os mesmos
+campos (`status`, `title`, `detail`), e a migração para o Boot 3 troca esse record pela classe
+pronta. A kata reconhece o Boot 2 pelos imports `javax.*` e não fala em `ProblemDetail` ali.
+
 ## Antes
 
 ```java

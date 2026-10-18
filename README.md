@@ -631,7 +631,7 @@ que assim: [ADR 0010](docs/adr/0010-release.md).
   ([ADR 0013](docs/adr/0013-gradle.md))
 - [x] **Fase 14** — `shisho crud` em projetos Quarkus, nas três arquiteturas
   ([ADR 0014](docs/adr/0014-quarkus-crud.md))
-- [x] **Fase 15** — multi-módulo: os módulos do Maven e do Gradle, cada lição no build do seu módulo
+- [x] **Fase 15** — multi-módulo: os módulos do Maven (de profiles também) e do Gradle e os convention plugins do `buildSrc`, cada lição no build que a declara
   ([ADR 0015](docs/adr/0015-multi-module.md))
 - [ ] **Depois** — outras stacks, reaproveitando o catálogo de arquiteturas
 

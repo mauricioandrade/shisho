@@ -33,7 +33,8 @@ transação e nada avisa. Ela não roda no Quarkus, que desde a versão 3 faz o 
 anotação de interceptor num método `private`
 ([Migration Guide 3.0](https://github.com/quarkusio/quarkus/wiki/Migration-Guide-3.0)) e
 intercepta métodos `static`. A chamada de dentro da própria classe (`this.salvar()`), que também
-escapa do proxy, fica de fora: o modelo não diz de que método parte cada chamada.
+escapa do proxy, ficou de fora nesta fase, porque o modelo não dizia de que método parte cada
+chamada. Ela entrou na Fase 19 ([ADR 0020](0020-self-invocation.md)).
 
 A `swallowed-exception` aceitava, na primeira versão, só o nome da variável como sinal de "é de
 propósito". Nos projetos reais apareceram quatro `catch` vazios, e os quatro explicavam o motivo

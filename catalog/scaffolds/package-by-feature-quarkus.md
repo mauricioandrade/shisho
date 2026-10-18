@@ -3,6 +3,7 @@ id: package-by-feature-quarkus
 arquitetura: package-by-feature
 grupo_do_build: io.quarkus
 dependencias: ["quarkus-rest-jackson|quarkus-rest-jsonb", quarkus-hibernate-validator, quarkus-hibernate-orm-panache]
+recusa_imports: [javax.persistence, javax.validation, javax.ws.rs, javax.inject, javax.enterprise, javax.transaction]
 uma_vez_por_projeto:
   TratadorDeErros.java: ServerExceptionMapper
 ---

@@ -168,6 +168,7 @@ terminal, por que o arquivo existe; o bloco é o conteúdo.
 ---
 id: layered                  # uma arquitetura de architectures/
 dependencias: ["spring-boot-starter-webmvc|spring-boot-starter-web", spring-boot-starter-data-jpa]   # artifactIds que o código exige; com |, qualquer um serve
+recusa_imports: [javax.persistence, javax.validation]   # opcional: um import desses pacotes no projeto e nada é gerado
 uma_vez_por_projeto:         # opcional: arquivo comum a todas as entidades
   controller/TratadorDeErros.java: RestControllerAdvice   # pulado se alguma classe ou método já tem a anotação
 ---
@@ -206,6 +207,10 @@ grupo_do_build: io.quarkus   # usado quando o build declara uma dependência des
 Num projeto cujo build declara o `grupo_do_build` de algum template, o `crud` só usa os templates
 desse stack, e uma arquitetura sem template nele é recusada: um projeto Quarkus nunca recebe um
 CRUD Spring. Nos outros projetos, valem os templates sem `grupo_do_build`.
+
+O `recusa_imports` existe porque os templates são código do Spring Boot 3 e do Quarkus 3, com
+`jakarta.*`: num projeto que ainda importa `javax.persistence` (Spring Boot 2, Quarkus 2), o CRUD
+gerado não compilaria, e o `crud` recusa antes de gravar qualquer coisa.
 
 Uma linha que só tem uma tag de seção desaparece, e linhas em branco repetidas viram uma. O
 teste gera cada template num projeto como o do Spring Initializr (ou o do code.quarkus.io) e exige que o `shisho analyze`

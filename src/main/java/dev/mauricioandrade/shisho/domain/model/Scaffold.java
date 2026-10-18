@@ -12,12 +12,15 @@ import java.util.Optional;
  *                             the project's stack; empty for the default stack
  * @param requiredDependencies what the generated code needs in the build: for each dependency,
  *                             the artifactIds that provide it (Spring Boot 4 renamed some starters)
+ * @param refusedImports       packages that, imported anywhere in the project, mean the generated
+ *                             code would not compile alongside it, such as an older namespace
  */
 public record Scaffold(String architectureId, Optional<String> buildGroup, List<List<String>> requiredDependencies,
-                       List<File> files) {
+                       List<String> refusedImports, List<File> files) {
 
     public Scaffold {
         requiredDependencies = requiredDependencies.stream().map(List::copyOf).toList();
+        refusedImports = List.copyOf(refusedImports);
         files = List.copyOf(files);
     }
 

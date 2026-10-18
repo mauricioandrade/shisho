@@ -68,6 +68,9 @@ public final class GenerateCrudService implements GenerateCrud {
                 .or(() -> knownBasePackage.flatMap(base -> generatedBefore(project, base)));
 
         Scaffold scaffold = scaffold(request, detected, scaffolds(project));
+        refusedImport(scaffold, project).ifPresent(found -> {
+            throw new ScaffoldException("crud.error.refused-import", found.file(), found.name());
+        });
         ArchitectureProfile architecture = architecture(scaffold.architectureId());
         String basePackage = knownBasePackage.orElseThrow(() -> new ScaffoldException("crud.error.no-package"));
 
@@ -182,6 +185,18 @@ public final class GenerateCrudService implements GenerateCrud {
         return project.classes().stream().anyMatch(unit -> unit.isAnnotatedWith(simpleName)
                 || unit.methods().stream().anyMatch(method -> method.annotations().stream()
                         .anyMatch(methodAnnotation -> methodAnnotation.simpleName().equals(simpleName))));
+    }
+
+    private record FoundImport(Path file, String name) {
+    }
+
+    /** The first import of the project from a package the scaffold refuses, in file order. */
+    private static Optional<FoundImport> refusedImport(Scaffold scaffold, ProjectModel project) {
+        return project.classes().stream()
+                .flatMap(unit -> unit.imports().stream().map(declaration -> new FoundImport(unit.file(), declaration.name())))
+                .filter(found -> scaffold.refusedImports().stream()
+                        .anyMatch(refused -> found.name().equals(refused) || found.name().startsWith(refused + ".")))
+                .findFirst();
     }
 
     private static List<List<String>> missingDependencies(Scaffold scaffold, ProjectModel project) {

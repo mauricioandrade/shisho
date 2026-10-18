@@ -224,7 +224,7 @@ public final class MarkdownCatalogRepository implements CatalogRepository {
                 .map(alternatives -> List.of(alternatives.split("\\|")))
                 .toList();
         return new Scaffold(fields.optionalText("arquitetura").orElse(document.id()), fields.optionalText("grupo_do_build"),
-                dependencies, files);
+                dependencies, fields.optionalTextList("recusa_imports"), files);
     }
 
     private static AvoidedDependency toAvoidedDependency(Document document) {

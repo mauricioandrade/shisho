@@ -15,8 +15,8 @@ public interface GenerateCrud {
      * Plans the CRUD in the project's architecture, or the one requested; nothing is written.
      *
      * @throws dev.mauricioandrade.shisho.domain.exception.ScaffoldException if the request is
-     *         invalid, the project is below {@link #MINIMUM_JAVA} or there is no architecture or
-     *         base package to follow
+     *         invalid, the project is below {@link #MINIMUM_JAVA} or imports what the template
+     *         refuses, or there is no architecture or base package to follow
      * @throws dev.mauricioandrade.shisho.domain.exception.ShishoException if the project cannot be read
      */
     CrudPlan plan(Path projectRoot, CrudRequest request);

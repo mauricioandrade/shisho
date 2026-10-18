@@ -1,6 +1,7 @@
 ---
 id: hexagonal
 dependencias: ["spring-boot-starter-webmvc|spring-boot-starter-web", spring-boot-starter-validation, spring-boot-starter-data-jpa]
+recusa_imports: [javax.persistence, javax.validation, javax.servlet]
 uma_vez_por_projeto:
   adapter/in/web/TratadorDeErros.java: RestControllerAdvice
 ---

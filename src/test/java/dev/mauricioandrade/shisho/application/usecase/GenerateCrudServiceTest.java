@@ -187,6 +187,27 @@ class GenerateCrudServiceTest {
     }
 
     @Test
+    void refusesProjectsOnTheJavaxNamespace(@TempDir Path project) throws IOException {
+        copy("initializr", project);
+        Path entity = Files.createDirectories(project.resolve("src/main/java/com/exemplo/loja/pedido")).resolve("Pedido.java");
+        Files.writeString(entity, """
+                package com.exemplo.loja.pedido;
+
+                import javax.persistence.Entity;
+
+                @Entity
+                class Pedido {}
+                """);
+
+        assertThatExceptionOfType(ScaffoldException.class)
+                .isThrownBy(() -> service.plan(project, request(Optional.of("layered"))))
+                .satisfies(e -> {
+                    assertThat(e.messageKey()).isEqualTo("crud.error.refused-import");
+                    assertThat(e.arguments()).containsExactly(Path.of("src/main/java/com/exemplo/loja/pedido/Pedido.java"), "javax.persistence.Entity");
+                });
+    }
+
+    @Test
     void asksForThePackageOfAnEmptyProject(@TempDir Path project) {
         assertThatExceptionOfType(ScaffoldException.class)
                 .isThrownBy(() -> service.plan(project, request(Optional.of("layered"))))

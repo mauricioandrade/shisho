@@ -360,6 +360,30 @@ class GradleBuildFileReaderTest {
     }
 
     @Test
+    void aProjectDirInTheSettingsWinsOverTheProjectPath() throws IOException {
+        Files.writeString(project.resolve("settings.gradle"), """
+                include ':app', ':dominio', ':fora', ':absoluto'
+                project(':app').projectDir = file('modulos/app')
+                project(":dominio").projectDir = new File(settingsDir, "modulos/dominio")
+                project(':fora').projectDir = file('../fora')
+                project(':absoluto').projectDir = file('/tmp/absoluto')
+                """);
+        writeGroovy("");
+        Files.createDirectories(project.resolve("modulos/app"));
+        Files.writeString(project.resolve("modulos/app/build.gradle"), "dependencies { implementation 'io.quarkus:quarkus-rest' }");
+        Files.createDirectories(project.resolve("modulos/dominio"));
+        Files.writeString(project.resolve("modulos/dominio/build.gradle.kts"), "");
+        Files.createDirectories(project.resolve("app"));
+        Files.writeString(project.resolve("app/build.gradle"), "dependencies { implementation 'not:this' }");
+
+        BuildInfo build = reader.read(project).orElseThrow();
+
+        assertThat(build.modules()).as("outside the project: skipped").extracting(BuildInfo::file)
+                .containsExactly(Path.of("modulos/app/build.gradle"), Path.of("modulos/dominio/build.gradle.kts"));
+        assertThat(build.dependsOn("io.quarkus", "quarkus-rest")).isTrue();
+    }
+
+    @Test
     void aSingleProjectWithSettingsHasNoModules() throws IOException {
         Files.writeString(project.resolve("settings.gradle"), "rootProject.name = 'loja'");
         writeGroovy("dependencies { implementation 'io.quarkus:quarkus-rest' }");

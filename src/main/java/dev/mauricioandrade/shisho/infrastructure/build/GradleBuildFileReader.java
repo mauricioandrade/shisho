@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -38,6 +39,13 @@ public final class GradleBuildFileReader implements BuildFileReader {
 
     /** A project path in an {@code include}: {@code ":lib:core"} is the directory {@code lib/core}. */
     private static final Pattern PROJECT_PATH = Pattern.compile("['\"]:?([\\w.-]+(?::[\\w.-]+)*)['\"]");
+
+    /**
+     * {@code project(":app").projectDir = file("modules/app")}, or {@code File(rootDir, "modules/app")}
+     * ({@code new File(settingsDir, ...)} in Groovy): the project lives somewhere else than its path says.
+     */
+    private static final Pattern PROJECT_DIR = Pattern.compile("\\bproject\\(\\s*['\"]:?([\\w.-]+(?::[\\w.-]+)*)['\"]\\s*\\)"
+            + "\\.projectDir\\s*=\\s*(?:file\\(|(?:new\\s+)?File\\(\\s*(?:rootDir|settingsDir)\\s*,)\\s*['\"]([^'\"]+)['\"]\\s*\\)");
 
     /** {@code options.release = 21} or {@code options.release.set(21)} on {@code JavaCompile}. */
     private static final Pattern RELEASE = Pattern.compile("\\boptions\\.release(?:\\s*=\\s*|\\.set\\(\\s*)(\\d+)");
@@ -99,16 +107,24 @@ public final class GradleBuildFileReader implements BuildFileReader {
                 .findFirst();
     }
 
-    /** The directories of the included projects, in the order of the settings, inside the project. */
+    /**
+     * The directories of the included projects, in the order of the settings, inside the project. A
+     * {@code projectDir} set in the settings wins over the directory the project path gives.
+     */
     private static Stream<Path> included(Path projectRoot, Path settings) {
         String code = withoutComments(readScript(projectRoot.resolve(settings)));
+        Map<String, String> projectDirs = new HashMap<>();
+        Matcher projectDir = PROJECT_DIR.matcher(code);
+        while (projectDir.find()) {
+            projectDirs.put(projectDir.group(1), projectDir.group(2));
+        }
         List<Path> directories = new ArrayList<>();
         Matcher include = INCLUDE.matcher(code);
         while (include.find()) {
             Matcher path = PROJECT_PATH.matcher(include.group(1));
             while (path.find()) {
-                Path directory = Path.of(path.group(1).replace(':', '/')).normalize();
-                if (!directory.startsWith("..") && !directories.contains(directory)) {
+                Path directory = Path.of(projectDirs.getOrDefault(path.group(1), path.group(1).replace(':', '/'))).normalize();
+                if (!directory.isAbsolute() && !directory.startsWith("..") && !directories.contains(directory)) {
                     directories.add(directory);
                 }
             }

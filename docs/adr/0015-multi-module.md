@@ -92,8 +92,7 @@ de antes.
   com build é, na prática, um multi-módulo.
 
 O que continua de fora: um `projectDir` calculado (`rootDir.resolve(...)`, um laço sobre os
-diretórios), convention plugins escritos como classe (`Plugin<Project>` em Kotlin ou Java) e
-catálogos nomeados no `settings.gradle`. As de `subprojects { }` e `allprojects { }` passaram a ser lidas como do build da raiz ([ADR 0013](0013-gradle.md)).
+diretórios) e convention plugins escritos como classe (`Plugin<Project>` em Kotlin ou Java). As de `subprojects { }` e `allprojects { }` passaram a ser lidas como do build da raiz ([ADR 0013](0013-gradle.md)).
 
 ## 📚 Estudo — agregação e herança
 

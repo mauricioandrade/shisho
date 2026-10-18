@@ -72,11 +72,19 @@ bundle `web` lista. O array de um bundle pode ocupar várias linhas, então as l
 arquivo inteiro, porque `[bundles]` pode vir antes de `[libraries]`, e um nome que não é biblioteca é
 ignorado, como o acessor desconhecido.
 
+Um catálogo com outro nome vem do `settings.gradle(.kts)`:
+`versionCatalogs { create("spring") { from(files("gradle/spring.versions.toml")) } }` no Kotlin, ou
+`spring { from(files('...')) }` no Groovy. O arquivo é lido do mesmo jeito, e os acessores dele
+começam com o nome: `spring.boot.web`. Por isso o leitor deixou de procurar só `libs.`: qualquer
+`nome.alias` depois de uma configuração é procurado entre os acessores de todos os catálogos, e o
+que não estiver lá é ignorado. Um catálogo publicado como artefato (`from("g:a:v")`) ou um arquivo
+fora do projeto não é lido.
+
 ### 4. O que não é visto
 
 - versão ou dependência calculada pelo script: `JavaLanguageVersion.of(jdkVersion)`, `if`, loops;
-- catálogos com outro nome declarados no `settings.gradle` (os `[bundles]` do catálogo padrão
-  eram desta lista até serem lidos, ver a seção 3);
+- um version catalog publicado como artefato (`from("g:a:v")`); os catálogos com outro nome e os
+  `[bundles]` eram desta lista até serem lidos (seção 3);
 - multi-módulo (`settings.gradle` com `include`), igual ao Maven na época; resolvido no
   [ADR 0015](0015-multi-module.md);
 - `kotlin { jvmToolchain(21) }`, que é configuração de projeto Kotlin.

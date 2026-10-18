@@ -9,7 +9,7 @@ Starting with Java, with Spring Boot and Quarkus.
 [![CI](https://github.com/mauricioandrade/shisho/actions/workflows/ci.yml/badge.svg)](https://github.com/mauricioandrade/shisho/actions/workflows/ci.yml)
 [![Release](https://img.shields.io/github/v/release/mauricioandrade/shisho?label=release)](https://github.com/mauricioandrade/shisho/releases)
 ![Runs on Java 25](https://img.shields.io/badge/runs%20on-Java%2025-orange?logo=openjdk)
-![Analyzes Java 21+](https://img.shields.io/badge/analyzes-Java%2021%2B-blue?logo=openjdk)
+![Analyzes Java 17+](https://img.shields.io/badge/analyzes-Java%2017%2B-blue?logo=openjdk)
 ![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3%20%7C%204-6DB33F?logo=springboot&logoColor=white)
 ![Quarkus](https://img.shields.io/badge/Quarkus-3-4695EB?logo=quarkus&logoColor=white)
 [![License Apache 2.0](https://img.shields.io/badge/license-Apache%202.0-green)](LICENSE)
@@ -99,7 +99,7 @@ as `dominio`, `servico` and `porta/entrada` just as well as `domain`, `service` 
 
 ## ⚡ Quick start
 
-Point it at the root of a Maven or Gradle project on Java 21 or later (in a multi-module project, the root that lists
+Point it at the root of a Maven or Gradle project on Java 17 or later (in a multi-module project, the root that lists
 the modules):
 
 | Command | What it does |
@@ -521,7 +521,7 @@ way: [ADR 0008](docs/adr/0008-claude-code-plugin.md).
 
 ## ☕ Java versions
 
-The Shishō runs on **Java 25** and analyzes projects from **Java 21** on. It reads your project's
+The Shishō runs on **Java 25** and analyzes projects from **Java 17** on. It reads your project's
 version and **only asks for what that version allows**. Anything that only exists in a newer
 version becomes a suggestion that costs no points:
 
@@ -529,6 +529,10 @@ version becomes a suggestion that costs no points:
 i INFO    [prefer-scoped-values]  NotificationService.java:11
           When you move to Java 25: Field CURRENT_USER is a ThreadLocal. ...
 ```
+
+Likewise, on a Java 17 project, replacing a thread pool with virtual threads shows up as what 21
+would bring. If the build states no version (inherited from a remote parent, say), the Shishō
+assumes 21 and says so.
 
 Preview features are never recommended. What the Shishō knows about each version lives in
 [`catalog/java-features`](catalog/java-features).
@@ -554,7 +558,7 @@ The exit code is designed for CI and does not depend on the format:
 | 0 | no severe lesson |
 | 1 | at least one **GRAVE** (severe) lesson |
 | 2 | invalid input (missing path or argument, an `--output` that cannot be written, an unknown `SHISHO_IDIOMA`; in `crud`, an architecture nothing pays for) |
-| 3 | the project could not be analyzed (e.g. Java below 21, invalid `shisho.yaml`); in `fix --apply`, a file that could not be written; in `ask`, Ollama down or the model not installed |
+| 3 | the project could not be analyzed (e.g. Java below 17, invalid `shisho.yaml`); in `fix --apply`, a file that could not be written; in `ask`, Ollama down or the model not installed |
 
 ## 🚦 On GitHub Actions
 
@@ -641,12 +645,16 @@ downloads. Why it works this way: [ADR 0010](docs/adr/0010-release.md).
 - [x] **Phase 11**: a release with the ready-made jar for every tag, and a one-command install
 - [x] **Phase 12**: Quarkus: the katas, shoshin and the classification recognize CDI, Jakarta REST
   and Panache
-- [x] **Phase 13**: Gradle: `build.gradle`, `build.gradle.kts` and the version catalog read without running the script
+- [x] **Phase 13**: Gradle: `build.gradle`, `build.gradle.kts` and the version catalogs (libraries and bundles) read without running the script
   ([ADR 0013](docs/adr/0013-gradle.md))
 - [x] **Phase 14**: `shisho crud` in Quarkus projects, in all three architectures
   ([ADR 0014](docs/adr/0014-quarkus-crud.md))
-- [x] **Phase 15**: multi-module: Maven and Gradle modules, each lesson in its module's build
+- [x] **Phase 15**: multi-module: Maven modules (from profiles too), Gradle modules and `buildSrc` convention plugins, each lesson in the build that declares it
   ([ADR 0015](docs/adr/0015-multi-module.md))
+- [x] **Phase 16**: calibration against real projects (petclinic, JHipster, buckpal, Quarkus
+  quickstarts...): six false positives and one false negative fixed ([ADR 0016](docs/adr/0016-real-projects.md))
+- [x] **Phase 17**: Java 17 projects: what needs 21 becomes an upgrade suggestion
+  ([ADR 0017](docs/adr/0017-java-17.md))
 - [ ] **Next**: other stacks, reusing the architecture catalog
 
 ![Sung Jinwoo, from Solo Leveling, striking with a dagger among stone statues](docs/anime/roadmap.gif)

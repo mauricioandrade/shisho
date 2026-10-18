@@ -25,6 +25,7 @@ import dev.mauricioandrade.shisho.infrastructure.cli.ReportWriterFactory;
 import dev.mauricioandrade.shisho.infrastructure.cli.ShishoCommand;
 import dev.mauricioandrade.shisho.infrastructure.config.YamlBaselineFile;
 import dev.mauricioandrade.shisho.infrastructure.config.YamlProjectConfigReader;
+import dev.mauricioandrade.shisho.infrastructure.settings.ApplicationSettingsReader;
 import dev.mauricioandrade.shisho.infrastructure.i18n.Language;
 import dev.mauricioandrade.shisho.infrastructure.i18n.Messages;
 import dev.mauricioandrade.shisho.infrastructure.kata.Katas;
@@ -92,7 +93,8 @@ public final class ShishoBootstrap {
                 new RankCalculator(),
                 catalog.concepts(),
                 ConceptDetectors.all(),
-                baselineFile);
+                baselineFile,
+                new ApplicationSettingsReader());
 
         ReportWriterFactory reportWriters = (format, destination, sensei, shoshin) -> switch (format) {
             case TERMINAL -> new TerminalReportWriter(destination, messages, sensei ? catalog.kataGuides() : List.of(),

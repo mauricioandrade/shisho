@@ -9,6 +9,7 @@ import dev.mauricioandrade.shisho.domain.model.ProjectModel;
 import dev.mauricioandrade.shisho.domain.model.SourceFile;
 import dev.mauricioandrade.shisho.domain.port.out.BuildFileReader;
 import dev.mauricioandrade.shisho.domain.port.out.ProjectConfigReader;
+import dev.mauricioandrade.shisho.domain.port.out.SettingsReader;
 import dev.mauricioandrade.shisho.domain.port.out.SourceParser;
 
 import java.nio.file.Path;
@@ -19,18 +20,25 @@ import java.util.function.Consumer;
 
 /**
  * Reads the build and the project's configuration, then parses the sources at the project's Java
- * version: what every use case needs before looking at the code.
+ * version and reads the application's settings: what every use case needs before looking at the code.
  */
 final class ProjectLoader {
 
     private final BuildFileReader buildFileReader;
     private final ProjectConfigReader configReader;
     private final SourceParser sourceParser;
+    private final SettingsReader settingsReader;
 
     ProjectLoader(BuildFileReader buildFileReader, ProjectConfigReader configReader, SourceParser sourceParser) {
+        this(buildFileReader, configReader, sourceParser, root -> List.of());
+    }
+
+    ProjectLoader(BuildFileReader buildFileReader, ProjectConfigReader configReader, SourceParser sourceParser,
+                  SettingsReader settingsReader) {
         this.buildFileReader = buildFileReader;
         this.configReader = configReader;
         this.sourceParser = sourceParser;
+        this.settingsReader = settingsReader;
     }
 
     /**
@@ -66,6 +74,7 @@ final class ProjectLoader {
                 case SourceFile.Unparseable failure -> unparseable.add(failure);
             }
         }
-        return new LoadedProject(new ProjectModel(javaVersion, build, classes), config, declaredVersion.isPresent(), unparseable);
+        return new LoadedProject(new ProjectModel(javaVersion, build, classes, settingsReader.read(projectRoot)), config,
+                declaredVersion.isPresent(), unparseable);
     }
 }

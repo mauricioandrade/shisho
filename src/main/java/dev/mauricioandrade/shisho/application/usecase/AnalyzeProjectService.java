@@ -22,6 +22,7 @@ import dev.mauricioandrade.shisho.domain.port.in.ClassifyArchitecture;
 import dev.mauricioandrade.shisho.domain.port.out.BaselineReader;
 import dev.mauricioandrade.shisho.domain.port.out.BuildFileReader;
 import dev.mauricioandrade.shisho.domain.port.out.ProjectConfigReader;
+import dev.mauricioandrade.shisho.domain.port.out.SettingsReader;
 import dev.mauricioandrade.shisho.domain.port.out.SourceParser;
 
 import java.nio.file.Path;
@@ -67,7 +68,7 @@ public final class AnalyzeProjectService implements AnalyzeProject {
             List<Concept> concepts,
             List<ConceptDetector> conceptDetectors) {
         this(buildFileReader, configReader, sourceParser, katas, classifyArchitecture, rankCalculator, concepts, conceptDetectors,
-                _ -> Optional.empty());
+                _ -> Optional.empty(), _ -> List.of());
     }
 
     public AnalyzeProjectService(
@@ -79,8 +80,9 @@ public final class AnalyzeProjectService implements AnalyzeProject {
             RankCalculator rankCalculator,
             List<Concept> concepts,
             List<ConceptDetector> conceptDetectors,
-            BaselineReader baselineReader) {
-        this.projectLoader = new ProjectLoader(buildFileReader, configReader, sourceParser);
+            BaselineReader baselineReader,
+            SettingsReader settingsReader) {
+        this.projectLoader = new ProjectLoader(buildFileReader, configReader, sourceParser, settingsReader);
         this.katas = List.copyOf(katas);
         this.classifyArchitecture = classifyArchitecture;
         this.rankCalculator = rankCalculator;

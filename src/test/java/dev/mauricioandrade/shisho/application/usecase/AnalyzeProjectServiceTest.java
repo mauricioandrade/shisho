@@ -83,7 +83,7 @@ class AnalyzeProjectServiceTest {
         Lesson knownInA = new Lesson("grave", Severity.GRAVE, Path.of("A.java"), 99, "kata.grave.lesson", List.of());
         AnalyzeProjectService service = new AnalyzeProjectService(version(21), root -> ProjectConfig.DEFAULT, parser, List.of(grave),
                 (project, context) -> Optional.empty(), new RankCalculator(), List.of(), List.of(),
-                root -> Optional.of(Baseline.of(List.of(knownInA))));
+                root -> Optional.of(Baseline.of(List.of(knownInA))), root -> List.of());
 
         Analysis analysis = service.analyze(ROOT);
 

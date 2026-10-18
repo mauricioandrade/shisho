@@ -19,11 +19,24 @@ class LombokConstructorKataTest {
                 class UserService {}
 
                 @lombok.AllArgsConstructor
+                @ApplicationScoped
                 class OrderService {}
                 """)).extracting(Lesson::line, lesson -> lesson.arguments().getFirst())
                 .containsExactly(
                         tuple(2, "RequiredArgsConstructor"),
                         tuple(5, "AllArgsConstructor"));
+    }
+
+    @Test
+    void ignoresClassesThatAreNotBeans() {
+        assertThat(evaluate(kata, """
+                @Data
+                @NoArgsConstructor
+                @AllArgsConstructor
+                class ArticleData {
+                    private String title;
+                }
+                """)).as("its constructor holds data, not dependencies").isEmpty();
     }
 
     @Test

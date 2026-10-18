@@ -11,6 +11,9 @@ release, in Portuguese ([CHANGELOG.md](CHANGELOG.md)) and English. The format fo
 
 - **JPA katas**: `entity-without-default-constructor` (GRAVE), `eager-collection`,
   `to-one-without-lazy` and `transactional-controller` ([ADR 0021](docs/adr/0021-jpa-katas.md)).
+- **Baseline**: `shisho baseline <dir>` records today's lessons in `shisho-baseline.yaml`, and from
+  then on `analyze`, the GitHub Action and the Claude Code hook show and fail only on new lessons.
+  For adopting the Shishō on an existing project ([ADR 0023](docs/adr/0023-baseline.md)).
 
 ### Changed
 

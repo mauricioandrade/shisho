@@ -12,6 +12,9 @@ comportamento.
 
 - **Katas de JPA**: `entity-without-default-constructor` (GRAVE), `eager-collection`,
   `to-one-without-lazy` e `transactional-controller` ([ADR 0021](docs/adr/0021-jpa-katas.md)).
+- **Baseline**: `shisho baseline <dir>` grava as lições de hoje em `shisho-baseline.yaml`, e daí em
+  diante o `analyze`, a GitHub Action e o hook do Claude Code mostram e reprovam só as lições novas.
+  Para adotar o Shishō num projeto que já existe ([ADR 0023](docs/adr/0023-baseline.md)).
 
 ### Mudou
 

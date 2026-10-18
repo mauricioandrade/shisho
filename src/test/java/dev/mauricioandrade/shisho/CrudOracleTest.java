@@ -1,6 +1,7 @@
 package dev.mauricioandrade.shisho;
 
 import dev.mauricioandrade.shisho.domain.model.ArchitectureProfile;
+import dev.mauricioandrade.shisho.domain.model.JavaVersion;
 import dev.mauricioandrade.shisho.infrastructure.catalog.MarkdownCatalogRepository;
 import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -80,6 +81,22 @@ class CrudOracleTest {
         assertThat(report)
                 .contains(language.architecture() + language.name(architectureId) + "  (")
                 .endsWith(language.cleanRank());
+    }
+
+    /** Java 17 is the oldest version analyzed, so the generated code must stay within its syntax. */
+    @ParameterizedTest(name = "{1}, {2} ({0})")
+    @MethodSource("scaffolds")
+    void theGeneratedCrudCompilesOnTheMinimumJava(Language language, String architectureId, Stack stack, @TempDir Path project)
+            throws IOException {
+        copy(stack.fixture(), project);
+        Path pom = project.resolve("pom.xml");
+        Files.writeString(pom, Files.readString(pom).replace(">21<", ">" + JavaVersion.MINIMUM + "<"));
+
+        run(language, "crud", "--arquitetura", architectureId, "--mesmo-assim", "--pacote", "com.exemplo.loja",
+                project.toString(), "Produto", "nome:String", "preco:BigDecimal", "lancamento:LocalDate");
+
+        String report = text(run(language, "analyze", project.toString()), "analyze");
+        assertThat(report).as("parsed at Java 17's language level").contains("(Java 17)").doesNotContain("⚠").endsWith(language.cleanRank());
     }
 
     @ParameterizedTest(name = "{1}, {2} ({0})")

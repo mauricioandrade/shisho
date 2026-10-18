@@ -8,6 +8,14 @@ comportamento.
 
 ## [Não lançado]
 
+## [0.3.0] - 2026-10-18
+
+### Atenção
+
+- A kata nova `entity-without-default-constructor` é **GRAVE**: uma entidade JPA sem construtor
+  sem parâmetros passa a dar código de saída 1. Num projeto com lições que ainda não dá para
+  corrigir, grave uma baseline (`shisho baseline .`) e o CI passa a reprovar só as novas.
+
 ### Novo
 
 - **Katas de JPA**: `entity-without-default-constructor` (GRAVE), `eager-collection`,
@@ -80,7 +88,8 @@ overengineering, relatórios no terminal, em HTML e em SARIF, GitHub Action, mod
 `shisho fix`, `shisho ask` com LLM local, `shisho crud`, português e inglês, plugin para o Claude
 Code e modo shoshin.
 
-[Não lançado]: https://github.com/mauricioandrade/shisho/compare/v0.2.0...HEAD
+[Não lançado]: https://github.com/mauricioandrade/shisho/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/mauricioandrade/shisho/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/mauricioandrade/shisho/compare/v0.1.1...v0.2.0
 [0.1.1]: https://github.com/mauricioandrade/shisho/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/mauricioandrade/shisho/releases/tag/v0.1.0

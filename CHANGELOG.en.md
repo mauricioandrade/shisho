@@ -7,6 +7,14 @@ release, in Portuguese ([CHANGELOG.md](CHANGELOG.md)) and English. The format fo
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-10-18
+
+### Heads up
+
+- The new `entity-without-default-constructor` kata is **GRAVE**: a JPA entity without a no-argument
+  constructor now gives exit code 1. On a project with lessons that cannot be fixed yet, record a
+  baseline (`shisho baseline .`) and CI then fails only on new ones.
+
 ### Added
 
 - **JPA katas**: `entity-without-default-constructor` (GRAVE), `eager-collection`,
@@ -79,7 +87,8 @@ overengineering verdict, terminal, HTML and SARIF reports, a GitHub Action, sens
 `shisho fix`, `shisho ask` with a local LLM, `shisho crud`, Portuguese and English, a Claude Code
 plugin and shoshin mode.
 
-[Unreleased]: https://github.com/mauricioandrade/shisho/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/mauricioandrade/shisho/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/mauricioandrade/shisho/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/mauricioandrade/shisho/compare/v0.1.1...v0.2.0
 [0.1.1]: https://github.com/mauricioandrade/shisho/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/mauricioandrade/shisho/releases/tag/v0.1.0

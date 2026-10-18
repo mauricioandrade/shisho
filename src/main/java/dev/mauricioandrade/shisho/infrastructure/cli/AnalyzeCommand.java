@@ -87,7 +87,7 @@ public final class AnalyzeCommand implements Callable<Integer> {
             if (!file.checkError()) {
                 return true;
             }
-        } catch (IOException e) {
+        } catch (IOException ignored) {
             // reported below, like a write error PrintStream swallowed
         }
         err.println(messages.text("cli.error.cannot-write", output.toString()));

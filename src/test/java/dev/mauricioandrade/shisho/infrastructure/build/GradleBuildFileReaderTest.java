@@ -384,6 +384,49 @@ class GradleBuildFileReaderTest {
     }
 
     @Test
+    void readsTheConventionPluginsOfBuildSrcAndOfIncludedBuilds() throws IOException {
+        Files.writeString(project.resolve("settings.gradle.kts"), """
+                pluginManagement { includeBuild("build-logic") }
+                includeBuild("../fora")
+                include("app")
+                """);
+        Files.createDirectories(project.resolve("app"));
+        Files.writeString(project.resolve("app/build.gradle.kts"), "plugins { id(\"loja.web\") }");
+        Files.createDirectories(project.resolve("buildSrc/src/main/kotlin/loja"));
+        Files.writeString(project.resolve("buildSrc/build.gradle.kts"), """
+                dependencies { implementation("org.springframework.boot:spring-boot-gradle-plugin:3.5.0") }
+                """);
+        Files.writeString(project.resolve("buildSrc/src/main/kotlin/loja/web.gradle.kts"), """
+                package loja
+                java { toolchain { languageVersion = JavaLanguageVersion.of(21) } }
+                dependencies { implementation("org.springframework.boot:spring-boot-starter-web") }
+                """);
+        Files.createDirectories(project.resolve("build-logic/src/main/groovy"));
+        Files.writeString(project.resolve("build-logic/src/main/groovy/loja.java.gradle"), "dependencies { implementation 'org.slf4j:slf4j-api' }");
+
+        BuildInfo build = reader.read(project).orElseThrow();
+
+        assertThat(build.modules()).as("buildSrc's own script declares Gradle plugins").extracting(BuildInfo::file)
+                .containsExactly(Path.of("app/build.gradle.kts"),
+                        Path.of("buildSrc/src/main/kotlin/loja/web.gradle.kts"),
+                        Path.of("build-logic/src/main/groovy/loja.java.gradle"));
+        assertThat(build.fileDeclaring(new Dependency("org.springframework.boot", "spring-boot-starter-web")))
+                .isEqualTo(Path.of("buildSrc/src/main/kotlin/loja/web.gradle.kts"));
+        assertThat(build.dependsOn("org.slf4j", "slf4j-api")).isTrue();
+        assertThat(build.dependsOn("org.springframework.boot", "spring-boot-gradle-plugin")).isFalse();
+        assertThat(build.lowestJavaVersion()).as("the toolchain the convention sets").contains(new JavaVersion(21));
+    }
+
+    @Test
+    void readsBuildSrcWithoutSettings() throws IOException {
+        writeKotlin("plugins { `java-conventions` }");
+        Files.createDirectories(project.resolve("buildSrc/src/main/kotlin"));
+        Files.writeString(project.resolve("buildSrc/src/main/kotlin/java-conventions.gradle.kts"), "dependencies { implementation(\"io.quarkus:quarkus-rest\") }");
+
+        assertThat(reader.read(project).orElseThrow().dependsOn("io.quarkus", "quarkus-rest")).isTrue();
+    }
+
+    @Test
     void aSingleProjectWithSettingsHasNoModules() throws IOException {
         Files.writeString(project.resolve("settings.gradle"), "rootProject.name = 'loja'");
         writeGroovy("dependencies { implementation 'io.quarkus:quarkus-rest' }");

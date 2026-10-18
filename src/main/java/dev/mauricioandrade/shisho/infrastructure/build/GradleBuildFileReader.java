@@ -21,10 +21,12 @@ import java.util.stream.Stream;
 
 /**
  * Reads the Java version and dependencies from a {@code build.gradle.kts} or {@code build.gradle},
- * and from the scripts of the projects that {@code settings.gradle(.kts)} includes. The script is never run: it is code from an untrusted project, and running
- * it would need Gradle and the network. The reader recognizes the literal forms that Spring
- * Initializr, code.quarkus.io and the Gradle docs write, plus the libraries and bundles of the
- * default version catalog; a version or a dependency computed by the script (a variable, an {@code if}) is not seen.
+ * from the scripts of the projects that {@code settings.gradle(.kts)} includes and from the
+ * convention plugins of {@code buildSrc} and of included builds. The script is never run: it is code
+ * from an untrusted project, and running it would need Gradle and the network. The reader recognizes
+ * the literal forms that Spring Initializr, code.quarkus.io and the Gradle docs write, plus the
+ * libraries and bundles of the default version catalog; a version or a dependency computed by the
+ * script (a variable, an {@code if}) is not seen.
  * See {@code docs/adr/0013-gradle.md} and {@code docs/adr/0015-multi-module.md}.
  */
 public final class GradleBuildFileReader implements BuildFileReader {
@@ -46,6 +48,14 @@ public final class GradleBuildFileReader implements BuildFileReader {
      */
     private static final Pattern PROJECT_DIR = Pattern.compile("\\bproject\\(\\s*['\"]:?([\\w.-]+(?::[\\w.-]+)*)['\"]\\s*\\)"
             + "\\.projectDir\\s*=\\s*(?:file\\(|(?:new\\s+)?File\\(\\s*(?:rootDir|settingsDir)\\s*,)\\s*['\"]([^'\"]+)['\"]\\s*\\)");
+
+    /** {@code includeBuild("build-logic")}, a build of its own: its convention plugins are read, not its code. */
+    private static final Pattern INCLUDE_BUILD = Pattern.compile("\\bincludeBuild\\s*\\(?\\s*['\"]([^'\"]+)['\"]");
+
+    /** Where Gradle compiles a precompiled script plugin from, in {@code buildSrc} or an included build. */
+    private static final List<Path> PLUGIN_SOURCES = List.of(Path.of("src/main/kotlin"), Path.of("src/main/groovy"));
+
+    private static final List<String> SCRIPT_SUFFIXES = List.of(".gradle.kts", ".gradle");
 
     /** {@code options.release = 21} or {@code options.release.set(21)} on {@code JavaCompile}. */
     private static final Pattern RELEASE = Pattern.compile("\\boptions\\.release(?:\\s*=\\s*|\\.set\\(\\s*)(\\d+)");
@@ -83,20 +93,64 @@ public final class GradleBuildFileReader implements BuildFileReader {
     public Optional<BuildInfo> read(Path projectRoot) {
         Map<String, List<Dependency>> catalog = VersionCatalog.dependencies(projectRoot);
         Optional<Path> settings = existing(projectRoot, Path.of(""), SETTINGS);
-        List<BuildInfo> modules = settings.stream()
+        Stream<BuildInfo> projects = settings.stream()
                 .flatMap(file -> included(projectRoot, file))
-                .flatMap(directory -> script(projectRoot, directory, catalog).stream())
-                .toList();
+                .flatMap(directory -> script(projectRoot, directory, catalog).stream());
+        Stream<BuildInfo> conventions = Stream.concat(Stream.of(Path.of("buildSrc")),
+                        settings.stream().flatMap(file -> includedBuilds(projectRoot, file)))
+                .distinct()
+                .flatMap(build -> conventionPlugins(projectRoot, build))
+                .map(plugin -> build(projectRoot, plugin, catalog));
+        List<BuildInfo> modules = Stream.concat(projects, conventions).toList();
         return script(projectRoot, Path.of(""), catalog)
                 .map(root -> new BuildInfo(root.file(), root.javaVersion(), root.dependencies(), modules))
                 .or(() -> settings.map(file -> new BuildInfo(file, Optional.empty(), List.of(), modules)));
     }
 
     private static Optional<BuildInfo> script(Path projectRoot, Path directory, Map<String, List<Dependency>> catalog) {
-        return existing(projectRoot, directory, SCRIPTS).map(script -> {
-            String code = withoutComments(readScript(projectRoot.resolve(script)));
-            return new BuildInfo(script, javaVersion(projectRoot.resolve(script), code), dependencies(code, catalog));
-        });
+        return existing(projectRoot, directory, SCRIPTS).map(script -> build(projectRoot, script, catalog));
+    }
+
+    private static BuildInfo build(Path projectRoot, Path script, Map<String, List<Dependency>> catalog) {
+        String code = withoutComments(readScript(projectRoot.resolve(script)));
+        return new BuildInfo(script, javaVersion(projectRoot.resolve(script), code), dependencies(code, catalog));
+    }
+
+    /** The directories of the builds the settings include, inside the project. */
+    private static Stream<Path> includedBuilds(Path projectRoot, Path settings) {
+        Matcher includeBuild = INCLUDE_BUILD.matcher(withoutComments(readScript(projectRoot.resolve(settings))));
+        List<Path> directories = new ArrayList<>();
+        while (includeBuild.find()) {
+            Path directory = Path.of(includeBuild.group(1)).normalize();
+            if (!directory.isAbsolute() && !directory.startsWith("..")) {
+                directories.add(directory);
+            }
+        }
+        return directories.stream();
+    }
+
+    /**
+     * The precompiled script plugins of {@code build}, sorted so the result does not depend on the
+     * file system. Its own {@code build.gradle(.kts)} is left out: it declares Gradle plugins, not
+     * libraries of the project. Every convention counts, applied by a module or not.
+     */
+    private static Stream<Path> conventionPlugins(Path projectRoot, Path build) {
+        List<Path> plugins = new ArrayList<>();
+        for (Path sources : PLUGIN_SOURCES) {
+            Path directory = projectRoot.resolve(build).resolve(sources);
+            if (!Files.isDirectory(directory)) {
+                continue;
+            }
+            try (Stream<Path> files = Files.walk(directory)) {
+                files.filter(Files::isRegularFile)
+                        .filter(file -> SCRIPT_SUFFIXES.stream().anyMatch(file.getFileName().toString()::endsWith))
+                        .map(projectRoot::relativize)
+                        .forEach(plugins::add);
+            } catch (IOException e) {
+                throw new BuildFileException("build.error.read", e, directory.toString());
+            }
+        }
+        return plugins.stream().sorted();
     }
 
     /** The first of {@code names} that exists in {@code directory}, relative to the project root. */

@@ -5,7 +5,7 @@ description: Use the Shishō (師匠) CLI on Java/Spring Boot projects. Use it w
 
 # Shishō
 
-The Shishō analyzes Java 21+ / Spring Boot projects deterministically: it applies katas (good
+The Shishō analyzes Java 17+ / Spring Boot projects deterministically: it applies katas (good
 practice rules) and reports lessons, recognizes the architecture, gives an overengineering or
 underengineering verdict and a rank. Its judgment is the source of truth; your job is to run it,
 explain what it says and act on it with the user.

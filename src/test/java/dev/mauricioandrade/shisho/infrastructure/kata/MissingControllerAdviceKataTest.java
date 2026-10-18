@@ -2,6 +2,8 @@ package dev.mauricioandrade.shisho.infrastructure.kata;
 
 import org.junit.jupiter.api.Test;
 
+import java.util.stream.Stream;
+
 import static dev.mauricioandrade.shisho.infrastructure.kata.KataTestSupport.evaluate;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -25,6 +27,38 @@ class MissingControllerAdviceKataTest {
             assertThat(lesson.arguments()).containsExactly("UserController");
             assertThat(lesson.messageKey()).isEqualTo("kata.missing-controller-advice.lesson");
         });
+    }
+
+    @Test
+    void ignoresControllersThatOnlyRenderViews() {
+        assertThat(evaluate(kata, """
+                @Controller
+                class OwnerController {
+                    @GetMapping("/owners")
+                    String list(Model model) { return "owners/list"; }
+                }
+                """)).as("Spring Boot's error view handles them").isEmpty();
+    }
+
+    @Test
+    void flagsControllersWithAResponseBody() {
+        assertThat(Stream.of("""
+                @Controller
+                class VetController {
+                    @GetMapping("/vets")
+                    @ResponseBody
+                    Vets list() { return null; }
+                }
+                """, """
+                @Controller
+                class VetController {
+                    ResponseEntity<Vets> list() { return null; }
+                }
+                """, """
+                @Controller
+                @ResponseBody
+                class VetController {}
+                """)).allSatisfy(source -> assertThat(evaluate(kata, source)).as(source).hasSize(1));
     }
 
     @Test

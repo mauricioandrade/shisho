@@ -1,7 +1,7 @@
 {
   "name": "shisho",
   "displayName": "Shishō (師匠)",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "After every edit, the Shishō checks the Java file Claude changed and shows Claude its lessons. A skill teaches Claude to use the Shishō CLI: analyze, sensei mode, fix and crud.",
   "author": {
     "name": "Mauricio Andrade",

@@ -21,6 +21,7 @@ java -jar "${user_config.shisho_jar}" analyze --sensei <project>   # adds why, w
 java -jar "${user_config.shisho_jar}" analyze --shoshin <project>  # names the concepts in the code, for beginners
 java -jar "${user_config.shisho_jar}" fix <project>                # shows the safe automatic fixes as a diff
 java -jar "${user_config.shisho_jar}" fix --apply <project>        # writes them
+java -jar "${user_config.shisho_jar}" baseline <project>           # records today's lessons; analyze then shows only new ones
 java -jar "${user_config.shisho_jar}" crud [--arquitetura <id>] <project> <Entity> name:Type...
 ```
 
@@ -34,6 +35,11 @@ analyzed. Output follows `SHISHO_IDIOMA` (`pt`, the default, or `en`).
 2. Report the verdict and the most severe lessons first. Quote the Shishō; do not invent lessons
    it did not report, and do not argue with its verdict: explain it.
 3. Offer `fix` for the lessons it can fix mechanically. Show the diff before `--apply`.
+
+A `shisho-baseline.yaml` in the project means the team adopted the Shishō on existing code: `analyze`
+shows only the lessons the baseline does not have, and says how many it hid. Do not run `baseline`
+on your own to make lessons go away; it is the user's decision. Suggest it when they want the
+Shishō in CI on a project with many lessons.
 
 ## Teaching a beginner
 

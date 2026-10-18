@@ -2,7 +2,7 @@
 id: springfox
 nome: Springfox
 resumo: no new release since July 2020, and no support for Spring Boot 3
-alternativa: springdoc-openapi (org.springdoc:springdoc-openapi-starter-webmvc-ui)
+alternativa: springdoc-openapi (org.springdoc:springdoc-openapi-starter-webmvc-ui on Spring Boot 3, org.springdoc:springdoc-openapi-ui on 2)
 ---
 
 ## Why

@@ -6,7 +6,7 @@ coordenadas:
   - io.springfox:springfox-swagger2
   - io.springfox:springfox-swagger-ui
 resumo: sem versão nova desde julho de 2020 e sem suporte ao Spring Boot 3
-alternativa: springdoc-openapi (org.springdoc:springdoc-openapi-starter-webmvc-ui)
+alternativa: springdoc-openapi (org.springdoc:springdoc-openapi-starter-webmvc-ui no Spring Boot 3, org.springdoc:springdoc-openapi-ui no 2)
 referencias:
   - https://github.com/springfox/springfox/releases
   - https://github.com/springfox/springfox/issues/4075

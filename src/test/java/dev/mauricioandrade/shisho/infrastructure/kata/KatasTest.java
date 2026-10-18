@@ -31,7 +31,7 @@ class KatasTest {
 
     @Test
     void katasHaveUniqueIds() {
-        assertThat(Katas.all(MarkdownCatalogRepository.bundled().avoidedDependencies())).extracting(Kata::id).doesNotHaveDuplicates().hasSize(18);
+        assertThat(Katas.all(MarkdownCatalogRepository.bundled().avoidedDependencies())).extracting(Kata::id).doesNotHaveDuplicates().hasSize(19);
     }
 
     @Test

@@ -26,6 +26,7 @@ public final class Katas {
                 new DtoNotRecordKata(),
                 new EntityInControllerKata(),
                 new TransactionalReadOnlyKata(),
+                new UnproxyableMethodKata(),
                 new MissingControllerAdviceKata(),
                 new MissingActuatorKata(),
                 new MissingSpringdocKata(),

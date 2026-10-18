@@ -1,5 +1,5 @@
 name: Shishō
-description: Analisa um projeto Java 17+/Spring Boot como um mestre, aponta as lições, julga a arquitetura e envia o resultado ao code scanning do GitHub.
+description: Analisa um projeto Java 8+/Spring Boot como um mestre, aponta as lições, julga a arquitetura e envia o resultado ao code scanning do GitHub.
 author: Mauricio Andrade
 branding:
   icon: award

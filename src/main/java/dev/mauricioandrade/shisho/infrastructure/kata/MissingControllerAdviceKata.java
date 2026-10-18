@@ -54,7 +54,7 @@ final class MissingControllerAdviceKata implements ProjectKata {
     }
 
     private Lesson springLesson(ProjectModel project, ClassUnit controller) {
-        return JavaxProjects.isJavax(project.classes())
+        return JavaxProjects.isJavax(project)
                 ? JavaxProjects.springBoot2Lesson(this, controller.file(), controller.line(), controller.name())
                 : lesson(controller.file(), controller.line(), controller.name());
     }

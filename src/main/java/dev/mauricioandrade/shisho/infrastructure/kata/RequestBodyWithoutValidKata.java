@@ -51,7 +51,7 @@ final class RequestBodyWithoutValidKata implements ProjectKata {
     @Override
     public List<Lesson> evaluate(ProjectModel project) {
         Constraints constraints = new Constraints(project.classes());
-        String valid = JavaxProjects.valid(project.classes());
+        String valid = JavaxProjects.valid(project);
         return project.classes().stream()
                 .flatMap(unit -> evaluate(unit, constraints, valid))
                 .toList();

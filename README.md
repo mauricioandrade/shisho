@@ -633,6 +633,8 @@ que assim: [ADR 0010](docs/adr/0010-release.md).
   ([ADR 0014](docs/adr/0014-quarkus-crud.md))
 - [x] **Fase 15** — multi-módulo: os módulos do Maven (de profiles também) e do Gradle e os convention plugins do `buildSrc`, cada lição no build que a declara
   ([ADR 0015](docs/adr/0015-multi-module.md))
+- [x] **Fase 16** — calibração com projetos reais (petclinic, JHipster, buckpal, quickstarts do
+  Quarkus...): seis falsos positivos e um falso negativo corrigidos ([ADR 0016](docs/adr/0016-real-projects.md))
 - [ ] **Depois** — outras stacks, reaproveitando o catálogo de arquiteturas
 
 ![Sung Jinwoo, de Solo Leveling, atacando com uma adaga em meio a estátuas de pedra](docs/anime/roadmap.gif)

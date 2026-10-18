@@ -169,6 +169,7 @@ terminal, por que o arquivo existe; o bloco é o conteúdo.
 id: layered                  # uma arquitetura de architectures/
 dependencias: ["spring-boot-starter-webmvc|spring-boot-starter-web", spring-boot-starter-data-jpa]   # artifactIds que o código exige; com |, qualquer um serve
 recusa_imports: [javax.persistence, javax.validation]   # opcional: um import desses pacotes no projeto e nada é gerado
+plataforma_minima: ["org.springframework.boot:3"]   # opcional: groupId e versão principal mínima, quando o build fixa uma
 uma_vez_por_projeto:         # opcional: arquivo comum a todas as entidades
   controller/TratadorDeErros.java: RestControllerAdvice   # pulado se alguma classe ou método já tem a anotação
 ---
@@ -210,7 +211,9 @@ CRUD Spring. Nos outros projetos, valem os templates sem `grupo_do_build`.
 
 O `recusa_imports` existe porque os templates são código do Spring Boot 3 e do Quarkus 3, com
 `jakarta.*`: num projeto que ainda importa `javax.persistence` (Spring Boot 2, Quarkus 2), o CRUD
-gerado não compilaria, e o `crud` recusa antes de gravar qualquer coisa.
+gerado não compilaria, e o `crud` recusa antes de gravar qualquer coisa. O `plataforma_minima`
+pega o mesmo caso pelo build (o `<parent>`, um BOM, o plugin do Gradle), quando o código ainda não
+importa nada que denuncie a versão.
 
 Uma linha que só tem uma tag de seção desaparece, e linhas em branco repetidas viram uma. O
 teste gera cada template num projeto como o do Spring Initializr (ou o do code.quarkus.io) e exige que o `shisho analyze`

@@ -187,6 +187,21 @@ class GenerateCrudServiceTest {
     }
 
     @Test
+    void refusesSpringBoot2EvenWithoutJavaxImports(@TempDir Path project) throws IOException {
+        copy("initializr", project);
+        Path pom = project.resolve("pom.xml");
+        String original = Files.readString(pom);
+        Files.writeString(pom, original.replaceFirst("(?<parent><artifactId>spring-boot-starter-parent</artifactId>\\s*<version>)[^<]+", "${parent}2.7.18"));
+
+        assertThatExceptionOfType(ScaffoldException.class)
+                .isThrownBy(() -> service.plan(project, request(Optional.of("layered"))))
+                .satisfies(e -> {
+                    assertThat(e.messageKey()).isEqualTo("crud.error.platform-version");
+                    assertThat(e.arguments()).containsExactly("org.springframework.boot", "2.7.18", 3);
+                });
+    }
+
+    @Test
     void refusesProjectsOnTheJavaxNamespace(@TempDir Path project) throws IOException {
         copy("initializr", project);
         Path entity = Files.createDirectories(project.resolve("src/main/java/com/exemplo/loja/pedido")).resolve("Pedido.java");

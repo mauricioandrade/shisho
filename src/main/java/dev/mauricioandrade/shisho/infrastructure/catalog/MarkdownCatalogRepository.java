@@ -224,7 +224,20 @@ public final class MarkdownCatalogRepository implements CatalogRepository {
                 .map(alternatives -> List.of(alternatives.split("\\|")))
                 .toList();
         return new Scaffold(fields.optionalText("arquitetura").orElse(document.id()), fields.optionalText("grupo_do_build"),
-                dependencies, fields.optionalTextList("recusa_imports"), files);
+                dependencies, fields.optionalTextList("recusa_imports"), minimumPlatforms(fields), files);
+    }
+
+    /** {@code plataforma_minima: ["org.springframework.boot:3"]}: groupId and lowest major version. */
+    private static Map<String, Integer> minimumPlatforms(FrontmatterFields fields) {
+        Map<String, Integer> platforms = new LinkedHashMap<>();
+        for (String platform : fields.optionalTextList("plataforma_minima")) {
+            int colon = platform.lastIndexOf(':');
+            if (colon < 1 || !platform.substring(colon + 1).matches("\\d+")) {
+                throw fields.invalid("plataforma_minima", platform);
+            }
+            platforms.put(platform.substring(0, colon), Integer.parseInt(platform.substring(colon + 1)));
+        }
+        return platforms;
     }
 
     private static AvoidedDependency toAvoidedDependency(Document document) {

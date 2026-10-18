@@ -27,6 +27,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
@@ -35,6 +37,8 @@ import java.util.stream.Collectors;
  * docs/adr/0005-crud-scaffolding.md.
  */
 public final class GenerateCrudService implements GenerateCrud {
+
+    private static final Pattern MAJOR = Pattern.compile("^(\\d+)");
 
     private final ProjectLoader projectLoader;
     private final ClassifyArchitecture classifyArchitecture;
@@ -71,6 +75,12 @@ public final class GenerateCrudService implements GenerateCrud {
         refusedImport(scaffold, project).ifPresent(found -> {
             throw new ScaffoldException("crud.error.refused-import", found.file(), found.name());
         });
+        scaffold.minimumPlatforms().forEach((groupId, minimum) -> project.build()
+                .flatMap(build -> build.platformVersion(groupId))
+                .filter(version -> major(version).filter(major -> major < minimum).isPresent())
+                .ifPresent(version -> {
+                    throw new ScaffoldException("crud.error.platform-version", groupId, version, minimum);
+                }));
         ArchitectureProfile architecture = architecture(scaffold.architectureId());
         String basePackage = knownBasePackage.orElseThrow(() -> new ScaffoldException("crud.error.no-package"));
 
@@ -185,6 +195,12 @@ public final class GenerateCrudService implements GenerateCrud {
         return project.classes().stream().anyMatch(unit -> unit.isAnnotatedWith(simpleName)
                 || unit.methods().stream().anyMatch(method -> method.annotations().stream()
                         .anyMatch(methodAnnotation -> methodAnnotation.simpleName().equals(simpleName))));
+    }
+
+    /** The leading number of a version: {@code 2} in {@code 2.7.18}; empty for {@code RELEASE} and the like. */
+    private static Optional<Integer> major(String version) {
+        Matcher major = MAJOR.matcher(version);
+        return major.find() ? Optional.of(Integer.parseInt(major.group(1))) : Optional.empty();
     }
 
     private record FoundImport(Path file, String name) {

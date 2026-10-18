@@ -1,6 +1,7 @@
 package dev.mauricioandrade.shisho.domain.model;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -14,13 +15,16 @@ import java.util.Optional;
  *                             the artifactIds that provide it (Spring Boot 4 renamed some starters)
  * @param refusedImports       packages that, imported anywhere in the project, mean the generated
  *                             code would not compile alongside it, such as an older namespace
+ * @param minimumPlatforms     the lowest major version of each platform (by groupId) the generated
+ *                             code compiles on, when the build pins one
  */
 public record Scaffold(String architectureId, Optional<String> buildGroup, List<List<String>> requiredDependencies,
-                       List<String> refusedImports, List<File> files) {
+                       List<String> refusedImports, Map<String, Integer> minimumPlatforms, List<File> files) {
 
     public Scaffold {
         requiredDependencies = requiredDependencies.stream().map(List::copyOf).toList();
         refusedImports = List.copyOf(refusedImports);
+        minimumPlatforms = Map.copyOf(minimumPlatforms);
         files = List.copyOf(files);
     }
 

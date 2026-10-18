@@ -4,6 +4,7 @@ arquitetura: hexagonal
 grupo_do_build: io.quarkus
 dependencias: ["quarkus-rest-jackson|quarkus-rest-jsonb", quarkus-hibernate-validator, quarkus-hibernate-orm-panache]
 recusa_imports: [javax.persistence, javax.validation, javax.ws.rs, javax.inject, javax.enterprise, javax.transaction]
+plataforma_minima: ["io.quarkus.platform:3", "io.quarkus:3"]
 uma_vez_por_projeto:
   adapter/in/web/TratadorDeErros.java: ServerExceptionMapper
 ---

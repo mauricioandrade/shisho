@@ -15,6 +15,6 @@ public record FixPlan(Analysis analysis, List<FileFix> fixes) {
     public List<Lesson> unfixed() {
         Set<Lesson> fixed = new HashSet<>();
         fixes.forEach(fix -> fixed.addAll(fix.lessons()));
-        return analysis.lessons().stream().filter(lesson -> !fixed.contains(lesson)).toList();
+        return analysis.allLessons().stream().filter(lesson -> !fixed.contains(lesson)).toList();
     }
 }

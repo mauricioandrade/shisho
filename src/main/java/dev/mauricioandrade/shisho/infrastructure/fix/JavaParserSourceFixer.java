@@ -54,7 +54,7 @@ public final class JavaParserSourceFixer implements SourceFixer {
 
     @Override
     public List<FileFix> fix(Analysis analysis) {
-        Map<Path, List<Lesson>> byFile = analysis.lessons().stream()
+        Map<Path, List<Lesson>> byFile = analysis.allLessons().stream()
                 .filter(lesson -> fixers.containsKey(lesson.kataId()) && lesson.afterUpgradeTo().isEmpty())
                 .collect(Collectors.groupingBy(Lesson::file, LinkedHashMap::new, Collectors.toList()));
         List<FileFix> fixes = new ArrayList<>();

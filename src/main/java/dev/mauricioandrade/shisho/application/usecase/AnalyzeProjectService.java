@@ -4,6 +4,7 @@ import dev.mauricioandrade.shisho.application.usecase.ProjectLoader.LoadedProjec
 import dev.mauricioandrade.shisho.domain.exception.ConfigException;
 import dev.mauricioandrade.shisho.domain.model.Analysis;
 import dev.mauricioandrade.shisho.domain.model.ArchitectureMatch;
+import dev.mauricioandrade.shisho.domain.model.Baseline;
 import dev.mauricioandrade.shisho.domain.model.ClassKata;
 import dev.mauricioandrade.shisho.domain.model.ClassUnit;
 import dev.mauricioandrade.shisho.domain.model.Concept;
@@ -18,6 +19,7 @@ import dev.mauricioandrade.shisho.domain.model.Rank;
 import dev.mauricioandrade.shisho.domain.model.Severity;
 import dev.mauricioandrade.shisho.domain.port.in.AnalyzeProject;
 import dev.mauricioandrade.shisho.domain.port.in.ClassifyArchitecture;
+import dev.mauricioandrade.shisho.domain.port.out.BaselineReader;
 import dev.mauricioandrade.shisho.domain.port.out.BuildFileReader;
 import dev.mauricioandrade.shisho.domain.port.out.ProjectConfigReader;
 import dev.mauricioandrade.shisho.domain.port.out.SourceParser;
@@ -33,6 +35,7 @@ import java.util.stream.Stream;
  * Loads the project (see {@link ProjectLoader}), classifies the architecture and applies every enabled kata that version allows, with
  * the configured severity. A kata that suggests a newer Java feature still runs below its version,
  * as INFO suggestions for after the upgrade. Lessons are ordered by file, then line, then kata order.
+ * With a baseline, the analysis keeps only the lessons it does not have; the score counts them all.
  */
 public final class AnalyzeProjectService implements AnalyzeProject {
 
@@ -41,6 +44,7 @@ public final class AnalyzeProjectService implements AnalyzeProject {
     private final ClassifyArchitecture classifyArchitecture;
     private final RankCalculator rankCalculator;
     private final ConceptFinder conceptFinder;
+    private final BaselineReader baselineReader;
 
     /** Without concepts: the analysis the shoshin mode does not need. */
     public AnalyzeProjectService(
@@ -62,11 +66,26 @@ public final class AnalyzeProjectService implements AnalyzeProject {
             RankCalculator rankCalculator,
             List<Concept> concepts,
             List<ConceptDetector> conceptDetectors) {
+        this(buildFileReader, configReader, sourceParser, katas, classifyArchitecture, rankCalculator, concepts, conceptDetectors,
+                _ -> Optional.empty());
+    }
+
+    public AnalyzeProjectService(
+            BuildFileReader buildFileReader,
+            ProjectConfigReader configReader,
+            SourceParser sourceParser,
+            List<Kata> katas,
+            ClassifyArchitecture classifyArchitecture,
+            RankCalculator rankCalculator,
+            List<Concept> concepts,
+            List<ConceptDetector> conceptDetectors,
+            BaselineReader baselineReader) {
         this.projectLoader = new ProjectLoader(buildFileReader, configReader, sourceParser);
         this.katas = List.copyOf(katas);
         this.classifyArchitecture = classifyArchitecture;
         this.rankCalculator = rankCalculator;
         this.conceptFinder = new ConceptFinder(concepts, conceptDetectors);
+        this.baselineReader = baselineReader;
     }
 
     @Override
@@ -102,10 +121,12 @@ public final class AnalyzeProjectService implements AnalyzeProject {
         lessons.sort(Comparator.comparing((Lesson lesson) -> lesson.file().toString()).thenComparingInt(Lesson::line));
 
         int score = rankCalculator.score(lessons);
+        Optional<Baseline.Comparison> baseline = baselineReader.read(projectRoot).map(recorded -> recorded.compare(lessons));
         return new Analysis(
                 projectRoot,
-                projectName(projectRoot), javaVersion, loaded.javaVersionDeclared(), project.build(), architecture, lessons,
-                loaded.unparseable(), score, Rank.forScore(score), conceptFinder.find(project));
+                projectName(projectRoot), javaVersion, loaded.javaVersionDeclared(), project.build(), architecture,
+                baseline.map(Baseline.Comparison::fresh).orElse(lessons),
+                loaded.unparseable(), score, Rank.forScore(score), conceptFinder.find(project), baseline);
     }
 
     /** A typo in a kata id would silently configure nothing, so it is an error. */

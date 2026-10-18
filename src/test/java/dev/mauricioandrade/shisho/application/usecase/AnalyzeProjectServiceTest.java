@@ -10,6 +10,7 @@ import dev.mauricioandrade.shisho.domain.model.ArchitectureProfile.Complexity;
 import dev.mauricioandrade.shisho.domain.model.ArchitectureProfile.Cost;
 import dev.mauricioandrade.shisho.domain.model.ArchitectureProfile.Family;
 import dev.mauricioandrade.shisho.domain.model.ArchitectureProfile.Signature;
+import dev.mauricioandrade.shisho.domain.model.Baseline;
 import dev.mauricioandrade.shisho.domain.model.BuildInfo;
 import dev.mauricioandrade.shisho.domain.model.ClassKata;
 import dev.mauricioandrade.shisho.domain.model.ClassUnit;
@@ -74,6 +75,23 @@ class AnalyzeProjectServiceTest {
         assertThat(analysis.rank()).isEqualTo(Rank.KYU_4);
         assertThat(analysis.unparseableFiles()).extracting(SourceFile::file).containsExactly(Path.of("C.java"));
         assertThat(analysis.projectName()).isEqualTo("loja");
+    }
+
+    @Test
+    void keepsOnlyTheLessonsTheBaselineDoesNotHaveButScoresThemAll() {
+        Kata grave = kata("grave", Severity.GRAVE, 21, 7);
+        Lesson knownInA = new Lesson("grave", Severity.GRAVE, Path.of("A.java"), 99, "kata.grave.lesson", List.of());
+        AnalyzeProjectService service = new AnalyzeProjectService(version(21), root -> ProjectConfig.DEFAULT, parser, List.of(grave),
+                (project, context) -> Optional.empty(), new RankCalculator(), List.of(), List.of(),
+                root -> Optional.of(Baseline.of(List.of(knownInA))));
+
+        Analysis analysis = service.analyze(ROOT);
+
+        assertThat(analysis.lessons()).extracting(lesson -> lesson.file().toString()).containsExactly("B.java");
+        assertThat(analysis.baseline()).hasValueSatisfying(baseline ->
+                assertThat(baseline.known()).extracting(lesson -> lesson.file().toString(), Lesson::line).containsExactly(tuple("A.java", 7)));
+        assertThat(analysis.score()).isEqualTo(100 - 2 * 10);
+        assertThat(analysis.allLessons()).hasSize(2);
     }
 
     @Test

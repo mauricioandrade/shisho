@@ -30,6 +30,17 @@ class MissingControllerAdviceKataTest {
     }
 
     @Test
+    void doesNotAskSpringBoot2ForProblemDetail() {
+        assertThat(evaluate(kata, """
+                import javax.validation.Valid;
+
+                @RestController
+                class UserController {}
+                """)).singleElement().satisfies(lesson ->
+                assertThat(lesson.messageKey()).isEqualTo("kata.missing-controller-advice.lesson.spring-boot-2"));
+    }
+
+    @Test
     void ignoresControllersThatOnlyRenderViews() {
         assertThat(evaluate(kata, """
                 @Controller

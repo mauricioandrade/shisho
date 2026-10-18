@@ -1,7 +1,10 @@
 package dev.mauricioandrade.shisho.infrastructure.kata;
 
 import dev.mauricioandrade.shisho.domain.model.ClassUnit;
+import dev.mauricioandrade.shisho.domain.model.Kata;
+import dev.mauricioandrade.shisho.domain.model.Lesson;
 
+import java.nio.file.Path;
 import java.util.List;
 
 /**
@@ -26,6 +29,14 @@ final class JavaxProjects {
     /** The {@code @Valid} the project's Bean Validation provides. */
     static String valid(List<ClassUnit> classes) {
         return (isJavax(classes) ? "javax" : "jakarta") + ".validation.Valid";
+    }
+
+    /**
+     * The lesson explained for Spring Boot 2, by the message key {@code kata.<id>.lesson.spring-boot-2}:
+     * for advice that names what only Spring Boot 3 has.
+     */
+    static Lesson springBoot2Lesson(Kata kata, Path file, int line, Object... arguments) {
+        return new Lesson(kata.id(), kata.severity(), file, line, "kata." + kata.id() + ".lesson.spring-boot-2", List.of(arguments));
     }
 
     private static boolean imports(List<ClassUnit> classes, String root) {

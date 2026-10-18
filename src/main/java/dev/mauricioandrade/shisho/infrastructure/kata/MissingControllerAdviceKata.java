@@ -15,6 +15,7 @@ import java.util.Set;
  * REST resources (Quarkus) and no {@code ExceptionMapper} nor {@code @ServerExceptionMapper}; the
  * lesson points at the first one. A {@code @Controller} that only renders views (Thymeleaf) is left
  * out: Spring Boot's {@code error} view already handles its errors, and ProblemDetail is for APIs.
+ * On Spring Boot 2, which has no {@code ProblemDetail}, the lesson asks for the format it standardizes.
  */
 final class MissingControllerAdviceKata implements ProjectKata {
 
@@ -46,10 +47,16 @@ final class MissingControllerAdviceKata implements ProjectKata {
                 .filter(unit -> WebApplications.answersWithData(unit) || JakartaRest.isResource(unit))
                 .findFirst()
                 .map(controller -> WebApplications.answersWithData(controller)
-                        ? lesson(controller.file(), controller.line(), controller.name())
+                        ? springLesson(project, controller)
                         : QuarkusApplications.lesson(this, controller.file(), controller.line(), controller.name()))
                 .stream()
                 .toList();
+    }
+
+    private Lesson springLesson(ProjectModel project, ClassUnit controller) {
+        return JavaxProjects.isJavax(project.classes())
+                ? JavaxProjects.springBoot2Lesson(this, controller.file(), controller.line(), controller.name())
+                : lesson(controller.file(), controller.line(), controller.name());
     }
 
     private static boolean handlesErrors(ClassUnit unit) {

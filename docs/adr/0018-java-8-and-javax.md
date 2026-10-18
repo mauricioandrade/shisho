@@ -30,10 +30,17 @@ spring-boot-realworld-example-app e o ddd-by-examples/library.
 Java 16: …", do mesmo jeito que a de virtual threads vira "Ao migrar para o Java 21" num projeto
 17. O `ASSUMED` continua 21.
 
-### 2. Um projeto `javax` é reconhecido pelos imports
+### 2. Um projeto `javax` é reconhecido pelo build ou pelos imports
 
-O build de um projeto Spring Boot não mostra a versão do framework (ela vem do parent ou do plugin,
-que o Shishō não lê). O código mostra. Um projeto é `javax` quando importa algum dos pacotes que o
+O `BuildInfo` ganhou `platformVersions`: as versões que o build fixa para uma plataforma inteira,
+por groupId. No Maven, o `<parent>` e os BOMs importados em `<dependencyManagement>`; no Gradle, os
+plugins com versão (`id("org.springframework.boot") version "2.6.3"`), os `platform(...)` e o
+`classpath` de um `buildscript` antigo. Só valem versões literais ou propriedades do próprio arquivo.
+O domínio não sabe o que é Spring Boot: quem pergunta pelo `org.springframework.boot` (ou pelo
+`io.quarkus.platform`) é a infraestrutura. Abaixo da versão 3, o projeto é `javax`.
+
+Quando o build não fixa versão (um parent corporativo, que herda a do Spring Boot), o código
+responde. Um projeto é `javax` quando importa algum dos pacotes que o
 Jakarta EE renomeou (`persistence`, `validation`, `servlet`, `ws.rs`, `inject`, `enterprise`,
 `transaction`) com `javax.` e nenhum com `jakarta.`. Um projeto no meio da migração, com os dois,
 já conta como `jakarta`. O `javax.annotation` fica de fora, porque o `@Nullable` do JSR 305 mora
@@ -54,19 +61,23 @@ qualquer coisa, com uma mensagem que diz o que migrar:
 
 - abaixo de `GenerateCrud.MINIMUM_JAVA` (17): `crud.error.java-version`;
 - quando o projeto importa um pacote que o template declara em `recusa_imports` (campo novo do
-  schema, documentado em `catalog/README.md`): `crud.error.refused-import`.
+  schema, documentado em `catalog/README.md`): `crud.error.refused-import`;
+- quando o build fixa uma plataforma abaixo da que o template declara em `plataforma_minima`
+  (`org.springframework.boot:3`): `crud.error.platform-version`. Isso pega um Spring Boot 2.7 em
+  Java 17 que ainda não importa nada de `javax`.
 
-O `recusa_imports` fica no template, e não numa regra em Java, porque o que não combina com o
+O `recusa_imports` e o `plataforma_minima` ficam no template, e não numa regra em Java, porque o que não combina com o
 código gerado é uma propriedade desse código. Assim, a camada `application` continua sem saber o
 que é `javax`: ela só compara os imports do projeto com uma lista do catálogo, do mesmo jeito que
 compara o build com `dependencias`.
 
 ## Alternativas registradas
 
-- **Ler a versão do Spring Boot no build** (o `<parent>` do Maven, o plugin do Gradle). É mais
-  exato: o `library` é Boot 2.2 e não importa nenhum pacote renomeado (usa JDBC puro), então ainda
-  recebe a lição com `ProblemDetail`. Mas o `BuildInfo` não guarda versões, e passar a guardar
-  mexe nos dois leitores de build. Fica como próximo passo, se aparecerem mais casos.
+- **Só os imports, sem ler o build.** Foi a primeira versão desta decisão. O `library` é Boot 2.2
+  e não importa nenhum pacote renomeado (usa JDBC puro), e recebia a lição com `ProblemDetail`. Ler
+  a versão no build resolveu esse caso; os imports ficaram como resposta quando o build não diz.
+- **Guardar a versão de toda dependência**, em vez de só a das plataformas. Nenhuma kata precisa,
+  e a versão de uma dependência num projeto Spring quase nunca está escrita: quem a decide é o BOM.
 - **Templates `javax` para o `crud`.** Dobrariam o catálogo para gerar código de um framework sem
   suporte desde 2023.
 - **Lição própria para o `@ConstructorBinding` do Boot 2** na `configuration-properties-not-record`.
@@ -75,8 +86,9 @@ compara o build com `dependencias`.
   projetos. A nuance foi para o guia da kata.
 
 O que continua de fora: o Spring Boot 1.x, que o Shishō analisa (Java 8), mas cujas diferenças não
-foram estudadas, e a alternativa ao Springfox que a `avoided-dependency` sugere
-(`springdoc-openapi-starter-webmvc-ui`), que é a do Boot 3.
+foram estudadas; versões de plataforma vindas de variáveis (`"$springBootVersion"`) ou do
+`[plugins]` do version catalog. A alternativa ao Springfox que a `avoided-dependency` sugere passou
+a citar o artefato do Boot 2 (`springdoc-openapi-ui`) ao lado do Boot 3.
 
 ## 📚 Estudo — de `javax` para `jakarta`
 

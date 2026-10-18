@@ -20,6 +20,9 @@ or when the DTO has to extend another class: a record has no class inheritance (
 implement interfaces, `sealed` ones included). JPA entities cannot be records either, but an
 entity is not a DTO.
 
+A builder (`PetDetailsBuilder`) is not flagged: it is mutable by design. In a `dto` package, a
+class without state, such as a mapper with static methods, is not flagged either.
+
 ## Before
 
 ```java

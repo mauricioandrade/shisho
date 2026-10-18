@@ -22,6 +22,9 @@ mapeamento, ou quando o DTO precisa estender outra classe: um record não tem he
 (mas pode implementar interfaces, inclusive `sealed`). Entidades JPA também não podem ser
 records, mas entidade não é DTO.
 
+Um builder (`PetDetailsBuilder`) a kata não acusa: ele é mutável por definição. Num pacote `dto`,
+também não acusa uma classe sem estado, como um mapper com métodos estáticos.
+
 ## Antes
 
 ```java

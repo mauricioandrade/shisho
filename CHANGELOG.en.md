@@ -29,6 +29,11 @@ release, in Portuguese ([CHANGELOG.md](CHANGELOG.md)) and English. The format fo
   4 thousand files and 25–30% faster on one of a few hundred, with the same result
   ([ADR 0022](docs/adr/0022-performance.md)).
 
+### Fixed
+
+- `install.sh` without a terminal (in a script or CI) exited with code 1 and no message at the
+  language and PATH prompts. It now takes the defaults, as if the person pressed Enter.
+
 ## [0.2.0] - 2026-10-18
 
 ### Heads up

@@ -30,6 +30,11 @@ comportamento.
   projeto de 4 mil arquivos e 25–30% num de algumas centenas, com o mesmo resultado
   ([ADR 0022](docs/adr/0022-performance.md)).
 
+### Corrigido
+
+- O `install.sh` sem terminal (num script ou no CI) saía com código 1 e sem mensagem nas perguntas
+  de idioma e de PATH. Agora assume o padrão, como quem aperta Enter.
+
 ## [0.2.0] - 2026-10-18
 
 ### Atenção

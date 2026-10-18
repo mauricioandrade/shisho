@@ -29,6 +29,10 @@ Numa aplicação com poucos endpoints, quando o tratamento padrão basta: com
 como `ProblemDetail`. O advice passa a valer a pena quando há exceções do domínio que precisam
 virar status HTTP específicos.
 
+Um `@Controller` que só devolve nomes de view (Thymeleaf, JSP) a kata não conta: os erros dele
+viram páginas pela view `error` do Spring Boot, e ProblemDetail é resposta de API. Basta um método
+com `@ResponseBody` ou que devolva `ResponseEntity` para ele contar.
+
 ## Antes
 
 ```java

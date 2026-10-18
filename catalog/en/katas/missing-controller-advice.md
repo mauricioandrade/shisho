@@ -25,6 +25,10 @@ In an application with few endpoints, when the default handling is enough: with
 `ProblemDetail`. The advice becomes worth it when there are domain exceptions that need to become
 specific HTTP statuses.
 
+A `@Controller` that only returns view names (Thymeleaf, JSP) is not counted by the kata: its
+errors become pages through Spring Boot's `error` view, and ProblemDetail is an API response. One
+method with `@ResponseBody` or returning `ResponseEntity` is enough for it to count.
+
 ## Before
 
 ```java

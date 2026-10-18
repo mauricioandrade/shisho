@@ -25,7 +25,7 @@ import java.util.stream.Stream;
  * convention plugins of {@code buildSrc} and of included builds. The script is never run: it is code
  * from an untrusted project, and running it would need Gradle and the network. The reader recognizes
  * the literal forms that Spring Initializr, code.quarkus.io and the Gradle docs write, plus the
- * libraries and bundles of the default version catalog; a version or a dependency computed by the
+ * libraries and bundles of the version catalogs; a version or a dependency computed by the
  * script (a variable, an {@code if}) is not seen.
  * See {@code docs/adr/0013-gradle.md} and {@code docs/adr/0015-multi-module.md}.
  */
@@ -57,6 +57,13 @@ public final class GradleBuildFileReader implements BuildFileReader {
 
     private static final List<String> SCRIPT_SUFFIXES = List.of(".gradle.kts", ".gradle");
 
+    /**
+     * {@code create("spring") { from(files("gradle/spring.versions.toml")) }} in Kotlin, or
+     * {@code spring { from(files('...')) }} in Groovy, in {@code versionCatalogs { }}.
+     */
+    private static final Pattern CATALOG = Pattern.compile("(?:\\bcreate\\s*\\(\\s*['\"](\\w+)['\"]\\s*\\)|\\b(\\w+))"
+            + "\\s*\\{\\s*from\\s*\\(?\\s*files\\s*\\(\\s*['\"]([^'\"]+)['\"]");
+
     /** {@code options.release = 21} or {@code options.release.set(21)} on {@code JavaCompile}. */
     private static final Pattern RELEASE = Pattern.compile("\\boptions\\.release(?:\\s*=\\s*|\\.set\\(\\s*)(\\d+)");
 
@@ -70,12 +77,13 @@ public final class GradleBuildFileReader implements BuildFileReader {
     /**
      * A configuration followed by {@code 'group:artifact[:version]'}, by
      * {@code group: 'g', name: 'a'} (Groovy) / {@code group = "g", name = "a"} (Kotlin) or by a
-     * version catalog accessor, {@code libs.spring.boot.starter.web}.
+     * version catalog accessor, {@code libs.spring.boot.starter.web}: any {@code name.alias}, looked
+     * up among the accessors of the catalogs.
      */
     private static final Pattern DEPENDENCY = Pattern.compile("\\b(?<configuration>[A-Za-z]\\w*)\\s*\\(?\\s*(?:"
             + "(?<q>['\"])(?<group>[\\w.-]+):(?<artifact>[\\w.-]+)(?::[^'\"]*)?\\k<q>"
             + "|group\\s*[:=]\\s*(?<q2>['\"])(?<mapGroup>[\\w.-]+)\\k<q2>\\s*,\\s*name\\s*[:=]\\s*(?<q3>['\"])(?<mapArtifact>[\\w.-]+)\\k<q3>"
-            + "|libs\\.(?<accessor>[\\w.]+))");
+            + "|(?<accessor>[A-Za-z]\\w*\\.[\\w.]+))");
 
     /** BOMs, like {@code dependencyManagement} in Maven: they manage versions, they add no library. */
     private static final Set<String> PLATFORMS = Set.of("platform", "enforcedPlatform");
@@ -91,8 +99,8 @@ public final class GradleBuildFileReader implements BuildFileReader {
      */
     @Override
     public Optional<BuildInfo> read(Path projectRoot) {
-        Map<String, List<Dependency>> catalog = VersionCatalog.dependencies(projectRoot);
         Optional<Path> settings = existing(projectRoot, Path.of(""), SETTINGS);
+        Map<String, List<Dependency>> catalog = VersionCatalog.dependencies(projectRoot, catalogs(projectRoot, settings));
         Stream<BuildInfo> projects = settings.stream()
                 .flatMap(file -> included(projectRoot, file))
                 .flatMap(directory -> script(projectRoot, directory, catalog).stream());
@@ -114,6 +122,24 @@ public final class GradleBuildFileReader implements BuildFileReader {
     private static BuildInfo build(Path projectRoot, Path script, Map<String, List<Dependency>> catalog) {
         String code = withoutComments(readScript(projectRoot.resolve(script)));
         return new BuildInfo(script, javaVersion(projectRoot.resolve(script), code), dependencies(code, catalog));
+    }
+
+    /**
+     * The version catalogs by name: {@code libs}, from {@code gradle/libs.versions.toml}, plus those
+     * the settings create from a file inside the project. One from a published artifact is not read.
+     */
+    private static Map<String, Path> catalogs(Path projectRoot, Optional<Path> settings) {
+        Map<String, Path> catalogs = new HashMap<>(Map.of("libs", VersionCatalog.FILE));
+        settings.ifPresent(file -> {
+            Matcher catalog = CATALOG.matcher(withoutComments(readScript(projectRoot.resolve(file))));
+            while (catalog.find()) {
+                Path toml = Path.of(catalog.group(3)).normalize();
+                if (!toml.isAbsolute() && !toml.startsWith("..")) {
+                    catalogs.put(catalog.group(1) != null ? catalog.group(1) : catalog.group(2), toml);
+                }
+            }
+        });
+        return catalogs;
     }
 
     /** The directories of the builds the settings include, inside the project. */

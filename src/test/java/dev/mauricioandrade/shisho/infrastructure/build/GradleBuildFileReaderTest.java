@@ -308,6 +308,58 @@ class GradleBuildFileReaderTest {
     }
 
     @Test
+    void readsTheCatalogsTheSettingsCreate() throws IOException {
+        Files.writeString(project.resolve("settings.gradle.kts"), """
+                dependencyResolutionManagement {
+                    versionCatalogs {
+                        create("spring") { from(files("gradle/spring.versions.toml")) }
+                        create("remoto") { from("com.example:catalog:1.0") }
+                        create("fora") { from(files("../outro/libs.versions.toml")) }
+                    }
+                }
+                """);
+        Files.createDirectories(project.resolve("gradle"));
+        Files.writeString(project.resolve("gradle/libs.versions.toml"), """
+                [libraries]
+                slf4j = { module = "org.slf4j:slf4j-api" }
+                """);
+        Files.writeString(project.resolve("gradle/spring.versions.toml"), """
+                [libraries]
+                boot-web = { module = "org.springframework.boot:spring-boot-starter-web" }
+                """);
+        writeKotlin("""
+                dependencies {
+                    implementation(spring.boot.web)
+                    implementation(libs.slf4j)
+                    implementation(spring.slf4j)
+                    implementation(fora.anything)
+                }
+                """);
+
+        assertThat(reader.read(project).orElseThrow().dependencies()).as("each accessor in its own catalog")
+                .containsExactly(new Dependency("org.springframework.boot", "spring-boot-starter-web"), new Dependency("org.slf4j", "slf4j-api"));
+    }
+
+    @Test
+    void readsACatalogTheGroovySettingsCreate() throws IOException {
+        Files.writeString(project.resolve("settings.gradle"), """
+                dependencyResolutionManagement {
+                    versionCatalogs {
+                        quarkus { from(files('gradle/quarkus.versions.toml')) }
+                    }
+                }
+                """);
+        Files.createDirectories(project.resolve("gradle"));
+        Files.writeString(project.resolve("gradle/quarkus.versions.toml"), """
+                [libraries]
+                rest = { module = "io.quarkus:quarkus-rest" }
+                """);
+        writeGroovy("dependencies { implementation quarkus.rest }");
+
+        assertThat(reader.read(project).orElseThrow().dependsOn("io.quarkus", "quarkus-rest")).isTrue();
+    }
+
+    @Test
     void readsCatalogAccessorsInGroovy() throws IOException {
         Files.createDirectories(project.resolve("gradle"));
         Files.writeString(project.resolve("gradle/libs.versions.toml"), """

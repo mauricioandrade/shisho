@@ -15,12 +15,12 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * The {@code [libraries]} and {@code [bundles]} of Gradle's default version catalog,
- * {@code gradle/libs.versions.toml}, by the accessor a build script uses: the alias
- * {@code spring-boot-starter-web} is {@code libs.spring.boot.starter.web}, the bundle {@code web} is
- * {@code libs.bundles.web}. Read line by line: TOML 1.0 keeps an inline table on one line, which is
- * the only shape a library takes; a bundle's array is joined until its {@code ]}. Catalogs declared
- * in {@code settings.gradle} are not read.
+ * The {@code [libraries]} and {@code [bundles]} of Gradle's version catalogs, by the accessor a build
+ * script uses: in the default catalog, {@code gradle/libs.versions.toml}, the alias
+ * {@code spring-boot-starter-web} is {@code libs.spring.boot.starter.web} and the bundle {@code web}
+ * is {@code libs.bundles.web}; a catalog the settings name {@code spring} gives {@code spring.*}.
+ * Read line by line: TOML 1.0 keeps an inline table on one line, which is the only shape a library
+ * takes; a bundle's array is joined until its {@code ]}.
  */
 final class VersionCatalog {
 
@@ -44,11 +44,19 @@ final class VersionCatalog {
     }
 
     /**
-     * The dependencies by accessor without the {@code libs.} prefix: one for a library, those of its
-     * members for a bundle ({@code bundles.web}). None without the file.
+     * The dependencies by accessor, for the catalogs in {@code files} (name to file, relative to the
+     * project root): one for a library, those of its members for a bundle ({@code libs.bundles.web}).
+     * A catalog whose file is missing has none.
      */
-    static Map<String, List<Dependency>> dependencies(Path projectRoot) {
-        Path file = projectRoot.resolve(FILE);
+    static Map<String, List<Dependency>> dependencies(Path projectRoot, Map<String, Path> files) {
+        Map<String, List<Dependency>> dependencies = new HashMap<>();
+        files.forEach((name, file) -> read(projectRoot.resolve(file))
+                .forEach((accessor, members) -> dependencies.put(name + "." + accessor, members)));
+        return Map.copyOf(dependencies);
+    }
+
+    /** The dependencies of one catalog by accessor without its name. */
+    private static Map<String, List<Dependency>> read(Path file) {
         if (!Files.isRegularFile(file)) {
             return Map.of();
         }
@@ -56,7 +64,7 @@ final class VersionCatalog {
         Map<String, String> bundles = new HashMap<>();
         String table = "";
         String bundle = null;
-        for (String line : read(file).lines().map(VersionCatalog::withoutComment).toList()) {
+        for (String line : readFile(file).lines().map(VersionCatalog::withoutComment).toList()) {
             if (bundle != null) {
                 bundles.merge(bundle, line, String::concat);
                 bundle = line.contains("]") ? null : bundle;
@@ -128,7 +136,7 @@ final class VersionCatalog {
         return line;
     }
 
-    private static String read(Path file) {
+    private static String readFile(Path file) {
         try {
             return Files.readString(file);
         } catch (IOException e) {

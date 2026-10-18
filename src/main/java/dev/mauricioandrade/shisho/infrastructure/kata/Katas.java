@@ -34,6 +34,7 @@ public final class Katas {
                 new UnproxyableMethodKata(),
                 new TransactionalControllerKata(),
                 new DestructiveSchemaGenerationKata(),
+                new SqlLoggingKata(),
                 new MissingControllerAdviceKata(),
                 new MissingActuatorKata(),
                 new MissingSpringdocKata(),

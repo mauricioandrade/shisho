@@ -28,10 +28,12 @@ um módulo entram na mesma lista, já achatada.
 - **Maven:** `<modules><module>` e, do Maven 4, `<subprojects><subproject>`, lidos
   recursivamente. Os módulos de um `<profile>` entram também, ativo ou não: o parser analisa o
   código deles de qualquer jeito, então o build precisa ser conhecido. Já as dependências
-  declaradas dentro do profile ficam de fora, porque só valem quando ele está ativo. Um módulo fora do projeto (`../outro`), sem `pom.xml` ou já lido (dois poms que
-  se listam) é pulado: o projeto analisado não é confiável, e um ciclo não pode travar a análise.
+  declaradas dentro do profile ficam de fora, porque só valem quando ele está ativo. Um módulo
+  fora do projeto (`../outro`), sem `pom.xml` ou já lido (dois poms que se listam) é pulado: o projeto analisado não é confiável, e um ciclo não pode travar a análise.
 - **Gradle:** os `include(...)` do `settings.gradle(.kts)`, com o caminho do projeto virando
-  diretório (`":app:web"` → `app/web`). A raiz pode não ter script próprio; aí o build é o
+  diretório (`":app:web"` → `app/web`). Um `project(":app").projectDir = file("modulos/app")` no
+  settings (ou `File(rootDir, ...)`, `new File(settingsDir, ...)`) troca esse diretório; se ele
+  sair do projeto, o módulo é pulado. A raiz pode não ter script próprio; aí o build é o
   `settings.gradle.kts`. O version catalog é o da raiz, e vale para todos os módulos. O
   `includeBuild` é outro build, não um módulo, e fica de fora.
 
@@ -75,9 +77,9 @@ de antes.
   exato, mas precisaria ler os dois builds a cada edição. Um diretório com build logo acima de outro
   com build é, na prática, um multi-módulo.
 
-O que continua de fora: `project(":x").projectDir = file(...)`
-no Gradle e dependências declaradas em convention plugins do `buildSrc`. As de `subprojects { }` e
-`allprojects { }` passaram a ser lidas como do build da raiz ([ADR 0013](0013-gradle.md)).
+O que continua de fora: um `projectDir` calculado (`rootDir.resolve(...)`, um laço sobre os
+diretórios) e as dependências declaradas em convention plugins do `buildSrc`. As de
+`subprojects { }` e `allprojects { }` passaram a ser lidas como do build da raiz ([ADR 0013](0013-gradle.md)).
 
 ## 📚 Estudo — agregação e herança
 

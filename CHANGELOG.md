@@ -6,6 +6,13 @@ em português e em inglês ([CHANGELOG.en.md](CHANGELOG.en.md)). O formato segue
 [SemVer](https://semver.org/lang/pt-BR/): enquanto for 0.x, uma versão menor nova pode mudar o
 comportamento.
 
+## [Não lançado]
+
+### Novo
+
+- **Katas de JPA**: `entity-without-default-constructor` (GRAVE), `eager-collection`,
+  `to-one-without-lazy` e `transactional-controller` ([ADR 0021](docs/adr/0021-jpa-katas.md)).
+
 ## [0.2.0] - 2026-10-18
 
 ### Atenção
@@ -64,6 +71,7 @@ overengineering, relatórios no terminal, em HTML e em SARIF, GitHub Action, mod
 `shisho fix`, `shisho ask` com LLM local, `shisho crud`, português e inglês, plugin para o Claude
 Code e modo shoshin.
 
+[Não lançado]: https://github.com/mauricioandrade/shisho/compare/v0.2.0...HEAD
 [0.2.0]: https://github.com/mauricioandrade/shisho/compare/v0.1.1...v0.2.0
 [0.1.1]: https://github.com/mauricioandrade/shisho/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/mauricioandrade/shisho/releases/tag/v0.1.0

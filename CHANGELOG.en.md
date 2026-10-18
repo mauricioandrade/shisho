@@ -5,6 +5,13 @@ release, in Portuguese ([CHANGELOG.md](CHANGELOG.md)) and English. The format fo
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the versions follow
 [SemVer](https://semver.org/): while it is 0.x, a new minor version may change behavior.
 
+## [Unreleased]
+
+### Added
+
+- **JPA katas**: `entity-without-default-constructor` (GRAVE), `eager-collection`,
+  `to-one-without-lazy` and `transactional-controller` ([ADR 0021](docs/adr/0021-jpa-katas.md)).
+
 ## [0.2.0] - 2026-10-18
 
 ### Heads up
@@ -63,6 +70,7 @@ overengineering verdict, terminal, HTML and SARIF reports, a GitHub Action, sens
 `shisho fix`, `shisho ask` with a local LLM, `shisho crud`, Portuguese and English, a Claude Code
 plugin and shoshin mode.
 
+[Unreleased]: https://github.com/mauricioandrade/shisho/compare/v0.2.0...HEAD
 [0.2.0]: https://github.com/mauricioandrade/shisho/compare/v0.1.1...v0.2.0
 [0.1.1]: https://github.com/mauricioandrade/shisho/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/mauricioandrade/shisho/releases/tag/v0.1.0

@@ -100,7 +100,7 @@ public final class JavaParserSourceParser implements SourceParser {
                         return FileVisitResult.CONTINUE;
                     }
                     Path relative = projectRoot.relativize(directory);
-                    boolean skip = directory.getFileName().toString().startsWith(".") || isBuildOutput(relative) || isTestSources(relative);
+                    boolean skip = directory.getFileName().toString().startsWith(".") || isBuildOutput(relative) || isOtherSourceSet(directory, relative);
                     return skip ? FileVisitResult.SKIP_SUBTREE : FileVisitResult.CONTINUE;
                 }
 
@@ -135,12 +135,19 @@ public final class JavaParserSourceParser implements SourceParser {
         return true;
     }
 
-    /** {@code src/test}, at any depth, so multi-module layouts are covered too. */
-    private static boolean isTestSources(Path relativeDirectory) {
+    /**
+     * {@code src/test}, or any other Maven/Gradle source set but {@code main} ({@code src/<name>}
+     * holding a {@code java} directory: {@code integration-test}, {@code testFixtures}, {@code jmh}),
+     * at any depth, so multi-module layouts are covered too. Sources written straight under
+     * {@code src} ({@code src/com/...}) have no {@code java} there, and stay.
+     */
+    private static boolean isOtherSourceSet(Path directory, Path relativeDirectory) {
         int names = relativeDirectory.getNameCount();
-        return names >= 2
-                && relativeDirectory.getName(names - 2).toString().equals("src")
-                && relativeDirectory.getName(names - 1).toString().equals("test");
+        if (names < 2 || !relativeDirectory.getName(names - 2).toString().equals("src")) {
+            return false;
+        }
+        String name = relativeDirectory.getName(names - 1).toString();
+        return name.equals("test") || !name.equals("main") && Files.isDirectory(directory.resolve("java"));
     }
 
     private static SourceFile parse(JavaParser parser, Path projectRoot, Path file) {

@@ -104,6 +104,18 @@ class JavaParserSourceParserTest {
         }
 
         @Test
+        void skipsEverySourceSetButMain() throws IOException {
+            write("src/main/java/app/App.java", "package app; class App {}");
+            write("src/integration-test/java/app/AppIT.java", "package app; class AppIT {}");
+            write("module/src/testFixtures/java/app/Fixtures.java", "package app; class Fixtures {}");
+            write("src/jmh/java/app/Benchmark.java", "package app; class Benchmark {}");
+            write("legacy/src/com/acme/Legacy.java", "package com.acme; class Legacy {}");
+
+            assertThat(parser.parse(project, JAVA_21)).as("sources straight under src stay").extracting(SourceFile::file)
+                    .containsExactly(Path.of("legacy/src/com/acme/Legacy.java"), Path.of("src/main/java/app/App.java"));
+        }
+
+        @Test
         void aBuildDirectoryNameInsideSourcesIsAPackage() throws IOException {
             write("out/production/Compiled.java", "class Compiled {}");
             write("src/main/java/app/port/out/Repository.java", "package app.port.out; interface Repository {}");

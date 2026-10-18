@@ -663,6 +663,7 @@ que assim: [ADR 0010](docs/adr/0010-release.md).
   `entity-with-lombok-data` ([ADR 0019](docs/adr/0019-new-katas.md))
 - [x] **Fase 19** — auto-invocação: `this.salvar()` que escapa do proxy ([ADR 0020](docs/adr/0020-self-invocation.md))
 - [x] **Fase 20** — katas de JPA: fetch, construtor da entidade e transação no controller ([ADR 0021](docs/adr/0021-jpa-katas.md))
+- [x] **Fase 21** — desempenho: parse em paralelo e a análise 2× mais rápida em projetos grandes ([ADR 0022](docs/adr/0022-performance.md))
 - [ ] **Depois** — outras stacks, reaproveitando o catálogo de arquiteturas
 
 ![Sung Jinwoo, de Solo Leveling, atacando com uma adaga em meio a estátuas de pedra](docs/anime/roadmap.gif)

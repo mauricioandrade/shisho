@@ -677,6 +677,7 @@ as its notes, which `install.sh` then downloads. Why it works this way: [ADR 001
   `entity-with-lombok-data` ([ADR 0019](docs/adr/0019-new-katas.md))
 - [x] **Phase 19**: self-invocation: a `this.save()` that skips the proxy ([ADR 0020](docs/adr/0020-self-invocation.md))
 - [x] **Phase 20**: JPA katas: fetching, the entity's constructor and transactions on controllers ([ADR 0021](docs/adr/0021-jpa-katas.md))
+- [x] **Phase 21**: performance: parallel parsing and analysis twice as fast on large projects ([ADR 0022](docs/adr/0022-performance.md))
 - [ ] **Next**: other stacks, reusing the architecture catalog
 
 ![Sung Jinwoo, from Solo Leveling, striking with a dagger among stone statues](docs/anime/roadmap.gif)

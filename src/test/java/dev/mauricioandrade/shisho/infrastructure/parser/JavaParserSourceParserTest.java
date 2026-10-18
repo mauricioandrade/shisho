@@ -109,6 +109,7 @@ class JavaParserSourceParserTest {
             write("src/integration-test/java/app/AppIT.java", "package app; class AppIT {}");
             write("module/src/testFixtures/java/app/Fixtures.java", "package app; class Fixtures {}");
             write("src/jmh/java/app/Benchmark.java", "package app; class Benchmark {}");
+            write("src/functionalTest/groovy/app/AppFT.java", "package app; class AppFT {}");
             write("legacy/src/com/acme/Legacy.java", "package com.acme; class Legacy {}");
 
             assertThat(parser.parse(project, JAVA_21)).as("sources straight under src stay").extracting(SourceFile::file)

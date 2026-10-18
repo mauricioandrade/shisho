@@ -67,6 +67,8 @@ import java.util.stream.Stream;
 public final class JavaParserSourceParser implements SourceParser {
 
     private static final Set<String> IGNORED_DIRECTORIES = Set.of("target", "build", "out", "node_modules");
+    /** The directories a Maven/Gradle source set keeps its files in. */
+    private static final List<String> SOURCE_SET_LANGUAGES = List.of("java", "groovy", "kotlin", "scala", "resources");
     private static final String JAVA_EXTENSION = ".java";
 
     @Override
@@ -137,9 +139,10 @@ public final class JavaParserSourceParser implements SourceParser {
 
     /**
      * {@code src/test}, or any other Maven/Gradle source set but {@code main} ({@code src/<name>}
-     * holding a {@code java} directory: {@code integration-test}, {@code testFixtures}, {@code jmh}),
-     * at any depth, so multi-module layouts are covered too. Sources written straight under
-     * {@code src} ({@code src/com/...}) have no {@code java} there, and stay.
+     * holding a language directory: {@code integration-test}, {@code testFixtures}, {@code jmh}),
+     * at any depth, so multi-module layouts are covered too. Java tests may sit in {@code groovy}
+     * next to Spock specifications. Sources written straight under {@code src}
+     * ({@code src/com/...}) have no language directory there, and stay.
      */
     private static boolean isOtherSourceSet(Path directory, Path relativeDirectory) {
         int names = relativeDirectory.getNameCount();
@@ -147,7 +150,8 @@ public final class JavaParserSourceParser implements SourceParser {
             return false;
         }
         String name = relativeDirectory.getName(names - 1).toString();
-        return name.equals("test") || !name.equals("main") && Files.isDirectory(directory.resolve("java"));
+        return name.equals("test") || !name.equals("main")
+                && SOURCE_SET_LANGUAGES.stream().anyMatch(language -> Files.isDirectory(directory.resolve(language)));
     }
 
     private static SourceFile parse(JavaParser parser, Path projectRoot, Path file) {

@@ -370,8 +370,8 @@ class JavaParserSourceParserTest {
             assertThat(service.methods()).extracting(ClassUnit.Method::modifiers)
                     .containsExactly(Set.of("private", "static", "final"), Set.of());
             assertThat(service.catches()).as("a comment is no statement; a lambda's block is the type's").containsExactly(
-                    new ClassUnit.CatchClause(List.of("java.io.IOException", "IllegalStateException"), "e", true, 5),
-                    new ClassUnit.CatchClause(List.of("Exception"), "_", false, 11));
+                    new ClassUnit.CatchClause(List.of("java.io.IOException", "IllegalStateException"), "e", true, true, 5),
+                    new ClassUnit.CatchClause(List.of("Exception"), "_", false, false, 11));
         }
 
         private List<ClassUnit> parse(String source) throws IOException {

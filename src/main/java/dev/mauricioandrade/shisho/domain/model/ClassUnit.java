@@ -147,9 +147,10 @@ public record ClassUnit(
 
     /**
      * A {@code catch} block: the types it catches (several in a multi-catch), the name of the
-     * caught variable ({@code _} when unnamed) and whether its body has no statement at all.
+     * caught variable ({@code _} when unnamed), whether its body has no statement at all and
+     * whether it holds a comment.
      */
-    public record CatchClause(List<String> types, String variable, boolean empty, int line) {
+    public record CatchClause(List<String> types, String variable, boolean empty, boolean commented, int line) {
 
         public CatchClause {
             types = List.copyOf(types);

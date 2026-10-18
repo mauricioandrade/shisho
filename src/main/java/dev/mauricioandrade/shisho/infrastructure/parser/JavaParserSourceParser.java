@@ -276,7 +276,8 @@ public final class JavaParserSourceParser implements SourceParser {
                     List<String> types = caught instanceof UnionType union
                             ? union.getElements().stream().map(Type::asString).toList()
                             : List.of(caught.asString());
-                    return new CatchClause(types, clause.getParameter().getNameAsString(), clause.getBody().isEmpty(), line(clause));
+                    return new CatchClause(types, clause.getParameter().getNameAsString(), clause.getBody().isEmpty(),
+                            !clause.getBody().getAllContainedComments().isEmpty(), line(clause));
                 })
                 .toList();
     }

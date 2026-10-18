@@ -29,6 +29,7 @@ public final class Katas {
                 new EntityWithLombokDataKata(),
                 new EntityWithoutDefaultConstructorKata(),
                 new EagerCollectionKata(),
+                new ToOneWithoutLazyKata(),
                 new TransactionalReadOnlyKata(),
                 new UnproxyableMethodKata(),
                 new MissingControllerAdviceKata(),

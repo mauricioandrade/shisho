@@ -73,8 +73,8 @@ final class RequestBodyWithoutValidKata implements ProjectKata {
     private Stream<Lesson> evaluate(ClassUnit unit, Constraints constraints, String valid) {
         Stream<Lesson> spring = unit.methods().stream()
                 .flatMap(method -> method.parameters().stream())
-                .filter(parameter -> lacksValidation(parameter, constraints))
                 .flatMap(parameter -> Annotations.find(parameter.annotations(), REQUEST_BODY)
+                        .filter(annotation -> lacksValidation(parameter, constraints))
                         .map(annotation -> lesson(unit.file(), annotation.line(), parameter.type(), valid))
                         .stream());
         Stream<Lesson> jakartaRest = unit.methods().stream()

@@ -160,11 +160,14 @@ Each lesson says what is wrong, what goes wrong because of it and how to fix it.
 | Kata | Severity | What it flags | Why it matters |
 |---|---|---|---|
 | `field-injection` | GRAVE | `@Autowired`/`@Inject` on a field (in Quarkus, only `@Autowired`) | `new` creates an incomplete object, and the test needs Spring |
+| `unproxyable-method` | GRAVE | `@Transactional`, `@Async` or `@Cacheable` on a `private`, `static` or `final` method (on Boot 2, not `public`) | the proxy cannot reach the method, and the annotation is silently ignored |
 | `lombok-constructor` | MEDIA | `@RequiredArgsConstructor`/`@AllArgsConstructor` | the dependencies vanish from the code, and the tenth one slips in unnoticed |
 | `non-final-dependency` | MEDIA | injected dependency without `final` | any method can replace it after construction |
 | `system-out` | MEDIA | `System.out`, `System.err`, `printStackTrace()` | no level or timestamp, and outside the log aggregator |
+| `swallowed-exception` | MEDIA | `catch` with no statement and no comment | the error disappears without a trace and shows up later, far from its cause |
 | `request-body-without-valid` | MEDIA | request body without `@Valid` (`@RequestBody` or a Jakarta REST body) | the DTO's validation is ignored, and invalid data reaches the service |
 | `entity-in-controller` | MEDIA | endpoint that receives or returns a JPA `@Entity` | the database becomes the API contract, and internal fields leak |
+| `entity-with-lombok-data` | MEDIA | `@Entity` with `@Data` or an `@EqualsAndHashCode` of every field | the hash changes on `persist`, and `toString` walks lazy collections |
 | `missing-controller-advice` | MEDIA | controllers and no `@RestControllerAdvice` at all (in Quarkus, `ExceptionMapper`) | every endpoint handles (or forgets) its own errors |
 | `avoided-dependency` | MEDIA | abandoned, replaced or relocated dependency (Log4j 1, Springfox, Joda-Time... see [`catalog/dependencies`](catalog/dependencies)) | no security fixes, or already replaced by its own project |
 | `value-outside-constructor` | LEVE | `@Value` outside a constructor parameter | the value arrives by reflection, and a test using `new` goes without it |
@@ -665,6 +668,8 @@ downloads. Why it works this way: [ADR 0010](docs/adr/0010-release.md).
 - [x] **Phase 17**: projects from Java 8 and Spring Boot 2 on: what needs a newer version becomes
   an upgrade suggestion ([ADR 0017](docs/adr/0017-java-17.md),
   [ADR 0018](docs/adr/0018-java-8-and-javax.md))
+- [x] **Phase 18**: new katas: `unproxyable-method`, `swallowed-exception` and
+  `entity-with-lombok-data` ([ADR 0019](docs/adr/0019-new-katas.md))
 - [ ] **Next**: other stacks, reusing the architecture catalog
 
 ![Sung Jinwoo, from Solo Leveling, striking with a dagger among stone statues](docs/anime/roadmap.gif)

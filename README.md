@@ -155,11 +155,14 @@ Graduação: 3º kyū  (8 lições: 1 grave, 4 médias, 3 leves)
 | Kata | Severidade | O que aponta | Por que importa |
 |---|---|---|---|
 | `field-injection` | GRAVE | `@Autowired`/`@Inject` em campo (no Quarkus, só `@Autowired`) | `new` cria o objeto incompleto, e o teste precisa de Spring |
+| `unproxyable-method` | GRAVE | `@Transactional`, `@Async` ou `@Cacheable` em método `private`, `static` ou `final` (no Boot 2, não `public`) | o proxy não alcança o método, e a anotação é ignorada em silêncio |
 | `lombok-constructor` | MEDIA | `@RequiredArgsConstructor`/`@AllArgsConstructor` | as dependências somem do código, e a décima entra sem ninguém notar |
 | `non-final-dependency` | MEDIA | dependência injetada sem `final` | qualquer método pode trocá-la depois da construção |
 | `system-out` | MEDIA | `System.out`, `System.err`, `printStackTrace()` | sem nível nem horário, e fora do agregador de logs |
+| `swallowed-exception` | MEDIA | `catch` sem instrução nem comentário | o erro some sem rastro e aparece depois, longe da causa |
 | `request-body-without-valid` | MEDIA | corpo da requisição sem `@Valid` (`@RequestBody` ou corpo Jakarta REST) | a validação do DTO é ignorada, e dado inválido chega ao service |
 | `entity-in-controller` | MEDIA | endpoint que recebe ou devolve uma `@Entity` JPA | o banco vira o contrato da API, e campos internos vazam |
+| `entity-with-lombok-data` | MEDIA | `@Entity` com `@Data` ou `@EqualsAndHashCode` de todos os campos | o hash muda no `persist`, e o `toString` percorre coleções lazy |
 | `missing-controller-advice` | MEDIA | controllers sem nenhum `@RestControllerAdvice` (no Quarkus, `ExceptionMapper`) | cada endpoint trata (ou esquece) os próprios erros |
 | `avoided-dependency` | MEDIA | dependência abandonada, substituída ou movida (Log4j 1, Springfox, Joda-Time... ver [`catalog/dependencies`](catalog/dependencies)) | sem correções de segurança, ou já substituída pelo próprio projeto |
 | `value-outside-constructor` | LEVE | `@Value` fora de parâmetro de construtor | o valor chega por reflexão, e um teste com `new` fica sem ele |
@@ -650,6 +653,8 @@ que assim: [ADR 0010](docs/adr/0010-release.md).
 - [x] **Fase 17** — projetos a partir do Java 8 e do Spring Boot 2: o que precisa de uma versão
   mais nova vira sugestão de migração ([ADR 0017](docs/adr/0017-java-17.md),
   [ADR 0018](docs/adr/0018-java-8-and-javax.md))
+- [x] **Fase 18** — katas novas: `unproxyable-method`, `swallowed-exception` e
+  `entity-with-lombok-data` ([ADR 0019](docs/adr/0019-new-katas.md))
 - [ ] **Depois** — outras stacks, reaproveitando o catálogo de arquiteturas
 
 ![Sung Jinwoo, de Solo Leveling, atacando com uma adaga em meio a estátuas de pedra](docs/anime/roadmap.gif)

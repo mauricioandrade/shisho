@@ -39,7 +39,7 @@ do projeto onde ele apareceu):
 | `missing-controller-advice` | o petclinic renderiza Thymeleaf e recebia uma lição sobre ProblemDetail apontando para um controller que nunca devolve corpo | só conta controllers que respondem com dados (`@RestController`, `@ResponseBody`, `ResponseEntity`) |
 | `missing-springdoc` | o mesmo petclinic | uma aplicação cujos controllers só renderizam views não tem API para documentar |
 | `dto-not-record` | `PetDetailsBuilder`, aninhado no record `PetDetails` dos microservices | um builder nunca é DTO; num pacote `dto`, uma classe sem estado (mapper) também não |
-| parser | no `library`, o `@Autowired` de um teste em `src/integration-test/java` virou lição GRAVE | pula qualquer source set que não seja o `main` (`src/<nome>/java`) |
+| parser | no `library`, o `@Autowired` de um teste em `src/integration-test/groovy` (Java ao lado das specs Spock) virou lição GRAVE | pula qualquer source set que não seja o `main`: um `src/<nome>` com `java`, `groovy`, `kotlin`, `scala` ou `resources` dentro. A primeira versão só olhava `java` e deixou este caso passar; ele foi achado na Fase 17 ([ADR 0017](0017-java-17.md)) |
 
 As katas que olham outras classes (`request-body-without-valid`, `lombok-constructor`,
 `non-final-dependency`) passaram de `ClassKata` a `ProjectKata`. É a mesma troca que a

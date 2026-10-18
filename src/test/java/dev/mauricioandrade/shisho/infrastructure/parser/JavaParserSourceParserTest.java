@@ -22,6 +22,7 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
@@ -345,6 +346,32 @@ class JavaParserSourceParserTest {
             assertThat(outer.invocations()).extracting(Invocation::line).containsExactly(5, 7);
             assertThat(inner.fields()).extracting(Field::name).containsExactly("innerField");
             assertThat(inner.invocations()).extracting(Invocation::target).containsExactly(Optional.of("System.err"));
+        }
+
+        @Test
+        void mapsMethodModifiersAndCatchBlocks() throws IOException {
+            ClassUnit service = parse("""
+                    class Service {
+                        private static final void a() {
+                            try {
+                                run();
+                            } catch (java.io.IOException | IllegalStateException e) {
+                                // nothing
+                            }
+                        }
+                        void b() {
+                            Runnable r = () -> {
+                                try { run(); } catch (Exception _) { log(); }
+                            };
+                        }
+                    }
+                    """).getFirst();
+
+            assertThat(service.methods()).extracting(ClassUnit.Method::modifiers)
+                    .containsExactly(Set.of("private", "static", "final"), Set.of());
+            assertThat(service.catches()).as("a comment is no statement; a lambda's block is the type's").containsExactly(
+                    new ClassUnit.CatchClause(List.of("java.io.IOException", "IllegalStateException"), "e", true, 5),
+                    new ClassUnit.CatchClause(List.of("Exception"), "_", false, 11));
         }
 
         private List<ClassUnit> parse(String source) throws IOException {

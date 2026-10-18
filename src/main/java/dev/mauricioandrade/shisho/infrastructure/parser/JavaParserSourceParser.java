@@ -8,6 +8,7 @@ import com.github.javaparser.Problem;
 import com.github.javaparser.TokenRange;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.Node;
+import com.github.javaparser.ast.Modifier;
 import com.github.javaparser.ast.NodeList;
 import com.github.javaparser.ast.body.AnnotationDeclaration;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
@@ -30,9 +31,12 @@ import com.github.javaparser.ast.expr.TypeExpr;
 import com.github.javaparser.ast.nodeTypes.NodeWithImplements;
 import com.github.javaparser.ast.nodeTypes.NodeWithName;
 import com.github.javaparser.ast.type.ClassOrInterfaceType;
+import com.github.javaparser.ast.type.Type;
+import com.github.javaparser.ast.type.UnionType;
 import dev.mauricioandrade.shisho.domain.exception.SourceException;
 import dev.mauricioandrade.shisho.domain.model.ClassUnit;
 import dev.mauricioandrade.shisho.domain.model.ClassUnit.Annotation;
+import dev.mauricioandrade.shisho.domain.model.ClassUnit.CatchClause;
 import dev.mauricioandrade.shisho.domain.model.ClassUnit.Constructor;
 import dev.mauricioandrade.shisho.domain.model.ClassUnit.Field;
 import dev.mauricioandrade.shisho.domain.model.ClassUnit.Import;
@@ -195,7 +199,8 @@ public final class JavaParserSourceParser implements SourceParser {
                     methods(type),
                     invocations(type),
                     supertypes(type),
-                    type.getModifiers().stream().map(modifier -> modifier.getKeyword().asString()).collect(Collectors.toSet())));
+                    modifiers(type.getModifiers()),
+                    catches(type)));
         }
         return classes;
     }
@@ -253,7 +258,26 @@ public final class JavaParserSourceParser implements SourceParser {
                         method.getTypeAsString(),
                         annotations(method.getAnnotations()),
                         parameters(method.getParameters()),
-                        line(method)))
+                        line(method),
+                        modifiers(method.getModifiers())))
+                .toList();
+    }
+
+    private static Set<String> modifiers(NodeList<Modifier> modifiers) {
+        return modifiers.stream().map(modifier -> modifier.getKeyword().asString()).collect(Collectors.toSet());
+    }
+
+    /** Like {@link #invocations}: blocks in lambdas and anonymous classes belong to the enclosing type. */
+    private static List<CatchClause> catches(TypeDeclaration<?> type) {
+        return type.findAll(com.github.javaparser.ast.stmt.CatchClause.class).stream()
+                .filter(clause -> enclosingType(clause) == type)
+                .map(clause -> {
+                    Type caught = clause.getParameter().getType();
+                    List<String> types = caught instanceof UnionType union
+                            ? union.getElements().stream().map(Type::asString).toList()
+                            : List.of(caught.asString());
+                    return new CatchClause(types, clause.getParameter().getNameAsString(), clause.getBody().isEmpty(), line(clause));
+                })
                 .toList();
     }
 

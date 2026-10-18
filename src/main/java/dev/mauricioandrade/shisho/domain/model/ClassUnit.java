@@ -14,6 +14,7 @@ import java.util.Set;
  * @param supertypes the types it extends or implements, by simple name and without type
  *                   arguments: {@code JpaRepository<Pedido, Long>} is {@code JpaRepository}
  * @param modifiers  its modifiers as written, such as {@code public}, {@code sealed} or {@code abstract}
+ * @param catches    its {@code catch} blocks, those in lambdas and anonymous classes included
  */
 public record ClassUnit(
         Path file,
@@ -28,7 +29,8 @@ public record ClassUnit(
         List<Method> methods,
         List<Invocation> invocations,
         List<String> supertypes,
-        Set<String> modifiers) {
+        Set<String> modifiers,
+        List<CatchClause> catches) {
 
     public ClassUnit {
         annotations = List.copyOf(annotations);
@@ -39,14 +41,15 @@ public record ClassUnit(
         invocations = List.copyOf(invocations);
         supertypes = List.copyOf(supertypes);
         modifiers = Set.copyOf(modifiers);
+        catches = List.copyOf(catches);
     }
 
-    /** Without supertypes or modifiers: most tests need neither. */
+    /** Without supertypes, modifiers or catch blocks: most tests need none of them. */
     public ClassUnit(Path file, String packageName, String name, Kind kind, int line, List<Annotation> annotations,
                      List<Import> imports, List<Field> fields, List<Constructor> constructors, List<Method> methods,
                      List<Invocation> invocations) {
         this(file, packageName, name, kind, line, annotations, imports, fields, constructors, methods, invocations,
-                List.of(), Set.of());
+                List.of(), Set.of(), List.of());
     }
 
     public boolean isAnnotatedWith(String simpleName) {
@@ -123,12 +126,33 @@ public record ClassUnit(
         }
     }
 
-    /** {@code returnType} is written as in the source, {@code void} included. */
-    public record Method(String name, String returnType, List<Annotation> annotations, List<Parameter> parameters, int line) {
+    /**
+     * {@code returnType} is written as in the source, {@code void} included; {@code modifiers} too,
+     * so an interface method without any has none.
+     */
+    public record Method(String name, String returnType, List<Annotation> annotations, List<Parameter> parameters, int line,
+                         Set<String> modifiers) {
 
         public Method {
             annotations = List.copyOf(annotations);
             parameters = List.copyOf(parameters);
+            modifiers = Set.copyOf(modifiers);
+        }
+
+        /** Without modifiers: most tests do not need them. */
+        public Method(String name, String returnType, List<Annotation> annotations, List<Parameter> parameters, int line) {
+            this(name, returnType, annotations, parameters, line, Set.of());
+        }
+    }
+
+    /**
+     * A {@code catch} block: the types it catches (several in a multi-catch), the name of the
+     * caught variable ({@code _} when unnamed) and whether its body has no statement at all.
+     */
+    public record CatchClause(List<String> types, String variable, boolean empty, int line) {
+
+        public CatchClause {
+            types = List.copyOf(types);
         }
     }
 

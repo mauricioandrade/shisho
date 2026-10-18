@@ -30,14 +30,17 @@ comportamento.
   `javax.*`, e o `shisho fix` importa `javax.validation.Valid` ali
   ([ADR 0017](docs/adr/0017-java-17.md), [ADR 0018](docs/adr/0018-java-8-and-javax.md)).
 - **Katas novas**: `unproxyable-method`, `swallowed-exception` e `entity-with-lombok-data`
-  ([ADR 0019](docs/adr/0019-new-katas.md)).
+  ([ADR 0019](docs/adr/0019-new-katas.md)). A `unproxyable-method` também acusa a chamada de
+  dentro da própria classe (`this.salvar()`), que escapa do proxy
+  ([ADR 0020](docs/adr/0020-self-invocation.md)).
 
 ### Corrigido
 
-Falsos positivos achados ao rodar o Shishō no spring-petclinic, no JHipster, no buckpal e em
-outros projetos reais ([ADR 0016](docs/adr/0016-real-projects.md)):
+Falsos positivos achados ao rodar o Shishō no spring-petclinic, no JHipster, no buckpal, no
+eladmin e em outros projetos reais ([ADR 0016](docs/adr/0016-real-projects.md)):
 
-- `request-body-without-valid` não cobra `@Valid` de um DTO sem nenhuma restrição;
+- `request-body-without-valid` não cobra `@Valid` de um DTO sem nenhuma restrição, nem de um corpo
+  só com tipos do JDK (`Set<Long>`, `List<String>`) ou de um `MultipartFile`;
 - `lombok-constructor` olha só beans, inclusive os de estereótipos próprios (`@UseCase`);
 - `missing-controller-advice` e `missing-springdoc` ignoram controllers que só renderizam views;
 - `dto-not-record` ignora builders e classes sem estado;

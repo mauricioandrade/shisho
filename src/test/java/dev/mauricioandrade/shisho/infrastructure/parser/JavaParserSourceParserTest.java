@@ -307,15 +307,44 @@ class JavaParserSourceParserTest {
                     }
                     """).getFirst();
 
+            Optional<String> print = Optional.of("print");
             assertThat(report.invocations()).containsExactly(
-                    new Invocation(Optional.of("System.out"), "println", 3),
-                    new Invocation(Optional.of("lines"), "forEach", 4),
-                    new Invocation(Optional.of("System.err"), "println", 4),
-                    new Invocation(Optional.empty(), "run", 6),
-                    new Invocation(Optional.of("e"), "printStackTrace", 8),
-                    new Invocation(Optional.of("this.out"), "flush", 10),
-                    new Invocation(Optional.empty(), "print", 11),
-                    new Invocation(Optional.empty(), "build", 11));
+                    new Invocation(Optional.of("System.out"), "println", 3, print, 1),
+                    new Invocation(Optional.of("lines"), "forEach", 4, print, 1),
+                    new Invocation(Optional.of("System.err"), "println", 4, print, Invocation.UNKNOWN_ARGUMENTS),
+                    new Invocation(Optional.empty(), "run", 6, print, 0),
+                    new Invocation(Optional.of("e"), "printStackTrace", 8, print, 0),
+                    new Invocation(Optional.of("this.out"), "flush", 10, print, 0),
+                    new Invocation(Optional.empty(), "print", 11, print, 0),
+                    new Invocation(Optional.empty(), "build", 11, print, 0));
+        }
+
+        @Test
+        void aCallBelongsToTheOutermostMethodOfItsType() throws IOException {
+            ClassUnit service = parse("""
+                    class Service {
+                        private final Runnable startup = () -> load();
+
+                        Service() {
+                            load();
+                        }
+
+                        void close() {
+                            items.forEach(item -> save(item));
+                            executor.submit(new Runnable() {
+                                public void run() { save(null); }
+                            });
+                        }
+                    }
+                    """).getFirst();
+
+            assertThat(service.invocations()).extracting(Invocation::name, Invocation::caller).containsExactly(
+                    tuple("load", Optional.empty()),
+                    tuple("load", Optional.empty()),
+                    tuple("forEach", Optional.of("close")),
+                    tuple("save", Optional.of("close")),
+                    tuple("submit", Optional.of("close")),
+                    tuple("save", Optional.of("close")));
         }
 
         @Test

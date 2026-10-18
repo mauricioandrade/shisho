@@ -12,8 +12,11 @@ import com.github.javaparser.ast.Modifier;
 import com.github.javaparser.ast.NodeList;
 import com.github.javaparser.ast.body.AnnotationDeclaration;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
+import com.github.javaparser.ast.body.ConstructorDeclaration;
 import com.github.javaparser.ast.body.EnumDeclaration;
 import com.github.javaparser.ast.body.FieldDeclaration;
+import com.github.javaparser.ast.body.InitializerDeclaration;
+import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.body.RecordDeclaration;
 import com.github.javaparser.ast.body.TypeDeclaration;
 import com.github.javaparser.ast.expr.AnnotationExpr;
@@ -298,15 +301,33 @@ public final class JavaParserSourceParser implements SourceParser {
                 return;
             }
             switch (node) {
-                case MethodCallExpr call -> invocations.add(
-                        new Invocation(call.getScope().flatMap(JavaParserSourceParser::nameChain), call.getNameAsString(), line(call)));
-                case MethodReferenceExpr reference -> invocations.add(
-                        new Invocation(nameChain(reference.getScope()), reference.getIdentifier(), line(reference)));
+                case MethodCallExpr call -> invocations.add(new Invocation(call.getScope().flatMap(JavaParserSourceParser::nameChain),
+                        call.getNameAsString(), line(call), caller(call, type), call.getArguments().size()));
+                case MethodReferenceExpr reference -> invocations.add(new Invocation(nameChain(reference.getScope()),
+                        reference.getIdentifier(), line(reference), caller(reference, type), Invocation.UNKNOWN_ARGUMENTS));
                 default -> {
                 }
             }
         });
         return invocations;
+    }
+
+    /**
+     * The outermost method of {@code type} around {@code node}: a call in a lambda or in an
+     * anonymous class inside {@code save()} is a call of {@code save()}. Empty in a constructor or
+     * an initializer.
+     */
+    private static Optional<String> caller(Node node, TypeDeclaration<?> type) {
+        Optional<String> caller = Optional.empty();
+        for (Optional<Node> parent = node.getParentNode(); parent.isPresent() && parent.get() != type; parent = parent.get().getParentNode()) {
+            switch (parent.get()) {
+                case MethodDeclaration method -> caller = Optional.of(method.getNameAsString());
+                case ConstructorDeclaration _, InitializerDeclaration _ -> caller = Optional.empty();
+                default -> {
+                }
+            }
+        }
+        return caller;
     }
 
     private static Node enclosingType(Node node) {

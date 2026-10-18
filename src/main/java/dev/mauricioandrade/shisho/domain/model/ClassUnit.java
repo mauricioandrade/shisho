@@ -159,8 +159,13 @@ public record ClassUnit(
 
     /**
      * A method call or method reference. {@code target} is the receiver when it is a plain name
-     * chain ({@code System.out}, {@code e}, {@code this}) and empty otherwise.
+     * chain ({@code System.out}, {@code e}, {@code this}) and empty otherwise. {@code caller} is
+     * the method of this type the call is written in, lambdas and anonymous classes inside it
+     * included; empty in a constructor or an initializer. {@code arguments} is the number of
+     * arguments, or {@link #UNKNOWN_ARGUMENTS} for a method reference.
      */
-    public record Invocation(Optional<String> target, String name, int line) {
+    public record Invocation(Optional<String> target, String name, int line, Optional<String> caller, int arguments) {
+
+        public static final int UNKNOWN_ARGUMENTS = -1;
     }
 }

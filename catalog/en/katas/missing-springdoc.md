@@ -20,6 +20,9 @@ generated or validated from it, so generating it back would be redundant. Also i
 with a single client from the same team. If the API is not public, consider turning Swagger UI
 off in production with `springdoc.swagger-ui.enabled=false`.
 
+An application whose controllers only render views (Thymeleaf, JSP) has no API to document, and
+the kata suggests nothing to it.
+
 ## Before
 
 ```xml

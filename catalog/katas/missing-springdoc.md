@@ -24,6 +24,9 @@ Quando a API é desenhada contrato primeiro (API-first): o `openapi.yaml` é a f
 internas, com um único cliente do mesmo time. Se a API não é pública, considere desligar o
 Swagger UI em produção com `springdoc.swagger-ui.enabled=false`.
 
+Uma aplicação cujos controllers só renderizam views (Thymeleaf, JSP) não tem API para documentar,
+e a kata não sugere nada a ela.
+
 ## Antes
 
 ```xml

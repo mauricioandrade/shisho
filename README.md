@@ -627,7 +627,7 @@ que assim: [ADR 0010](docs/adr/0010-release.md).
 - [x] **Fase 11** — release com o jar pronto a cada tag, e instalação com um comando
 - [x] **Fase 12** — Quarkus: as katas, o shoshin e a classificação reconhecem CDI, Jakarta REST
   e Panache
-- [x] **Fase 13** — Gradle: `build.gradle`, `build.gradle.kts` e o version catalog (bibliotecas e bundles) lidos sem executar o script
+- [x] **Fase 13** — Gradle: `build.gradle`, `build.gradle.kts` e os version catalogs (bibliotecas e bundles) lidos sem executar o script
   ([ADR 0013](docs/adr/0013-gradle.md))
 - [x] **Fase 14** — `shisho crud` em projetos Quarkus, nas três arquiteturas
   ([ADR 0014](docs/adr/0014-quarkus-crud.md))

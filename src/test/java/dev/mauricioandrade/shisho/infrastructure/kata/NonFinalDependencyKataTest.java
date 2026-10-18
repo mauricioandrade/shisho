@@ -28,6 +28,23 @@ class NonFinalDependencyKataTest {
     }
 
     @Test
+    void flagsBeansOfTheProjectsOwnStereotypes() {
+        assertThat(evaluate(kata, """
+                @Component
+                @interface UseCase {}
+
+                @UseCase
+                class SendMoneyService {
+                    private LoadAccountPort loadAccountPort;
+
+                    SendMoneyService(LoadAccountPort loadAccountPort) {
+                        this.loadAccountPort = loadAccountPort;
+                    }
+                }
+                """)).extracting(lesson -> lesson.arguments().getFirst()).containsExactly("loadAccountPort");
+    }
+
+    @Test
     void flagsCdiBeansAndJakartaRestResources() {
         assertThat(evaluate(kata, """
                 @ApplicationScoped

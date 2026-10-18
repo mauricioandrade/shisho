@@ -28,6 +28,21 @@ class LombokConstructorKataTest {
     }
 
     @Test
+    void flagsBeansOfTheProjectsOwnStereotypes() {
+        assertThat(evaluate(kata, """
+                @Component
+                @interface Adapter {}
+
+                @Adapter
+                @interface PersistenceAdapter {}
+
+                @PersistenceAdapter
+                @RequiredArgsConstructor
+                class AccountPersistenceAdapter {}
+                """)).extracting(Lesson::line).as("@PersistenceAdapter is a @Component").containsExactly(8);
+    }
+
+    @Test
     void ignoresClassesThatAreNotBeans() {
         assertThat(evaluate(kata, """
                 @Data

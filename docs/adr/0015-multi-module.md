@@ -26,7 +26,9 @@ arquitetura.
 um módulo entram na mesma lista, já achatada.
 
 - **Maven:** `<modules><module>` e, do Maven 4, `<subprojects><subproject>`, lidos
-  recursivamente. Um módulo fora do projeto (`../outro`), sem `pom.xml` ou já lido (dois poms que
+  recursivamente. Os módulos de um `<profile>` entram também, ativo ou não: o parser analisa o
+  código deles de qualquer jeito, então o build precisa ser conhecido. Já as dependências
+  declaradas dentro do profile ficam de fora, porque só valem quando ele está ativo. Um módulo fora do projeto (`../outro`), sem `pom.xml` ou já lido (dois poms que
   se listam) é pulado: o projeto analisado não é confiável, e um ciclo não pode travar a análise.
 - **Gradle:** os `include(...)` do `settings.gradle(.kts)`, com o caminho do projeto virando
   diretório (`":app:web"` → `app/web`). A raiz pode não ter script próprio; aí o build é o
@@ -66,11 +68,14 @@ de antes.
 - **Analisar cada módulo separado**, com a sua própria graduação. A arquitetura é do projeto: num
   hexagonal dividido em módulos, `dominio/` sozinho não é hexagonal nem nada. E a herança do Maven
   teria que ser resolvida à mão em cada módulo.
+- **Ler só os profiles com `<activeByDefault>`**, imitando o Maven sem `-P`. Mas o código dos
+  outros módulos seria analisado do mesmo jeito, só que sem build: um controller num módulo de
+  profile pareceria de um projeto sem starter web.
 - **No hook, conferir se o build de cima lista o módulo**, em vez de só ver se tem build. Seria mais
   exato, mas precisaria ler os dois builds a cada edição. Um diretório com build logo acima de outro
   com build é, na prática, um multi-módulo.
 
-O que continua de fora: módulos ativados só num `<profile>`, `project(":x").projectDir = file(...)`
+O que continua de fora: `project(":x").projectDir = file(...)`
 no Gradle e dependências declaradas em convention plugins do `buildSrc`. As de `subprojects { }` e
 `allprojects { }` passaram a ser lidas como do build da raiz ([ADR 0013](0013-gradle.md)).
 

@@ -24,8 +24,9 @@ extensão `quarkus-hibernate-validator`, um corpo inválido vira 400 antes de o 
 ## Quando é aceitável
 
 Quando a validação é feita de propósito em outro lugar, como num validador de domínio que
-precisa consultar o banco; nesse caso, deixe isso claro no código. DTOs sem nenhuma anotação de
-validação a kata já ignora.
+precisa consultar o banco; nesse caso, deixe isso claro no código. Um DTO do projeto sem nenhuma
+restrição (nem nele, nem na classe que ele estende) a kata já ignora, porque o `@Valid` não teria o
+que conferir. Um tipo de fora do projeto continua cobrado: as anotações dele não são visíveis.
 
 ## Antes
 

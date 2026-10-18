@@ -22,8 +22,10 @@ runs.
 ## Acceptable when
 
 When validation is done elsewhere on purpose, as in a domain validator that has to query the
-database; in that case, make it clear in the code. DTOs with no validation annotation at all are
-already ignored by the kata.
+database; in that case, make it clear in the code. A DTO of the project with no constraint at all
+(neither in it nor in the class it extends) is already ignored by the kata, since `@Valid` would
+have nothing to check. A type from outside the project is still flagged: its annotations cannot be
+seen.
 
 ## Before
 

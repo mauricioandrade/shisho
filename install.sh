@@ -32,8 +32,10 @@ if [ -z "$java_version" ] || [ "$java_version" -lt 25 ]; then
     exit 1
 fi
 
+# Without a terminal (a script, CI), read hits the end of input: the defaults apply, as if
+# the person pressed Enter, instead of set -e ending the script without a word.
 while [ "$language" != "pt" ] && [ "$language" != "en" ]; do
-    read -r -p "Idioma / Language [pt/en] (pt): " language
+    read -r -p "Idioma / Language [pt/en] (pt): " language || echo
     language="${language:-pt}"
 done
 say() {
@@ -87,9 +89,9 @@ export SHISHO_IDIOMA=$language
 $end"
 
 if [ "$language" = "pt" ]; then
-    read -r -p "Adicionar o shisho ao PATH e o idioma ao $rc? [S/n] " answer
+    read -r -p "Adicionar o shisho ao PATH e o idioma ao $rc? [S/n] " answer || echo
 else
-    read -r -p "Add shisho to the PATH and the language to $rc? [Y/n] " answer
+    read -r -p "Add shisho to the PATH and the language to $rc? [Y/n] " answer || echo
 fi
 case "${answer:-y}" in
     [nN]*)

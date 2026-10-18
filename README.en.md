@@ -161,6 +161,7 @@ Each lesson says what is wrong, what goes wrong because of it and how to fix it.
 |---|---|---|---|
 | `field-injection` | GRAVE | `@Autowired`/`@Inject` on a field (in Quarkus, only `@Autowired`) | `new` creates an incomplete object, and the test needs Spring |
 | `unproxyable-method` | GRAVE | `@Transactional`, `@Async` or `@Cacheable` on a `private`, `static` or `final` method (on Boot 2, not `public`), or called from inside its own class | the proxy cannot reach the method, and the annotation is silently ignored |
+| `entity-without-default-constructor` | GRAVE | `@Entity`/`@Embeddable` whose constructors all take parameters | Hibernate cannot create the entity, and the first query fails |
 | `lombok-constructor` | MEDIA | `@RequiredArgsConstructor`/`@AllArgsConstructor` | the dependencies vanish from the code, and the tenth one slips in unnoticed |
 | `non-final-dependency` | MEDIA | injected dependency without `final` | any method can replace it after construction |
 | `system-out` | MEDIA | `System.out`, `System.err`, `printStackTrace()` | no level or timestamp, and outside the log aggregator |
@@ -168,11 +169,14 @@ Each lesson says what is wrong, what goes wrong because of it and how to fix it.
 | `request-body-without-valid` | MEDIA | request body without `@Valid` (`@RequestBody` or a Jakarta REST body) | the DTO's validation is ignored, and invalid data reaches the service |
 | `entity-in-controller` | MEDIA | endpoint that receives or returns a JPA `@Entity` | the database becomes the API contract, and internal fields leak |
 | `entity-with-lombok-data` | MEDIA | `@Entity` with `@Data` or an `@EqualsAndHashCode` of every field | the hash changes on `persist`, and `toString` walks lazy collections |
+| `eager-collection` | MEDIA | `@OneToMany`/`@ManyToMany` with `fetch = EAGER` | the collection comes with every query: N+1 or a Cartesian product |
 | `missing-controller-advice` | MEDIA | controllers and no `@RestControllerAdvice` at all (in Quarkus, `ExceptionMapper`) | every endpoint handles (or forgets) its own errors |
 | `avoided-dependency` | MEDIA | abandoned, replaced or relocated dependency (Log4j 1, Springfox, Joda-Time... see [`catalog/dependencies`](catalog/dependencies)) | no security fixes, or already replaced by its own project |
 | `value-outside-constructor` | LEVE | `@Value` outside a constructor parameter | the value arrives by reflection, and a test using `new` goes without it |
 | `dto-not-record` | LEVE | DTO (by package or suffix) that is not a record | hand-written getters, `equals` and `hashCode`, and mutable |
 | `transactional-read-only` | LEVE | read method (`find…`, `buscar…`) in a write transaction | Hibernate dirty-checks for nothing |
+| `to-one-without-lazy` | LEVE | `@ManyToOne`/`@OneToOne` without `fetch` (JPA's default is EAGER) | every entity loaded brings the other one along, and a list becomes N+1 |
+| `transactional-controller` | LEVE | `@Transactional` on a `@Controller`/`@RestController` | the transaction and the rule it protects sit outside the service |
 | `configuration-properties-not-record` | LEVE | `@ConfigurationProperties` on a class with setters | the configuration can change after it is loaded |
 | `prefer-configuration-properties` | LEVE | 3 or more `@Value` (or `@ConfigProperty`) with the same prefix in one class | loose properties, with no type or validation in one place |
 | `missing-actuator` | LEVE | web application without `spring-boot-starter-actuator` (in Quarkus, `quarkus-smallrye-health`) | with no health check, the orchestrator cannot tell whether the app is alive |
@@ -672,6 +676,7 @@ as its notes, which `install.sh` then downloads. Why it works this way: [ADR 001
 - [x] **Phase 18**: new katas: `unproxyable-method`, `swallowed-exception` and
   `entity-with-lombok-data` ([ADR 0019](docs/adr/0019-new-katas.md))
 - [x] **Phase 19**: self-invocation: a `this.save()` that skips the proxy ([ADR 0020](docs/adr/0020-self-invocation.md))
+- [x] **Phase 20**: JPA katas: fetching, the entity's constructor and transactions on controllers ([ADR 0021](docs/adr/0021-jpa-katas.md))
 - [ ] **Next**: other stacks, reusing the architecture catalog
 
 ![Sung Jinwoo, from Solo Leveling, striking with a dagger among stone statues](docs/anime/roadmap.gif)

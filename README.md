@@ -156,6 +156,7 @@ Graduação: 3º kyū  (8 lições: 1 grave, 4 médias, 3 leves)
 |---|---|---|---|
 | `field-injection` | GRAVE | `@Autowired`/`@Inject` em campo (no Quarkus, só `@Autowired`) | `new` cria o objeto incompleto, e o teste precisa de Spring |
 | `unproxyable-method` | GRAVE | `@Transactional`, `@Async` ou `@Cacheable` em método `private`, `static` ou `final` (no Boot 2, não `public`), ou chamado de dentro da própria classe | o proxy não alcança o método, e a anotação é ignorada em silêncio |
+| `entity-without-default-constructor` | GRAVE | `@Entity`/`@Embeddable` cujos construtores recebem todos parâmetros | o Hibernate não consegue criar a entidade, e a primeira consulta falha |
 | `lombok-constructor` | MEDIA | `@RequiredArgsConstructor`/`@AllArgsConstructor` | as dependências somem do código, e a décima entra sem ninguém notar |
 | `non-final-dependency` | MEDIA | dependência injetada sem `final` | qualquer método pode trocá-la depois da construção |
 | `system-out` | MEDIA | `System.out`, `System.err`, `printStackTrace()` | sem nível nem horário, e fora do agregador de logs |
@@ -163,11 +164,14 @@ Graduação: 3º kyū  (8 lições: 1 grave, 4 médias, 3 leves)
 | `request-body-without-valid` | MEDIA | corpo da requisição sem `@Valid` (`@RequestBody` ou corpo Jakarta REST) | a validação do DTO é ignorada, e dado inválido chega ao service |
 | `entity-in-controller` | MEDIA | endpoint que recebe ou devolve uma `@Entity` JPA | o banco vira o contrato da API, e campos internos vazam |
 | `entity-with-lombok-data` | MEDIA | `@Entity` com `@Data` ou `@EqualsAndHashCode` de todos os campos | o hash muda no `persist`, e o `toString` percorre coleções lazy |
+| `eager-collection` | MEDIA | `@OneToMany`/`@ManyToMany` com `fetch = EAGER` | a coleção vem em toda consulta: N+1 ou produto cartesiano |
 | `missing-controller-advice` | MEDIA | controllers sem nenhum `@RestControllerAdvice` (no Quarkus, `ExceptionMapper`) | cada endpoint trata (ou esquece) os próprios erros |
 | `avoided-dependency` | MEDIA | dependência abandonada, substituída ou movida (Log4j 1, Springfox, Joda-Time... ver [`catalog/dependencies`](catalog/dependencies)) | sem correções de segurança, ou já substituída pelo próprio projeto |
 | `value-outside-constructor` | LEVE | `@Value` fora de parâmetro de construtor | o valor chega por reflexão, e um teste com `new` fica sem ele |
 | `dto-not-record` | LEVE | DTO (por pacote ou sufixo) que não é record | getters, `equals` e `hashCode` escritos à mão, e mutável |
 | `transactional-read-only` | LEVE | método de leitura (`find…`, `buscar…`) numa transação de escrita | o Hibernate faz dirty checking à toa |
+| `to-one-without-lazy` | LEVE | `@ManyToOne`/`@OneToOne` sem `fetch` (o padrão do JPA é EAGER) | cada entidade carregada traz a outra junto, e uma lista vira N+1 |
+| `transactional-controller` | LEVE | `@Transactional` num `@Controller`/`@RestController` | a transação e a regra que ela protege ficam fora do service |
 | `configuration-properties-not-record` | LEVE | `@ConfigurationProperties` numa classe com setters | a configuração pode ser alterada depois de carregada |
 | `prefer-configuration-properties` | LEVE | 3 ou mais `@Value` (ou `@ConfigProperty`) com o mesmo prefixo na mesma classe | propriedades soltas, sem tipo nem validação num lugar só |
 | `missing-actuator` | LEVE | aplicação web sem `spring-boot-starter-actuator` (no Quarkus, `quarkus-smallrye-health`) | sem health check, o orquestrador não sabe se a aplicação está viva |
@@ -658,6 +662,7 @@ que assim: [ADR 0010](docs/adr/0010-release.md).
 - [x] **Fase 18** — katas novas: `unproxyable-method`, `swallowed-exception` e
   `entity-with-lombok-data` ([ADR 0019](docs/adr/0019-new-katas.md))
 - [x] **Fase 19** — auto-invocação: `this.salvar()` que escapa do proxy ([ADR 0020](docs/adr/0020-self-invocation.md))
+- [x] **Fase 20** — katas de JPA: fetch, construtor da entidade e transação no controller ([ADR 0021](docs/adr/0021-jpa-katas.md))
 - [ ] **Depois** — outras stacks, reaproveitando o catálogo de arquiteturas
 
 ![Sung Jinwoo, de Solo Leveling, atacando com uma adaga em meio a estátuas de pedra](docs/anime/roadmap.gif)

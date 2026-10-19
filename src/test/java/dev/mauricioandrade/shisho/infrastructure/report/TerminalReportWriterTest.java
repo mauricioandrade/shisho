@@ -24,6 +24,7 @@ import dev.mauricioandrade.shisho.domain.model.Rank;
 import dev.mauricioandrade.shisho.domain.model.Severity;
 import dev.mauricioandrade.shisho.domain.model.SourceFile;
 import dev.mauricioandrade.shisho.domain.model.Verdict;
+import dev.mauricioandrade.shisho.infrastructure.settings.ApplicationSettingsReader;
 import dev.mauricioandrade.shisho.infrastructure.build.MavenBuildFileReader;
 import dev.mauricioandrade.shisho.infrastructure.catalog.MarkdownCatalogRepository;
 import dev.mauricioandrade.shisho.infrastructure.detector.Detectors;
@@ -221,7 +222,8 @@ class TerminalReportWriterTest {
     void reportsTheMessyStudentFixture() {
         AnalyzeProjectService service = new AnalyzeProjectService(
                 new MavenBuildFileReader(), new YamlProjectConfigReader(), new JavaParserSourceParser(), Katas.all(MarkdownCatalogRepository.bundled().avoidedDependencies()),
-                new ClassifyArchitectureService(MarkdownCatalogRepository.bundled(), Detectors.all()), new RankCalculator());
+                new ClassifyArchitectureService(MarkdownCatalogRepository.bundled(), Detectors.all()), new RankCalculator(),
+                List.of(), List.of(), _ -> Optional.empty(), new ApplicationSettingsReader());
 
         String report = render(service.analyze(Path.of("src/test/resources/fixtures/aluno-baguncado")), PORTUGUESE);
 
@@ -230,8 +232,8 @@ class TerminalReportWriterTest {
                         師匠 Shishō — análise de aluno-baguncado  (Java 21)
                         Arquitetura: Camadas técnicas (Layered)  (83% da assinatura: controller, service, repository, model, dto)
 
-                        · LEVE   [missing-actuator]""")
-                .endsWith("\nGraduação: 6º kyū  (20 lições: 2 graves, 9 médias, 6 leves, 3 sugestões)\n");
+                        ! MEDIA  [open-in-view]""")
+                .endsWith("\nGraduação: 6º kyū  (21 lições: 2 graves, 10 médias, 6 leves, 3 sugestões)\n");
     }
 
     @Test

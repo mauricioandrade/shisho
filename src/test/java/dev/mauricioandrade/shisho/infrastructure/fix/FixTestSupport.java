@@ -4,6 +4,7 @@ import dev.mauricioandrade.shisho.application.usecase.AnalyzeProjectService;
 import dev.mauricioandrade.shisho.application.usecase.ClassifyArchitectureService;
 import dev.mauricioandrade.shisho.application.usecase.RankCalculator;
 import dev.mauricioandrade.shisho.domain.model.FileFix;
+import dev.mauricioandrade.shisho.infrastructure.settings.ApplicationSettingsReader;
 import dev.mauricioandrade.shisho.infrastructure.build.MavenBuildFileReader;
 import dev.mauricioandrade.shisho.infrastructure.catalog.MarkdownCatalogRepository;
 import dev.mauricioandrade.shisho.infrastructure.config.YamlProjectConfigReader;
@@ -53,7 +54,8 @@ final class FixTestSupport {
 
     static AnalyzeProjectService analyzer() {
         return new AnalyzeProjectService(new MavenBuildFileReader(), new YamlProjectConfigReader(), new JavaParserSourceParser(),
-                Katas.all(MarkdownCatalogRepository.bundled().avoidedDependencies()), new ClassifyArchitectureService(MarkdownCatalogRepository.bundled(), Detectors.all()), new RankCalculator());
+                Katas.all(MarkdownCatalogRepository.bundled().avoidedDependencies()), new ClassifyArchitectureService(MarkdownCatalogRepository.bundled(), Detectors.all()), new RankCalculator(),
+                List.of(), List.of(), _ -> Optional.empty(), new ApplicationSettingsReader());
     }
 
     static void write(Path root, String file, String content) {

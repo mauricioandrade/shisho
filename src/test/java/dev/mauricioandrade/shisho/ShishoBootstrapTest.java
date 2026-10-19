@@ -114,7 +114,7 @@ class ShishoBootstrapTest {
         assertThat(out())
                 .contains("análise de loja  (Java 21)")
                 .contains("Arquitetura: Camadas técnicas (Layered)")
-                .contains("(21 lições: 2 graves, 10 médias, 6 leves, 3 sugestões)");
+                .contains("(22 lições: 2 graves, 11 médias, 6 leves, 3 sugestões)");
 
         Path sarif = temp.resolve("shisho.sarif");
         assertThat(run("analyze", "--format", "SARIF", "--output", sarif.toString(), project.toString())).isEqualTo(1);
@@ -201,7 +201,8 @@ class ShishoBootstrapTest {
     @Test
     void theSenseiModeShowsTheCatalogGuides() {
         assertThat(run("analyze", "--sensei", FIXTURES + "aluno-baguncado")).isEqualTo(1);
-        assertThat(out()).contains("\nPor que e como corrigir (modo sensei)\n\n[missing-actuator] Aplicação web sem health check\n  Por quê:\n")
+        assertThat(out()).contains("\nPor que e como corrigir (modo sensei)\n\n[open-in-view] Open Session in View ligado sem ninguém escolher\n  Por quê:\n")
+                .contains("\n[missing-actuator] Aplicação web sem health check\n  Por quê:\n")
                 .contains("  Referências:\n    https://docs.spring.io/spring-boot/reference/actuator/endpoints.html\n");
 
         out.reset();

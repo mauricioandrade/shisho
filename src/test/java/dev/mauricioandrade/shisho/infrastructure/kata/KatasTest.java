@@ -13,10 +13,12 @@ import dev.mauricioandrade.shisho.infrastructure.catalog.MarkdownCatalogReposito
 import dev.mauricioandrade.shisho.infrastructure.detector.Detectors;
 import dev.mauricioandrade.shisho.infrastructure.config.YamlProjectConfigReader;
 import dev.mauricioandrade.shisho.infrastructure.parser.JavaParserSourceParser;
+import dev.mauricioandrade.shisho.infrastructure.settings.ApplicationSettingsReader;
 import org.junit.jupiter.api.Test;
 
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Optional;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -31,7 +33,7 @@ class KatasTest {
 
     @Test
     void katasHaveUniqueIds() {
-        assertThat(Katas.all(MarkdownCatalogRepository.bundled().avoidedDependencies())).extracting(Kata::id).doesNotHaveDuplicates().hasSize(28);
+        assertThat(Katas.all(MarkdownCatalogRepository.bundled().avoidedDependencies())).extracting(Kata::id).doesNotHaveDuplicates().hasSize(29);
     }
 
     @Test
@@ -68,6 +70,7 @@ class KatasTest {
         assertThat(analyze(FIXTURES.resolve("aluno-baguncado")))
                 .extracting(lesson -> lesson.file().toString(), Lesson::line, Lesson::kataId, Lesson::severity)
                 .containsExactly(
+                        tuple("pom.xml", 0, "open-in-view", Severity.MEDIA),
                         tuple("pom.xml", 0, "missing-actuator", Severity.LEVE),
                         tuple("pom.xml", 0, "missing-springdoc", Severity.INFO),
                         tuple(properties, 5, "configuration-properties-not-record", Severity.LEVE),
@@ -138,7 +141,8 @@ class KatasTest {
     private static List<Lesson> analyze(Path project) {
         return new AnalyzeProjectService(
                 new MavenBuildFileReader(), new YamlProjectConfigReader(), new JavaParserSourceParser(), Katas.all(MarkdownCatalogRepository.bundled().avoidedDependencies()),
-                new ClassifyArchitectureService(MarkdownCatalogRepository.bundled(), Detectors.all()), new RankCalculator())
+                new ClassifyArchitectureService(MarkdownCatalogRepository.bundled(), Detectors.all()), new RankCalculator(),
+                List.of(), List.of(), _ -> Optional.empty(), new ApplicationSettingsReader())
                 .analyze(project)
                 .lessons();
     }

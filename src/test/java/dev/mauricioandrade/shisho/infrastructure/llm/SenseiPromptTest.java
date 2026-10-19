@@ -8,6 +8,7 @@ import dev.mauricioandrade.shisho.domain.model.JavaVersion;
 import dev.mauricioandrade.shisho.domain.model.Lesson;
 import dev.mauricioandrade.shisho.domain.model.Rank;
 import dev.mauricioandrade.shisho.domain.model.Severity;
+import dev.mauricioandrade.shisho.infrastructure.settings.ApplicationSettingsReader;
 import dev.mauricioandrade.shisho.infrastructure.build.MavenBuildFileReader;
 import dev.mauricioandrade.shisho.infrastructure.catalog.MarkdownCatalogRepository;
 import dev.mauricioandrade.shisho.infrastructure.config.YamlProjectConfigReader;
@@ -134,7 +135,8 @@ class SenseiPromptTest {
     private static Analysis analyze(String fixture) {
         return new AnalyzeProjectService(
                 new MavenBuildFileReader(), new YamlProjectConfigReader(), new JavaParserSourceParser(), Katas.all(CATALOG.avoidedDependencies()),
-                new ClassifyArchitectureService(CATALOG, Detectors.all()), new RankCalculator())
+                new ClassifyArchitectureService(CATALOG, Detectors.all()), new RankCalculator(), List.of(), List.of(),
+                _ -> Optional.empty(), new ApplicationSettingsReader())
                 .analyze(Path.of("src/test/resources/fixtures", fixture));
     }
 

@@ -156,6 +156,10 @@ o guia traz também `## Antes (Quarkus)` e `## Depois (Quarkus)`, no mesmo forma
 com essa chave mostra esse exemplo no lugar do padrão, no modo sensei, no HTML e no SARIF. O
 teste roda o exemplo num projeto Quarkus e exige a lição com a chave `.quarkus`.
 
+O teste roda os exemplos em ` ```java ` e em ` ```properties `. Um exemplo `properties` vira o
+`application.properties` de uma aplicação com JPA (`spring-boot-starter-data-jpa`, ou
+`quarkus-hibernate-orm` no exemplo Quarkus). Os exemplos de build (` ```xml `) não são rodados.
+
 ## Templates de CRUD (`scaffolds/`)
 
 Cada arquivo ensina o `shisho crud` a gerar um CRUD REST numa arquitetura: um arquivo por

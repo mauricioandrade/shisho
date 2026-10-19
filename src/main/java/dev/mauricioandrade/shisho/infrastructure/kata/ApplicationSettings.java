@@ -4,7 +4,9 @@ import dev.mauricioandrade.shisho.domain.model.ProjectModel;
 import dev.mauricioandrade.shisho.domain.model.SettingsFile;
 import dev.mauricioandrade.shisho.domain.model.SettingsFile.Setting;
 
+import java.nio.file.Path;
 import java.util.Locale;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
 
@@ -18,6 +20,9 @@ final class ApplicationSettings {
 
     private static final Set<String> DEVELOPMENT_PROFILES = Set.of("dev", "development", "local", "test");
     private static final String QUARKUS_PRODUCTION = "prod";
+    private static final Path SRC = Path.of("src");
+    private static final Path MAIN = Path.of("main");
+    private static final Path RESOURCES = Path.of("resources");
 
     private ApplicationSettings() {
     }
@@ -55,12 +60,25 @@ final class ApplicationSettings {
     }
 
     /**
-     * A Quarkus setting without a profile that a {@code %prod.} one replaces in production. Quarkus
-     * names its production profile; Spring leaves the name to the project, so there is no such rule.
+     * A Quarkus setting without a profile that a {@code %prod.} one of the same application replaces
+     * in production. Quarkus names its production profile; Spring leaves the name to the project, so
+     * there is no such rule.
      */
     static boolean replacedInQuarkusProduction(ProjectModel project, Found found) {
-        return found.setting().profiles().isEmpty() && all(project).anyMatch(other ->
-                other.setting().profiles().contains(QUARKUS_PRODUCTION) && other.named(found.key()));
+        Path application = application(found.file());
+        return found.setting().profiles().isEmpty() && all(project).anyMatch(other -> application(other.file()).equals(application)
+                && other.setting().profiles().contains(QUARKUS_PRODUCTION) && other.named(found.key()));
+    }
+
+    /** The directory of the module whose {@code src/main/resources} holds the file: one application. */
+    private static Path application(SettingsFile file) {
+        Path path = file.file();
+        for (int i = 0; i + 2 < path.getNameCount(); i++) {
+            if (path.getName(i).equals(SRC) && path.getName(i + 1).equals(MAIN) && path.getName(i + 2).equals(RESOURCES)) {
+                return i == 0 ? Path.of("") : path.subpath(0, i);
+            }
+        }
+        return Optional.ofNullable(path.getParent()).orElse(Path.of(""));
     }
 
     static String canonical(String key) {

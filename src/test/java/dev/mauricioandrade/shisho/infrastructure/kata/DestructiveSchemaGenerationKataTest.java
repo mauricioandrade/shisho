@@ -71,6 +71,19 @@ class DestructiveSchemaGenerationKataTest {
     }
 
     @Test
+    void onlyTheSameApplicationCanReplaceASetting() {
+        List<Lesson> lessons = KataTestSupport.evaluateSettings(kata, Map.of(
+                "orders/src/main/resources/application.properties", "quarkus.hibernate-orm.schema-management.strategy=drop-and-create\n",
+                "fruits/src/main/resources/application.properties", """
+                        quarkus.hibernate-orm.schema-management.strategy=drop-and-create
+                        %prod.quarkus.hibernate-orm.schema-management.strategy=create
+                        """), KataTestSupport.build("pom.xml"));
+
+        assertThat(lessons).extracting(lesson -> lesson.file().toString())
+                .containsExactly(Path.of("orders/src/main/resources/application.properties").toString());
+    }
+
+    @Test
     void teachesTheQuarkusProfilePrefixToAQuarkusSetting() {
         List<Lesson> lessons = KataTestSupport.evaluateSettings(kata, """
                 quarkus.hibernate-orm.schema-management.strategy=drop-and-create

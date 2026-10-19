@@ -158,6 +158,7 @@ Graduação: 3º kyū  (8 lições: 1 grave, 4 médias, 3 leves)
 | `field-injection` | GRAVE | `@Autowired`/`@Inject` em campo (no Quarkus, só `@Autowired`) | `new` cria o objeto incompleto, e o teste precisa de Spring |
 | `unproxyable-method` | GRAVE | `@Transactional`, `@Async` ou `@Cacheable` em método `private`, `static` ou `final` (no Boot 2, não `public`), ou chamado de dentro da própria classe | o proxy não alcança o método, e a anotação é ignorada em silêncio |
 | `entity-without-default-constructor` | GRAVE | `@Entity`/`@Embeddable` cujos construtores recebem todos parâmetros | o Hibernate não consegue criar a entidade, e a primeira consulta falha |
+| `destructive-schema-generation` | GRAVE | `ddl-auto=create-drop` (no Quarkus, `drop-and-create`) fora dos perfis de desenvolvimento | cada partida apaga as tabelas, com os dados junto |
 | `lombok-constructor` | MEDIA | `@RequiredArgsConstructor`/`@AllArgsConstructor` | as dependências somem do código, e a décima entra sem ninguém notar |
 | `non-final-dependency` | MEDIA | dependência injetada sem `final` | qualquer método pode trocá-la depois da construção |
 | `system-out` | MEDIA | `System.out`, `System.err`, `printStackTrace()` | sem nível nem horário, e fora do agregador de logs |
@@ -166,6 +167,8 @@ Graduação: 3º kyū  (8 lições: 1 grave, 4 médias, 3 leves)
 | `entity-in-controller` | MEDIA | endpoint que recebe ou devolve uma `@Entity` JPA | o banco vira o contrato da API, e campos internos vazam |
 | `entity-with-lombok-data` | MEDIA | `@Entity` com `@Data` ou `@EqualsAndHashCode` de todos os campos | o hash muda no `persist`, e o `toString` percorre coleções lazy |
 | `eager-collection` | MEDIA | `@OneToMany`/`@ManyToMany` com `fetch = EAGER` | a coleção vem em toda consulta: N+1 ou produto cartesiano |
+| `hardcoded-secret` | MEDIA | senha, segredo, token ou chave escrito na configuração | quem lê o repositório lê o segredo, e o Git não esquece |
+| `open-in-view` | MEDIA | Spring Data JPA sem `spring.jpa.open-in-view` declarado (o padrão é `true`) | cada requisição segura uma conexão, e consultas escapam do service |
 | `missing-controller-advice` | MEDIA | controllers sem nenhum `@RestControllerAdvice` (no Quarkus, `ExceptionMapper`) | cada endpoint trata (ou esquece) os próprios erros |
 | `avoided-dependency` | MEDIA | dependência abandonada, substituída ou movida (Log4j 1, Springfox, Joda-Time... ver [`catalog/dependencies`](catalog/dependencies)) | sem correções de segurança, ou já substituída pelo próprio projeto |
 | `value-outside-constructor` | LEVE | `@Value` fora de parâmetro de construtor | o valor chega por reflexão, e um teste com `new` fica sem ele |
@@ -173,6 +176,7 @@ Graduação: 3º kyū  (8 lições: 1 grave, 4 médias, 3 leves)
 | `transactional-read-only` | LEVE | método de leitura (`find…`, `buscar…`) numa transação de escrita | o Hibernate faz dirty checking à toa |
 | `to-one-without-lazy` | LEVE | `@ManyToOne`/`@OneToOne` sem `fetch` (o padrão do JPA é EAGER) | cada entidade carregada traz a outra junto, e uma lista vira N+1 |
 | `transactional-controller` | LEVE | `@Transactional` num `@Controller`/`@RestController` | a transação e a regra que ela protege ficam fora do service |
+| `sql-logging` | LEVE | `show-sql` (no Quarkus, `log.sql`) ou o logger `org.hibernate.SQL` em debug fora dos perfis de desenvolvimento | o log cresce a cada requisição e leva dados junto |
 | `configuration-properties-not-record` | LEVE | `@ConfigurationProperties` numa classe com setters | a configuração pode ser alterada depois de carregada |
 | `prefer-configuration-properties` | LEVE | 3 ou mais `@Value` (ou `@ConfigProperty`) com o mesmo prefixo na mesma classe | propriedades soltas, sem tipo nem validação num lugar só |
 | `missing-actuator` | LEVE | aplicação web sem `spring-boot-starter-actuator` (no Quarkus, `quarkus-smallrye-health`) | sem health check, o orquestrador não sabe se a aplicação está viva |
@@ -180,6 +184,10 @@ Graduação: 3º kyū  (8 lições: 1 grave, 4 médias, 3 leves)
 | `prefer-virtual-threads` | INFO | `Executors.newFixedThreadPool`/`newCachedThreadPool` (Java 21) | para I/O, virtual threads dispensam dimensionar pool |
 | `prefer-scoped-values` | INFO | campo `ThreadLocal` (Java 25) | `ScopedValue` não vaza entre tarefas e não precisa de `remove()` |
 | `quarkus-private-injection` | LEVE | campo `private` com `@Inject` ou `@ConfigProperty` (só Quarkus) | o ArC volta à reflexão, que custa na inicialização e na imagem nativa |
+
+As quatro katas de configuração leem o `application.properties` e o `application.yml` de cada
+módulo, com os perfis (`application-dev.yml`, `%dev.` no Quarkus). O que vale só para
+desenvolvimento ou teste não é acusado ([ADR 0024](docs/adr/0024-settings-katas.md)).
 
 Um projeto Quarkus é reconhecido pelo build (uma dependência `io.quarkus`): as katas usam os
 equivalentes dele (CDI, Jakarta REST, SmallRye) e explicam a lição com as APIs do Quarkus. Por
@@ -686,6 +694,7 @@ que assim: [ADR 0010](docs/adr/0010-release.md).
 - [x] **Fase 20** — katas de JPA: fetch, construtor da entidade e transação no controller ([ADR 0021](docs/adr/0021-jpa-katas.md))
 - [x] **Fase 21** — desempenho: parse em paralelo e a análise 2× mais rápida em projetos grandes ([ADR 0022](docs/adr/0022-performance.md))
 - [x] **Fase 22** — baseline: adotar o Shishō num projeto existente e reprovar só as lições novas ([ADR 0023](docs/adr/0023-baseline.md))
+- [x] **Fase 23** — katas de configuração: o `application.properties`/`.yml` com perfis; schema apagado, segredo escrito, open-in-view e SQL no log ([ADR 0024](docs/adr/0024-settings-katas.md))
 - [ ] **Depois** — outras stacks, reaproveitando o catálogo de arquiteturas
 
 ![Sung Jinwoo, de Solo Leveling, atacando com uma adaga em meio a estátuas de pedra](docs/anime/roadmap.gif)

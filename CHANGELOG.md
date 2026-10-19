@@ -8,6 +8,12 @@ comportamento.
 
 ## [Não lançado]
 
+### Novo
+
+- **Katas de configuração**: o Shishō passa a ler o `application.properties` e o `application.yml`
+  de cada módulo, com os perfis. Katas `destructive-schema-generation` (GRAVE), `hardcoded-secret`,
+  `open-in-view` e `sql-logging` ([ADR 0024](docs/adr/0024-settings-katas.md)).
+
 ## [0.3.0] - 2026-10-18
 
 ### Atenção

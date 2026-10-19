@@ -7,6 +7,12 @@ release, in Portuguese ([CHANGELOG.md](CHANGELOG.md)) and English. The format fo
 
 ## [Unreleased]
 
+### Added
+
+- **Settings katas**: the Shishō now reads each module's `application.properties` and
+  `application.yml`, with their profiles. Katas `destructive-schema-generation` (GRAVE),
+  `hardcoded-secret`, `open-in-view` and `sql-logging` ([ADR 0024](docs/adr/0024-settings-katas.md)).
+
 ## [0.3.0] - 2026-10-18
 
 ### Heads up
